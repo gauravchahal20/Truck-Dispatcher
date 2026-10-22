@@ -111,7 +111,7 @@ export default function LeadsTable({
     const rows = filteredLeads.map(l => {
       const dm = (l.contacts && l.contacts.find(c => c.is_decision_maker)) || (l.contacts && l.contacts[0]);
       const isShipper = l.lead_type === 'SHIPPER' || (!l.fleet_size && l.carrier_operation?.includes('Shipper'));
-      const volumeOrFleet = isShipper ? (l.freight_volume || 'Direct Freight Demand') : `${l.fleet_size || 'Unknown'} Trucks`;
+      const volumeOrFleet = isShipper ? (l.freight_volume || 'Direct Freight Demand') : (l.fleet_size !== null && l.fleet_size !== undefined ? `${l.fleet_size} Trucks` : 'Unknown');
 
       return [
         `"${(l.company_name || '').replace(/"/g, '""')}"`,
@@ -120,11 +120,11 @@ export default function LeadsTable({
         `"${(l.legal_name || '').replace(/"/g, '""')}"`,
         `"${l.usdot || ''}"`,
         `"${l.mc_number || ''}"`,
-        `"${l.city || ''}"`,
+        `"${l.city || 'Unknown'}"`,
         `"${l.state || ''}"`,
         `"${l.zip_code || ''}"`,
         `"${volumeOrFleet}"`,
-        `"${(Array.isArray(l.equipment) ? l.equipment.join(', ') : l.equipment || '').replace(/"/g, '""')}"`,
+        `"${(Array.isArray(l.equipment) && l.equipment.length > 0 ? l.equipment.join(', ') : (l.equipment || 'Unknown')).replace(/"/g, '""')}"`,
         `"${l.phone || ''}"`,
         `"${l.email || ''}"`,
         `"${(dm ? dm.full_name : '').replace(/"/g, '""')}"`,
@@ -132,7 +132,7 @@ export default function LeadsTable({
         `"${l.lead_status || ''}"`,
         `"${l.priority || ''}"`,
         `"${l.lead_score || ''}"`,
-        `"${l.operating_status || ''}"`
+        `"${l.operating_status || 'Unknown'}"`
       ].join(',');
     });
 
@@ -387,7 +387,7 @@ export default function LeadsTable({
                           {lead.company_name}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                          <span>{lead.city}, {lead.state}</span>
+                          <span>{lead.city || 'Unknown'}, {lead.state || 'N/A'}</span>
                           {lead.usdot && (
                             <span style={{ color: 'var(--text-muted)' }}>&bull; DOT {lead.usdot}</span>
                           )}
@@ -462,11 +462,11 @@ export default function LeadsTable({
                           {isShipper ? (
                             lead.freight_volume || 'Daily FTL Freight'
                           ) : (
-                            `${lead.fleet_size || 5} Power Units`
+                            lead.fleet_size !== null && lead.fleet_size !== undefined ? `${lead.fleet_size} Power Units` : 'Unknown'
                           )}
                         </div>
                         <div style={{ fontSize: '0.675rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                          {Array.isArray(lead.equipment) ? lead.equipment.slice(0, 2).join(', ') : lead.equipment || 'Dry Van'}
+                          {Array.isArray(lead.equipment) && lead.equipment.length > 0 ? lead.equipment.slice(0, 2).join(', ') : (lead.equipment || 'Unknown')}
                         </div>
                       </td>
 

@@ -261,11 +261,11 @@ Best regards,
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Truck size={13} color="var(--text-dark)" />
-                <span>{isShipper ? (lead.freight_volume || 'Direct Outbound Freight') : `${lead.fleet_size ? `${lead.fleet_size} Power Units` : '1–5 Trucks'}`}</span>
+                <span>{isShipper ? (lead.freight_volume || 'Direct Outbound Freight') : (lead.fleet_size !== null && lead.fleet_size !== undefined ? `${lead.fleet_size} Power Units` : 'Unknown')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ShieldCheck size={13} color="var(--sage-dark)" />
-                <span>{isShipper ? 'Active Direct Shipper' : (lead.operating_status || 'AUTHORIZED Carrier')}</span>
+                <span>{isShipper ? 'Active Direct Shipper' : (lead.operating_status || 'Unknown')}</span>
               </div>
             </div>
 

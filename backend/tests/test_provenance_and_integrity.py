@@ -307,3 +307,49 @@ def test_deduplicator_merges_provenance():
     assert prov["email"]["source"] == "apollo"
     assert prov["fleet_size"]["source"] == "fmcsa_safer"
     assert prov["fleet_size"]["method"] == "official"
+
+
+def test_provenance_validation_official_scraped_require_url_and_timestamp():
+    # 1. Official without URL must fail
+    with pytest.raises(ValueError, match="must have a non-empty source URL"):
+        RawLeadRecord.validate_provenance_entry("usdot", {
+            "source": "fmcsa_official",
+            "url": None,
+            "retrieved_at": "2026-10-22T00:00:00Z",
+            "method": "official"
+        })
+
+    # 2. Official without retrieved_at must fail
+    with pytest.raises(ValueError, match="must have a non-empty retrieved_at timestamp"):
+        RawLeadRecord.validate_provenance_entry("usdot", {
+            "source": "fmcsa_official",
+            "url": "https://data.transportation.gov",
+            "retrieved_at": None,
+            "method": "official"
+        })
+
+    # 3. Scraped without URL must fail
+    with pytest.raises(ValueError, match="must have a non-empty source URL"):
+        RawLeadRecord.validate_provenance_entry("phone", {
+            "source": "google_search",
+            "url": "",
+            "retrieved_at": "2026-10-22T00:00:00Z",
+            "method": "scraped"
+        })
+
+    # 4. Scraped without retrieved_at must fail
+    with pytest.raises(ValueError, match="must have a non-empty retrieved_at timestamp"):
+        RawLeadRecord.validate_provenance_entry("phone", {
+            "source": "google_search",
+            "url": "https://google.com",
+            "retrieved_at": None,
+            "method": "scraped"
+        })
+
+    # 5. legacy_unverified is allowed to have null retrieved_at and null url
+    RawLeadRecord.validate_provenance_entry("phone", {
+        "source": "legacy_import",
+        "url": None,
+        "retrieved_at": None,
+        "method": "legacy_unverified"
+    })

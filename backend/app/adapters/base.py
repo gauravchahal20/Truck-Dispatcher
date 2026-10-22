@@ -71,9 +71,21 @@ class RawLeadRecord(BaseModel):
                 }
         return prov
 
+    @classmethod
+    def validate_provenance_entry(cls, field: str, entry: Dict[str, Any]) -> None:
+        """Enforces that official or scraped entries must have source URL and retrieved_at."""
+        method = entry.get("method")
+        if method in ("official", "scraped"):
+            if not entry.get("url"):
+                raise ValueError(f"Provenance for '{field}' with method '{method}' must have a non-empty source URL")
+            if not entry.get("retrieved_at"):
+                raise ValueError(f"Provenance for '{field}' with method '{method}' must have a non-empty retrieved_at timestamp")
+
     def model_post_init(self, __context: Any) -> None:
         if not self.field_provenance:
             self.field_provenance = self.build_provenance()
+        for field, entry in self.field_provenance.items():
+            self.validate_provenance_entry(field, entry)
 
 
 class EnrichmentResult(BaseModel):

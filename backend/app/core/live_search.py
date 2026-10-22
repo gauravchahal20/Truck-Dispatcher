@@ -368,18 +368,51 @@ class LiveSearchClient:
 
         return signals
 
+    _last_nominatim_call: float = 0.0
+    _nominatim_lock: Optional[asyncio.Lock] = None
+    _nominatim_cache: Dict[str, List[Dict[str, Any]]] = {}
+
     @classmethod
     async def search_nominatim(cls, query: str, limit: int = 5) -> List[Dict[str, Any]]:
         """
         Queries OpenStreetMap Nominatim for real physical location verification.
+        Strictly complies with Nominatim Usage Policy:
+        - Max 1 request per second (enforced via asyncio.Lock and timer)
+        - Descriptive User-Agent with contact information
+        - In-memory response caching
+        - No bulk scraping
         """
-        url = f"https://nominatim.openstreetmap.org/search?q={quote_plus(query)}&format=json&addressdetails=1&limit={limit}"
-        headers = {"User-Agent": "TruckLeadAutopilot/2.0 (leadgen@trucklead.internal)"}
-        try:
-            async with httpx.AsyncClient(timeout=10.0, headers=headers) as client:
-                r = await client.get(url)
-                if r.status_code == 200:
-                    return r.json()
-        except Exception as e:
-            logger.debug(f"Nominatim search error: {e}")
+        query_key = f"{query.strip().lower()}:{limit}"
+        if query_key in cls._nominatim_cache:
+            return cls._nominatim_cache[query_key]
+
+        if cls._nominatim_lock is None:
+            cls._nominatim_lock = asyncio.Lock()
+
+        async with cls._nominatim_lock:
+            # Enforce minimum 1.0s interval between requests
+            now = asyncio.get_event_loop().time()
+            elapsed = now - cls._last_nominatim_call
+            if elapsed < 1.0:
+                await asyncio.sleep(1.0 - elapsed)
+
+            url = f"https://nominatim.openstreetmap.org/search?q={quote_plus(query)}&format=json&addressdetails=1&limit={limit}"
+            headers = {
+                "User-Agent": "TruckLead-Autopilot/2.0 (dispatch-support@trucklead.com; carrier-verification)"
+            }
+            try:
+                async with httpx.AsyncClient(timeout=10.0, headers=headers) as client:
+                    r = await client.get(url)
+                    cls._last_nominatim_call = asyncio.get_event_loop().time()
+                    if r.status_code == 200:
+                        data = r.json()
+                        cls._nominatim_cache[query_key] = data
+                        return data
+                    elif r.status_code == 429:
+                        logger.warning("Nominatim rate limit reached (HTTP 429).")
+            except Exception as e:
+                logger.debug(f"Nominatim search error: {e}")
+            finally:
+                cls._last_nominatim_call = asyncio.get_event_loop().time()
+
         return []
