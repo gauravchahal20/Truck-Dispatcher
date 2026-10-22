@@ -1,0 +1,33 @@
+{
+  "run_id": "33dcf26c-c9e6-4a2e-bbd7-525622a0dd27",
+  "duration_sec": 179.43,
+  "total_leads": 47,
+  "raw_count": 59,
+  "duplicate_count": 12,
+  "dedup_rate": 16.9,
+  "official_source_count": 33,
+  "official_source_pct": 70.2,
+  "source_counts": {
+    "fmcsa_official": 21,
+    "fmcsa_safer": 12,
+    "direct_shippers": 12,
+    "google_maps": 1,
+    "google_search": 1
+  },
+  "valid_phone_count": 33,
+  "valid_phone_pct": 70.2,
+  "active_authority_count": 45,
+  "active_authority_pct": 95.7,
+  "valid_email_count": 0,
+  "valid_email_pct": 0.0,
+  "named_dm_count": 0,
+  "named_dm_pct": 0.0,
+  "full_prov_count": 47,
+  "full_prov_pct": 100.0,
+  "avg_score": 4.73,
+  "priority_counts": {
+    "A": 0,
+    "B": 26,
+    "C": 21
+  }
+}

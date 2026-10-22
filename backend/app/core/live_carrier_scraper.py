@@ -1,10 +1,13 @@
+import os
 import re
+import time
 import asyncio
 import logging
 from typing import List, Dict, Any, Optional
 import httpx
 from bs4 import BeautifulSoup
 from .live_search import LiveSearchClient
+from .circuit_breaker import circuit_breaker
 
 logger = logging.getLogger("trucklead.carrier_scraper")
 
@@ -14,6 +17,7 @@ class LiveCarrierScraper:
     Live carrier discovery engine querying public FMCSA motor carrier census directories.
     Extracts authentic legal entity data, USDOT/MC records, registered physical addresses,
     fleet size, driver counts, and safety ratings.
+    Demoted to secondary fallback behind official FMCSA datasets with circuit-breaker protection.
     """
 
     HEADERS = {
@@ -37,9 +41,20 @@ class LiveCarrierScraper:
         """
         Discovers authentic interstate/intrastate motor carriers for a given US state.
         Parses live FMCSA census records with verified USDOT numbers, phone numbers, and addresses.
+        Guarded by feature flag ENABLE_USDOTLOOKUP_FALLBACK and circuit breaker.
         """
         st_clean = state.strip().upper()
         if not st_clean or len(st_clean) != 2:
+            return []
+
+        # 1. Feature Flag Check
+        if not os.getenv("ENABLE_USDOTLOOKUP_FALLBACK", "true").lower() in ("true", "1", "yes"):
+            logger.info("usdotlookup scraping skipped: fallback disabled by feature flag.")
+            return []
+
+        # 2. Circuit Breaker Check
+        if not circuit_breaker.can_execute("usdotlookup"):
+            logger.warning("usdotlookup scraping skipped: circuit breaker is OPEN.")
             return []
 
         # Check cache first
@@ -51,6 +66,7 @@ class LiveCarrierScraper:
 
         carriers: List[Dict[str, Any]] = []
         st_lower = st_clean.lower()
+        start_time = time.time()
 
         async with httpx.AsyncClient(timeout=12.0, follow_redirects=True, headers=cls.HEADERS) as client:
             # Query up to 3 directory pages if needed
@@ -124,6 +140,14 @@ class LiveCarrierScraper:
                 if c.get("usdot") and c.get("usdot") not in existing_dots:
                     cls._state_cache[st_clean].append(c)
                     existing_dots.add(c.get("usdot"))
+
+        latency_ms = (time.time() - start_time) * 1000.0
+        if carriers:
+            circuit_breaker.record_success("usdotlookup", latency_ms)
+            asyncio.create_task(circuit_breaker.persist_metrics("usdotlookup", latency_ms))
+        else:
+            circuit_breaker.record_failure("usdotlookup", "No carriers extracted", latency_ms)
+            asyncio.create_task(circuit_breaker.persist_metrics("usdotlookup", latency_ms, "No carriers extracted"))
 
         filtered = cls._filter_carriers(cls._state_cache.get(st_clean, carriers), active_only, fleet_min, fleet_max)
         return filtered[:limit]

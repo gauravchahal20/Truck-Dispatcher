@@ -393,4 +393,23 @@ The frontend is a single-page application built with **React 18** and **Vite**:
    - [`test_scoring_rules.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_scoring_rules.py): Tests all 7 scoring criteria, priority tiers, and None/UNKNOWN safety.
    - [`test_validators.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_validators.py): Tests RFC 1918 and cloud metadata SSRF protection, role account email detection, and NANP phone compliance.
    - [`test_integration.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_integration.py): Validates end-to-end pipeline execution both offline and live.
+   - [`test_fmcsa_official.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_fmcsa_official.py): Validates Socrata JSON parsing, incremental checksum sync, and circuit breaker tripping.
+
+---
+
+## 9. Official FMCSA Pipeline & Fault-Tolerant Architecture
+
+1. **Official Primary Discovery Channel**:
+   - [`fmcsa_official.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/fmcsa_official.py) connects directly to the Socrata SODA Open Data API on `data.transportation.gov` (`az4n-8mr2.json`).
+   - Supports QCMobile API (`https://mobile.fmcsa.dot.gov/qc/services/carriers/`) when `FMCSA_QCMOBILE_WEBKEY` is configured.
+   - Rate-limited to max 5 req/s via `asyncio.Lock` cooperative throttling.
+2. **Local Synced Mirror (`fmcsa_carrier_census`)**:
+   - Ingests carriers into local SQLite table with deterministic SHA256 `raw_checksum`.
+   - Subsequent discovery queries hit the local database mirror in < 5ms without issuing redundant external HTTP calls.
+   - When remote sync executes, records with identical checksums skip write operations.
+3. **Circuit Breaker & Fallback Protection**:
+   - Implemented in [`circuit_breaker.py`](file:///f:/GAURAV/GENLEAD/backend/app/core/circuit_breaker.py).
+   - Tracks per-source consecutive failures with a failure threshold of 3 and recovery timeout of 60 seconds.
+   - Persists latency and success/failure metrics to `source_health_metrics` table.
+   - Demotes `usdotlookup` HTML scraping to a feature-flagged fallback (`ENABLE_USDOTLOOKUP_FALLBACK=true`) guarded by circuit breaker.
 

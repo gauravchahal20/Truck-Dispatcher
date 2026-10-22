@@ -40,6 +40,7 @@ class RawLeadRecord(BaseModel):
     extraction_confidence: float = 1.0
     notes: Optional[str] = None
     field_provenance: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    needs_reverification: bool = False
 
     def build_provenance(self, method: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
         """Builds field-level provenance dict for non-null/non-empty fields."""

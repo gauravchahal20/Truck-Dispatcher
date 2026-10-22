@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, List, Optional
 from .base import BaseSourceAdapter
+from .fmcsa_official import FMCSAOfficialAdapter
 from .fmcsa_safer import FMCSASaferAdapter
 from .fmcsa_li import FMCSALicensingInsuranceAdapter
 from .direct_shippers import DirectShippersAdapter
@@ -27,7 +28,8 @@ class SourceRegistry:
 
     def _register_default_adapters(self):
         """Registers all built-in adapters."""
-        # 1. Federal Authorities & Safety (Carriers / Have Trucks)
+        # 1. Official Federal Authorities & Open Datasets (Primary Carrier Discovery)
+        self.register(FMCSAOfficialAdapter(enabled=True))
         self.register(FMCSASaferAdapter(enabled=True))
         self.register(FMCSALicensingInsuranceAdapter(enabled=True))
         
@@ -72,6 +74,7 @@ class SourceRegistry:
     def get_active_discovery_adapters(self, requested_sources: Optional[List[str]] = None, lead_type: str = "ALL") -> List[BaseSourceAdapter]:
         """Returns adapters enabled for discovery matching optional filter and lead type."""
         carrier_sources = {
+            "fmcsa_official",
             "fmcsa_safer",
             "fmcsa_li",
             "google_maps",
@@ -107,6 +110,7 @@ class SourceRegistry:
         return [
             a for a in self._adapters.values()
             if a.enabled and a.name in (
+                "fmcsa_official",
                 "company_website",
                 "direct_shippers",
                 "fmcsa_safer",

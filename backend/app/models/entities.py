@@ -248,3 +248,46 @@ class ErrorLog(Base):
     created_at = Column(DateTime, default=utc_now)
 
     run = relationship("Run", back_populates="errors")
+
+
+class FMCSACarrierCensus(Base):
+    """Local cache and mirror of official FMCSA MCMIS Motor Carrier Census dataset."""
+    __tablename__ = "fmcsa_carrier_census"
+
+    dot_number = Column(String(50), primary_key=True, index=True)
+    legal_name = Column(String(255), nullable=False, index=True)
+    dba_name = Column(String(255), nullable=True)
+    carrier_operation = Column(String(100), nullable=True)
+    phy_street = Column(String(500), nullable=True)
+    phy_city = Column(String(100), nullable=True)
+    phy_state = Column(String(50), nullable=False, index=True)
+    phy_zip = Column(String(20), nullable=True)
+    phone = Column(String(50), nullable=True)
+    power_units = Column(Integer, nullable=True)
+    total_drivers = Column(Integer, nullable=True)
+    operating_status = Column(String(100), nullable=True)
+    safety_rating = Column(String(100), nullable=True)
+    docket_number = Column(String(50), nullable=True, index=True)  # MC / MX number
+    add_date = Column(String(50), nullable=True)
+    mcs150_date = Column(String(50), nullable=True)
+    raw_checksum = Column(String(64), nullable=True)  # SHA256 of raw data for incremental sync
+    synced_at = Column(DateTime, default=utc_now)
+    source_url = Column(String(500), nullable=True)
+
+
+class SourceHealthMetric(Base):
+    """Tracks circuit-breaker status, latency, and success/failure rates per data source."""
+    __tablename__ = "source_health_metrics"
+
+    source_name = Column(String(100), primary_key=True)
+    total_requests = Column(Integer, default=0)
+    successful_requests = Column(Integer, default=0)
+    failed_requests = Column(Integer, default=0)
+    consecutive_failures = Column(Integer, default=0)
+    circuit_breaker_tripped = Column(Boolean, default=False)
+    circuit_breaker_tripped_at = Column(DateTime, nullable=True)
+    last_success_at = Column(DateTime, nullable=True)
+    last_failure_at = Column(DateTime, nullable=True)
+    last_error_message = Column(Text, nullable=True)
+    avg_latency_ms = Column(Float, default=0.0)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)

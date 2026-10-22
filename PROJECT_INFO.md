@@ -408,3 +408,18 @@ The backend contains a 16-test automated suite executed via `pytest`:
   - `test_validators.py`: RFC 1918 private IPv4 and cloud metadata SSRF protection, role-account email detection, NANP phone validation.
   - `test_socket_blocker.py`: Formally proves external sockets and DNS fail in offline mode.
   - `test_integration.py`: End-to-end 8-step pipeline execution in 2.44s completely offline.
+
+### Version 1.3.0 — Phase 2: Official FMCSA Integration & Circuit Breaker (October 22, 2026)
+- **Official FMCSA Data Adapter (`fmcsa_official.py`)**:
+  - Direct integration with `data.transportation.gov` SODA Open Data API (`az4n-8mr2.json`) and QCMobile key support.
+  - Rate-limited to max 5 req/s via `asyncio.Lock`.
+  - Created local mirror table `fmcsa_carrier_census` with SHA256 checksum tracking for incremental updates.
+  - Applied Alembic migration `4756b857e0d9_add_fmcsa_census_and_health_metrics_tables`.
+- **Fault-Tolerant Circuit Breaker (`circuit_breaker.py`)**:
+  - 3-state circuit breaker (`CLOSED`, `OPEN`, `HALF_OPEN`) with 60s recovery timeout and `SourceHealthMetric` database persistence.
+  - Demoted `usdotlookup` scraping to a secondary fallback behind `ENABLE_USDOTLOOKUP_FALLBACK` feature flag and circuit breaker.
+- **Benchmark Run 3 Results (`33dcf26c-c9e6-4a2e-bbd7-525622a0dd27`)**:
+  - **70.2% overall (33/47)** and **94.3% of carriers (33/35)** originated directly from official FMCSA data.
+  - Phone coverage jumped from **48.0%** to **70.2%** (**100.0%** on official carrier leads).
+  - Active operating authority jumped to **95.7%** (45/47).
+  - Average lead score increased from **3.26** to **4.73 / 10.0**, producing **26 Priority B leads** (up from 0 in Step B).

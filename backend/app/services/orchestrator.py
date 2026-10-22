@@ -86,7 +86,10 @@ class LeadOrchestrator:
                     try:
                         logger.info(f"Executing discovery adapter: {adapter.name}")
                         adapter_limit = base_per_adapter
-                        if adapter.name in ("fmcsa_safer", "fmcsa_li", "direct_shippers"):
+                        if adapter.name == "fmcsa_official":
+                            # Official FMCSA data is primary carrier discovery channel (targets >= 85% share)
+                            adapter_limit = max(base_per_adapter, int(run.target_lead_count * 0.85))
+                        elif adapter.name in ("fmcsa_safer", "fmcsa_li", "direct_shippers"):
                             adapter_limit = max(base_per_adapter, run.target_lead_count // 2)
 
                         candidates = await adapter.discover_candidates(
