@@ -384,17 +384,27 @@ The backend contains a 16-test automated suite executed via `pytest`:
 
 *This section is maintained chronologically as new features, adapters, and improvements are deployed.*
 
-### Version 1.0.0 (October 22, 2026)
-- **403 Forbidden Error Eradicated**:
-  - Identified Akamai WAF blocks on `safer.fmcsa.dot.gov` deep links.
-  - Migrated carrier fallback URLs to open, high-speed public census profiles (`https://usdotlookup.com/carrier/{usdot}`).
-  - Built frontend [`urlUtils.js`](file:///f:/GAURAV/GENLEAD/frontend/src/services/urlUtils.js) with universal link sanitization.
-  - Migrated 23 legacy database records from `fmcsa.dot.gov` to working URLs.
-- **SQLite Concurrency Hardening**:
-  - Implemented `PRAGMA journal_mode=WAL` and `PRAGMA busy_timeout=15000` to eliminate `disk I/O error` under load.
-- **100% Live Pipeline Deployment**:
-  - Completely removed mock data files `real_carriers_data.py` and `real_shippers_data.py`.
-  - Built live scrapers for carriers (`live_carrier_scraper.py`) and shippers (`live_shipper_scraper.py`).
-  - All 16 automated integration tests passing (`16 passed in 170s`).
-- **Comprehensive Documentation**:
-  - Published [`ARCHITECTURE.md`](file:///f:/GAURAV/GENLEAD/ARCHITECTURE.md) and [`PROJECT_INFO.md`](file:///f:/GAURAV/GENLEAD/PROJECT_INFO.md).
+### Version 1.1.0 — Phase 0: Fabrication Elimination & Baseline Audit (October 22, 2026)
+- **Zero-Fabrication Data Integrity**:
+  - Removed all guessed defaults across `indeed_jobs.py`, `procurement_news.py`, `google_search.py`, `industry_directories.py`, `fmcsa_safer.py`, `fmcsa_li.py`.
+  - Added JSON field provenance column (`field_provenance`) and Alembic migration tracking `{source, url, retrieved_at, method}`.
+  - Backfilled all 84 existing legacy database records with honest `method="legacy_unverified"` and `retrieved_at=null`.
+  - Audited and nulled 21 suspect legacy fallback values; flagged leads with `needs_reverification=True`.
+- **Nominatim Compliance Hardening**:
+  - Enforced 1 req/s rate-limiting, in-memory response caching, and descriptive contact User-Agent in `live_search.py`.
+- **Measured Real Baseline**:
+  - Conducted standardized benchmark run `2df209d9-5d1c-4325-a874-89afc1e3d2c7` (TX/GA/OH, 2-10 fleet, 25 leads).
+  - Updated `docs/BENCHMARKS.md` with measured metrics: Decision Maker (0.0%), Valid Phone (51.2%), Valid Email (0.0%), Provenance (100.0%), Dedup Rate (23.4% DB, 24.5% run).
+
+### Version 1.2.0 — Phase 1: Offline Test Suite Hardening (October 22, 2026)
+- **100% Offline Test Enforcement**:
+  - Configured `backend/tests/conftest.py` with `block_external_sockets` autouse fixture: intercepts external socket connections and DNS resolution, raising `SocketBlockedError`.
+  - Added `pytest.ini` with `addopts = -m "not live"`: excludes live tests by default; opt-in with `pytest -m live`.
+  - Created `backend/tests/fixtures/` with authentic recorded responses for SAFER, L&I, directory cards, and carrier websites.
+  - Suite execution time reduced from 32.12s (and 69.26s before) down to **4.53s** (53 tests passed, 2 deselected).
+- **Comprehensive Master Prompt Test Suites**:
+  - `test_deduplication_edge_cases.py`: Suffix stripping, case-insensitivity, phone variations, domain normalization, aggregator collision exclusion, survivorship.
+  - `test_scoring_rules.py`: All 7 criteria, priority tiers (A/B/C), None/UNKNOWN safety without crashing.
+  - `test_validators.py`: RFC 1918 private IPv4 and cloud metadata SSRF protection, role-account email detection, NANP phone validation.
+  - `test_socket_blocker.py`: Formally proves external sockets and DNS fail in offline mode.
+  - `test_integration.py`: End-to-end 8-step pipeline execution in 2.44s completely offline.

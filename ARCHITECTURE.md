@@ -371,3 +371,26 @@ The frontend is a single-page application built with **React 18** and **Vite**:
    Discovery adapters execute concurrently using `asyncio.gather()`, ensuring that multi-state discovery completes in seconds rather than minutes.
 3. **In-Memory + Database Deduplication Caching**:
    Fast dictionary lookups resolve duplicates in memory during batch ingestion before issuing database query overhead.
+
+---
+
+## 8. Testing & Offline Verification Architecture
+
+1. **Guaranteed 100% Offline Execution**:
+   - `backend/tests/conftest.py` implements the `block_external_sockets` autouse fixture.
+   - It intercepts `socket.socket.connect`, `connect_ex`, and `socket.getaddrinfo`, throwing `SocketBlockedError` if an external socket connection or DNS lookup is attempted.
+   - Loopback (`127.0.0.1`, `localhost`, `::1`) is permitted for asyncio event loops and in-process SQLite databases.
+2. **Opt-in Live Testing**:
+   - Tests requiring external live network access are marked with `@pytest.mark.live`.
+   - `pytest.ini` defines `addopts = -m "not live"`, excluding live tests by default.
+   - Live smoke tests can be selectively executed using `pytest -m live`.
+3. **Recorded HTTP Fixtures**:
+   - Stored in `backend/tests/fixtures/` (`fmcsa_safer_snapshot.html`, `fmcsa_li_insurance.html`, `usdotlookup_carrier_page.html`, `carrier_website.html`).
+   - Powers `test_end_to_end_pipeline_offline` to execute the complete 8-step pipeline in under 2.5 seconds.
+4. **Comprehensive Test Modules**:
+   - [`test_socket_blocker.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_socket_blocker.py): Directly verifies socket blocking and live marker bypass.
+   - [`test_deduplication_edge_cases.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_deduplication_edge_cases.py): Validates suffix stripping, phone variations, domain normalization, and aggregator collision protection.
+   - [`test_scoring_rules.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_scoring_rules.py): Tests all 7 scoring criteria, priority tiers, and None/UNKNOWN safety.
+   - [`test_validators.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_validators.py): Tests RFC 1918 and cloud metadata SSRF protection, role account email detection, and NANP phone compliance.
+   - [`test_integration.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_integration.py): Validates end-to-end pipeline execution both offline and live.
+

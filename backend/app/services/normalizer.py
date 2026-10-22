@@ -1,6 +1,6 @@
 import re
 from urllib.parse import urlparse
-from typing import Optional
+from typing import Optional, Tuple
 
 US_STATE_ABBRS = {
     "alabama": "AL", "alaska": "AK", "arizona": "AZ", "arkansas": "AR", "california": "CA",
@@ -20,7 +20,8 @@ LEGAL_SUFFIXES = [
     r"\bllc\b", r"\bl\.l\.c\.\b", r"\binc\b", r"\bi\.n\.c\.\b", r"\bincorporated\b",
     r"\bcorp\b", r"\bcorporation\b", r"\bco\b", r"\bcompany\b", r"\bltd\b", r"\blimited\b",
     r"\btransportation\b", r"\btransport\b", r"\btrucking\b", r"\blogistics\b", r"\bfreight\b",
-    r"\bexpress\b", r"\benterprises\b", r"\bgroup\b", r"\bservices\b", r"\blines\b"
+    r"\bexpress\b", r"\benterprises\b", r"\bgroup\b", r"\bservices\b", r"\blines\b",
+    r"\bhauling\b"
 ]
 
 class Normalizer:
@@ -141,3 +142,105 @@ class Normalizer:
             if name.startswith(s) or s in name:
                 return code
         return state.strip().upper() if len(state.strip()) == 2 else None
+
+    ROLE_ACCOUNT_PREFIXES = {
+        "info", "support", "sales", "dispatch", "contact", "admin",
+        "billing", "help", "careers", "jobs", "team", "office",
+        "marketing", "operations", "service", "inquiries", "general"
+    }
+
+    @classmethod
+    def is_role_account_email(cls, email: Optional[str]) -> bool:
+        """Determines if an email address is a generic departmental role account rather than an individual."""
+        if not email or "@" not in email:
+            return False
+        username = email.split("@")[0].strip().lower()
+        # Clean special chars from username for comparison (e.g. info+lead -> info)
+        base_user = re.split(r"[._+-]", username)[0]
+        return base_user in cls.ROLE_ACCOUNT_PREFIXES
+
+    @staticmethod
+    def is_ssrf_safe_url(url: Optional[str]) -> Tuple[bool, Optional[str]]:
+        """
+        Validates whether a URL is safe to fetch via crawler/HTTP client,
+        blocking private, loopback, link-local, cloud metadata, and internal IPs.
+        """
+        import ipaddress
+
+        if not url:
+            return False, "URL is empty"
+
+        raw = url.strip()
+        parsed = urlparse(raw)
+
+        if parsed.scheme.lower() not in ("http", "https"):
+            return False, f"Unsupported scheme: {parsed.scheme} (only http/https allowed)"
+
+        hostname = (parsed.hostname or "").strip().lower()
+        if not hostname:
+            return False, "Missing hostname"
+
+        # Check explicit loopback & internal hostnames
+        if hostname in ("localhost", "local", "broadcasthost", "metadata.google.internal"):
+            return False, f"Blocked internal hostname: {hostname}"
+
+        if hostname.endswith(".local") or hostname.endswith(".internal"):
+            return False, f"Blocked internal domain: {hostname}"
+
+        # Check if hostname is an IP address
+        try:
+            ip = ipaddress.ip_address(hostname)
+            # Specific cloud metadata IP (169.254.169.254)
+            if str(ip) == "169.254.169.254":
+                return False, "Blocked cloud metadata endpoint"
+            if ip.is_loopback:
+                return False, f"Blocked loopback IP: {ip}"
+            if ip.is_link_local:
+                return False, f"Blocked link-local IP: {ip}"
+            if ip.is_private:
+                return False, f"Blocked private IP: {ip}"
+            if ip.is_reserved:
+                return False, f"Blocked reserved IP: {ip}"
+            if ip.is_multicast:
+                return False, f"Blocked multicast IP: {ip}"
+        except ValueError:
+            # Not an IP literal, it is a regular domain name
+            pass
+
+        return True, None
+
+    @staticmethod
+    def is_valid_phone_nanp(phone: Optional[str]) -> bool:
+        """
+        Validates North American Numbering Plan (NANP) phone compliance.
+        Format: +1NXXNXXXXXX where N=2-9, X=0-9. Rejects fictional/dummy ranges.
+        """
+        if not phone:
+            return False
+        digits = re.sub(r"\D", "", phone)
+        if len(digits) == 11 and digits.startswith("1"):
+            digits = digits[1:]
+        if len(digits) != 10:
+            return False
+
+        # Reject identical repeated digits (e.g., 0000000000, 1111111111)
+        if len(set(digits)) <= 1:
+            return False
+
+        # NANP rules: area code cannot start with 0 or 1; central office code cannot start with 0 or 1
+        area_code = digits[:3]
+        co_code = digits[3:6]
+        line_num = digits[6:10]
+
+        if area_code[0] in ("0", "1"):
+            return False
+        if co_code[0] in ("0", "1"):
+            return False
+
+        # Reject US fictional range reserved for movies/TV (area code 555, exchange 0100-0199)
+        # Note: 555-0100 through 555-0199 in ANY area code or 555 exchange
+        if co_code == "555" and 100 <= int(line_num) <= 199:
+            return False
+
+        return True
+
