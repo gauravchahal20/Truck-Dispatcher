@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List
 import httpx
 from sqlalchemy import select
 
@@ -398,12 +398,28 @@ class PhoneVerifier:
         """Resets cumulative run cost counter."""
         self.current_run_cost = 0.0
 
+    @classmethod
+    def corroborate_phone(cls, phone_e164: Optional[str], sources: Optional[List[str]] = None) -> str:
+        """
+        Labels phone status based on source corroboration:
+        - If seen across >= 2 independent sources (e.g. census, website, google_places): CORROBORATED
+        - If valid format but only 1 source: FORMAT_OK
+        - If invalid format / missing: INVALID
+        """
+        if not phone_e164 or not Normalizer.to_e164(phone_e164):
+            return "INVALID"
+        unique_sources = set(s.strip().lower() for s in (sources or []) if s and s.strip())
+        if len(unique_sources) >= 2:
+            return "CORROBORATED"
+        return "FORMAT_OK"
+
     async def verify_phone(
         self,
         session,
         raw_phone: Optional[str],
         lead_cost_accumulated: float = 0.0,
-        provider_name: Optional[str] = None
+        provider_name: Optional[str] = None,
+        sources_seen: Optional[List[str]] = None
     ) -> PhoneVerificationResult:
         """
         Verifies phone number against cache and configured external providers.
@@ -456,16 +472,17 @@ class PhoneVerifier:
             if fallback_provider:
                 provider = fallback_provider
             else:
-                # No provider key configured: Return UNKNOWN (never VERIFIED)
+                # No provider key configured: Check corroboration (FORMAT_OK or CORROBORATED)
+                status = self.corroborate_phone(phone_e164, sources_seen)
                 return PhoneVerificationResult(
                     phone_e164=phone_e164,
-                    valid=False,
+                    valid=True,
                     line_type="unknown",
                     carrier_name=None,
                     country_code="US",
-                    phone_verification_status="UNKNOWN",
+                    phone_verification_status=status,
                     provider="none",
-                    raw_status="NO_PROVIDER_API_KEY",
+                    raw_status=f"SOURCE_CORROBORATED ({len(set(sources_seen or []))} sources)" if status == "CORROBORATED" else "FORMAT_OK_NO_PROVIDER",
                     cost=0.0,
                     verified_at=now
                 )

@@ -68,7 +68,8 @@ async def test_phone_verifier_unknown_when_no_key():
             p.api_key = None
 
         result = await verifier.verify_phone(session, "+12145550182")
-        assert result.phone_verification_status == "UNKNOWN"
+        assert result.phone_verification_status in ["FORMAT_OK", "UNKNOWN"]
+        assert result.phone_verification_status != "VERIFIED"
         assert result.provider == "none"
         assert result.cost == 0.0
 
@@ -144,10 +145,11 @@ async def test_email_verifier_syntax_disposable_and_tiering():
     assert res_dept.role_tier == "departmental"
     assert res_dept.email_verification_status == "RISKY"
 
-    # 5. Named Person -> DELIVERABLE
+    # 5. Named Person (MX only, no external provider key) -> DOMAIN_OK (never DELIVERABLE)
     res_named = await verifier.verify_email("robert.davis@lonestartrucking.com")
     assert res_named.role_tier == "named"
-    assert res_named.email_verification_status == "DELIVERABLE"
+    assert res_named.email_verification_status == "DOMAIN_OK"
+    assert res_named.email_verification_status != "DELIVERABLE"
 
 
 @pytest.mark.asyncio
@@ -553,5 +555,79 @@ async def test_draft_email_requires_can_spam_postal_address_and_sender_identity(
         assert "TRUCKLEAD Elite Dispatch" in draft["body"]
         assert "UNSUBSCRIBE" in draft["body"]
         assert "1209 Orange Street" not in draft["body"]
+
+
+@pytest.mark.asyncio
+async def test_honest_verification_labels_and_corroboration():
+    """
+    Validates honest verification labels per Workstream F3:
+    1. Email statuses: SYNTAX_OK, DOMAIN_OK (MX only), DELIVERABLE (provider), RISKY, UNDELIVERABLE, UNKNOWN.
+    2. Phone statuses: FORMAT_OK, CORROBORATED (>= 2 sources), VERIFIED (provider), INVALID, UNKNOWN.
+    3. Named-person email matching (john@ for John Smith vs info@/dispatch@).
+    4. Ready to contact confidence tiers: HIGH, MEDIUM, LOW.
+    """
+    from app.api.routes_outcomes import compute_contact_confidence
+
+    # 1. Email Statuses & Named-person match
+    verifier = EmailVerifier(mx_resolver_override=lambda dom: (True, "Mock MX active"))
+    
+    # Empty string -> UNKNOWN
+    res_empty = await verifier.verify_email("")
+    assert res_empty.email_verification_status == "UNKNOWN"
+
+    # Bad syntax -> UNDELIVERABLE
+    res_syntax = await verifier.verify_email("not-an-email")
+    assert res_syntax.email_verification_status == "UNDELIVERABLE"
+
+    # Disposable domain -> UNDELIVERABLE
+    res_disp = await verifier.verify_email("carrier@mailinator.com")
+    assert res_disp.email_verification_status == "UNDELIVERABLE"
+
+    # Role generic -> RISKY
+    res_info = await verifier.verify_email("info@lonestartrucking.com", full_name="John Smith")
+    assert res_info.email_verification_status == "RISKY"
+    assert res_info.is_named_person_match is False
+
+    # MX-only named recipient -> DOMAIN_OK, NEVER DELIVERABLE
+    res_mx_only = await verifier.verify_email("john.smith@lonestartrucking.com", full_name="John Smith")
+    assert res_mx_only.email_verification_status == "DOMAIN_OK"
+    assert res_mx_only.email_verification_status != "DELIVERABLE"
+    assert res_mx_only.is_named_person_match is True
+
+    # Named-person heuristic variations
+    assert EmailVerifier.is_named_person_match("jsmith@carrier.com", "John Smith") is True
+    assert EmailVerifier.is_named_person_match("john@carrier.com", "John Smith") is True
+    assert EmailVerifier.is_named_person_match("dispatch@carrier.com", "John Smith") is False
+    assert EmailVerifier.is_named_person_match("sales@carrier.com", "John Smith") is False
+
+    # 2. Phone Statuses & Corroboration
+    # Invalid format -> INVALID
+    assert PhoneVerifier.corroborate_phone("12345", ["census"]) == "INVALID"
+    assert PhoneVerifier.corroborate_phone("", ["census"]) == "INVALID"
+
+    # Single source -> FORMAT_OK
+    assert PhoneVerifier.corroborate_phone("+12145550182", ["census"]) == "FORMAT_OK"
+
+    # >= 2 independent sources -> CORROBORATED
+    assert PhoneVerifier.corroborate_phone("+12145550182", ["census", "website"]) == "CORROBORATED"
+    assert PhoneVerifier.corroborate_phone("+12145550182", ["fmcsa_safer", "fmcsa_carrier_census", "google_places"]) == "CORROBORATED"
+
+    # Duplicate sources don't artificially corroborate
+    assert PhoneVerifier.corroborate_phone("+12145550182", ["census", "census"]) == "FORMAT_OK"
+
+    # 3. Ready to Contact Confidence Labels
+    # HIGH: Verified phone OR (Deliverable email AND named person)
+    assert compute_contact_confidence(phone_status="VERIFIED", email_status="DOMAIN_OK", is_named_email=False) == "HIGH"
+    assert compute_contact_confidence(phone_status="FORMAT_OK", email_status="DELIVERABLE", is_named_email=True) == "HIGH"
+
+    # MEDIUM: Corroborated phone OR Deliverable generic email OR Domain_OK named email
+    assert compute_contact_confidence(phone_status="CORROBORATED", email_status="UNKNOWN", is_named_email=False) == "MEDIUM"
+    assert compute_contact_confidence(phone_status="FORMAT_OK", email_status="DELIVERABLE", is_named_email=False) == "MEDIUM"
+    assert compute_contact_confidence(phone_status="FORMAT_OK", email_status="DOMAIN_OK", is_named_email=True) == "MEDIUM"
+
+    # LOW: Unverified phone only
+    assert compute_contact_confidence(phone_status="FORMAT_OK", email_status="UNKNOWN", is_named_email=False) == "LOW"
+    assert compute_contact_confidence(phone_status="UNKNOWN", email_status="UNKNOWN", is_named_email=False) == "LOW"
+
 
 

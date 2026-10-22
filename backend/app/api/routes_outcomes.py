@@ -12,9 +12,30 @@ from ..core.config import config
 from ..models.entities import Company, Contact, LeadOutcome, SuppressionEntry
 from ..services.normalizer import Normalizer
 from ..services.compliance import ComplianceService
+from ..services.email_verifier import EmailVerifier
 
 logger = logging.getLogger("trucklead.api.outcomes")
 router = APIRouter(prefix="/api/leads", tags=["Callable & Mailable Leads"])
+
+
+def compute_contact_confidence(phone_status: Optional[str], email_status: Optional[str], is_named_email: bool = False) -> str:
+    """
+    Computes Ready to Contact confidence label per Master SOP:
+    - HIGH: verified phone (provider line-type lookup) OR deliverable named-person email
+    - MEDIUM: corroborated phone (>= 2 sources) OR deliverable generic email OR domain_ok named-person email
+    - LOW: unverified phone only (FORMAT_OK, UNKNOWN)
+    """
+    p = (phone_status or "").upper()
+    e = (email_status or "").upper()
+
+    if p == "VERIFIED" or (e == "DELIVERABLE" and is_named_email):
+        return "HIGH"
+    elif p == "CORROBORATED" or e == "DELIVERABLE" or (e == "DOMAIN_OK" and is_named_email):
+        return "MEDIUM"
+    elif e in ["DOMAIN_OK", "RISKY"] or p == "FORMAT_OK":
+        return "LOW"
+    else:
+        return "LOW"
 
 
 class LogOutcomeRequest(BaseModel):
@@ -172,7 +193,12 @@ async def list_callable_mailable_leads(
 
         # Callable / Mailable determination
         is_callable = bool(p_e164)
-        is_mailable = bool(em and em_status in ("DELIVERABLE", "RISKY"))
+        is_mailable = bool(em and em_status in ("DELIVERABLE", "DOMAIN_OK", "RISKY"))
+
+        # Contact Confidence & Named Person Email Match
+        contact_name = primary_contact.full_name if primary_contact else None
+        is_named_email = EmailVerifier.is_named_person_match(em, contact_name)
+        confidence = compute_contact_confidence(p_status, em_status, is_named_email)
 
         # Apply filter
         if filter_mode == "callable" and not is_callable:
@@ -187,13 +213,15 @@ async def list_callable_mailable_leads(
         leads.append({
             "id": c.id,
             "company": c.company_name,
-            "contact_name": primary_contact.full_name if primary_contact else "Owner / Operations",
+            "contact_name": contact_name or "Owner / Operations",
             "title": primary_contact.title if primary_contact else (c.carrier_operation or "Carrier Dispatch"),
             "phone_e164": p_e164,
             "phone_display": p_display,
             "dial_link": dial_link,
             "phone_line_type": p_line_type,
             "phone_status": p_status,
+            "contact_confidence": confidence,
+            "is_named_email": is_named_email,
             "dnc_status": c.dnc_status or "DNC not checked",
             "call_guidance": c.call_guidance or ("call manually only, check DNC" if p_line_type == "mobile" and c.fleet_size == 1 else "call allowed"),
             "email": em,

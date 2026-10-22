@@ -36,11 +36,12 @@ class EmailVerificationResult:
     mx_valid: bool
     is_disposable: bool
     role_tier: str  # "named", "departmental", "generic"
-    email_verification_status: str  # "DELIVERABLE", "RISKY", "UNDELIVERABLE", "UNKNOWN"
+    email_verification_status: str  # "SYNTAX_OK", "DOMAIN_OK", "DELIVERABLE", "RISKY", "UNDELIVERABLE", "UNKNOWN"
     reason: str
     provider: str  # "dns_heuristic", "zerobounce", "hunter", "neverbounce", "none"
     cost: float
     verified_at: datetime
+    is_named_person_match: bool = False
 
 
 class EmailVerifier:
@@ -75,6 +76,49 @@ class EmailVerifier:
         """Detects disposable, throwaway, and temporary email domains."""
         d_clean = domain.strip().lower()
         return d_clean in DISPOSABLE_DOMAINS or any(d_clean.endswith("." + disp) for disp in DISPOSABLE_DOMAINS)
+
+    @classmethod
+    def is_named_person_match(cls, email: Optional[str], full_name: Optional[str]) -> bool:
+        """
+        Validates if email local-part matches a named person (e.g. john@..., jsmith@... for John Smith)
+        vs generic/role mailboxes (info@, dispatch@, sales@).
+        """
+        if not email or not full_name:
+            return False
+
+        local = email.strip().lower().split("@")[0]
+        generic_prefixes = {
+            "info", "dispatch", "sales", "support", "admin", "office", "contact",
+            "loads", "freight", "operations", "help", "billing", "safety", "recruiting",
+            "accounting", "team", "general", "carrier", "customercare", "hello", "inquiry"
+        }
+        if local in generic_prefixes:
+            return False
+
+        name_clean = re.sub(r"[^a-zA-Z\s]", "", full_name).lower().strip()
+        parts = [p for p in name_clean.split() if len(p) >= 2]
+        if not parts:
+            return False
+
+        first = parts[0]
+        last = parts[-1] if len(parts) > 1 else ""
+
+        if local == first or (last and local == last):
+            return True
+        if last:
+            if local in [f"{first}.{last}", f"{first}_{last}", f"{first}{last}"]:
+                return True
+            first_init = first[0]
+            if local in [f"{first_init}{last}", f"{first_init}.{last}", f"{first_init}_{last}"]:
+                return True
+            last_init = last[0]
+            if local in [f"{first}{last_init}", f"{first}.{last_init}", f"{first}_{last_init}"]:
+                return True
+
+        if first in local or (last and len(last) >= 4 and last in local):
+            return True
+
+        return False
 
     def check_mx_records(self, domain: str) -> Tuple[bool, str]:
         """Queries DNS MX mail exchanger records for target domain."""
@@ -148,10 +192,11 @@ class EmailVerifier:
 
         return None
 
-    async def verify_email(self, email: Optional[str]) -> EmailVerificationResult:
+    async def verify_email(self, email: Optional[str], full_name: Optional[str] = None) -> EmailVerificationResult:
         """
         Executes full email verification pipeline:
-        Syntax -> Disposable Check -> MX DNS Lookup -> Role-Account Tiering -> Status Decision
+        Syntax -> Disposable Check -> MX DNS Lookup -> Role-Account Tiering -> Named Person Match -> Status Decision
+        Honest labeling: MX-only is labeled DOMAIN_OK, NEVER DELIVERABLE.
         """
         now = datetime.now(timezone.utc)
         if not email:
@@ -162,11 +207,12 @@ class EmailVerifier:
                 mx_valid=False,
                 is_disposable=False,
                 role_tier="generic",
-                email_verification_status="UNDELIVERABLE",
+                email_verification_status="UNKNOWN",
                 reason="Empty email string",
                 provider="none",
                 cost=0.0,
-                verified_at=now
+                verified_at=now,
+                is_named_person_match=False
             )
 
         em_clean = email.strip().lower()
@@ -184,7 +230,8 @@ class EmailVerifier:
                 reason="Invalid RFC email syntax",
                 provider="syntax_check",
                 cost=0.0,
-                verified_at=now
+                verified_at=now,
+                is_named_person_match=False
             )
 
         domain = em_clean.split("@")[-1].strip().lower()
@@ -202,18 +249,19 @@ class EmailVerifier:
                 reason=f"Disposable temporary email provider ({domain})",
                 provider="disposable_filter",
                 cost=0.0,
-                verified_at=now
+                verified_at=now,
+                is_named_person_match=False
             )
 
-        # 3. Role Account Classification
+        # 3. Role Account Classification & Named Person Match
         role_tier = Normalizer.classify_email_tier(em_clean)
+        is_named = self.is_named_person_match(em_clean, full_name)
 
         # 4. DNS MX Lookup
         mx_valid, mx_reason = self.check_mx_records(domain)
         if not mx_valid:
-            # Check if DNS was socket blocked or actual missing MX
             if "DNS lookup failed" in mx_reason:
-                v_status = "UNKNOWN"
+                v_status = "SYNTAX_OK"
             else:
                 v_status = "UNDELIVERABLE"
 
@@ -228,7 +276,8 @@ class EmailVerifier:
                 reason=mx_reason,
                 provider="dns_mx",
                 cost=0.0,
-                verified_at=now
+                verified_at=now,
+                is_named_person_match=is_named
             )
 
         # 5. External Provider Waterfall (ZeroBounce / Hunter if keys configured)
@@ -245,20 +294,18 @@ class EmailVerifier:
                 reason=provider_res["reason"],
                 provider=provider_res["provider"],
                 cost=provider_res["cost"],
-                verified_at=now
+                verified_at=now,
+                is_named_person_match=is_named
             )
 
-        # 6. Heuristic Final Decision
-        # Role accounts (generic / departmental) are flagged RISKY
-        if role_tier == "generic":
+        # 6. Honest Labeling Decision:
+        # MX-only without provider verification is DOMAIN_OK (or RISKY for role accounts), NEVER DELIVERABLE
+        if role_tier in ["generic", "departmental"]:
             status = "RISKY"
-            reason = f"Generic role account ({em_clean.split('@')[0]}@). MX verified ({mx_reason})."
-        elif role_tier == "departmental":
-            status = "RISKY"
-            reason = f"Departmental team account ({em_clean.split('@')[0]}@). MX verified ({mx_reason})."
+            reason = f"Role account ({em_clean.split('@')[0]}@) with valid MX ({mx_reason}). Provider SMTP ping not performed."
         else:
-            status = "DELIVERABLE"
-            reason = f"Verified deliverable: valid syntax, active mail server ({mx_reason}), named recipient."
+            status = "DOMAIN_OK"
+            reason = f"Domain mail exchanger verified ({mx_reason}). Provider SMTP handshake not performed (honest DOMAIN_OK)."
 
         return EmailVerificationResult(
             email=em_clean,
@@ -269,7 +316,8 @@ class EmailVerifier:
             role_tier=role_tier,
             email_verification_status=status,
             reason=reason,
-            provider="dns_mx_heuristic",
+            provider="dns_mx",
             cost=0.0,
-            verified_at=now
+            verified_at=now,
+            is_named_person_match=is_named
         )

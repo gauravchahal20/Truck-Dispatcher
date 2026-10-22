@@ -390,11 +390,11 @@ export default function ReadyToContact({ onViewLead }) {
                               fontSize: '0.65rem',
                               padding: '1px 5px',
                               borderRadius: '4px',
-                              backgroundColor: lead.phone_status === 'VERIFIED' ? 'var(--sage-light)' : 'var(--warm-cream)',
-                              color: lead.phone_status === 'VERIFIED' ? 'var(--sage-dark)' : 'var(--text-muted)',
+                              backgroundColor: lead.phone_status === 'VERIFIED' ? 'var(--sage-light)' : (lead.phone_status === 'CORROBORATED' ? '#E0E7FF' : 'var(--warm-cream)'),
+                              color: lead.phone_status === 'VERIFIED' ? 'var(--sage-dark)' : (lead.phone_status === 'CORROBORATED' ? '#3730A3' : 'var(--text-muted)'),
                               fontWeight: 600
                             }}>
-                              {lead.phone_status} ({lead.phone_line_type || 'unknown'})
+                              {lead.phone_status}
                             </span>
                             {isSoleProp && (
                               <span style={{
@@ -432,17 +432,29 @@ export default function ReadyToContact({ onViewLead }) {
                           >
                             <Mail size={12} /> {lead.email}
                           </a>
-                          <div style={{ marginTop: '2px' }}>
+                          <div style={{ marginTop: '2px', display: 'flex', gap: '4px', alignItems: 'center' }}>
                             <span style={{
                               fontSize: '0.65rem',
                               padding: '1px 5px',
                               borderRadius: '4px',
-                              backgroundColor: lead.email_status === 'DELIVERABLE' ? 'var(--sage-light)' : (lead.email_status === 'RISKY' ? '#FFF3CD' : 'var(--warm-cream)'),
-                              color: lead.email_status === 'DELIVERABLE' ? 'var(--sage-dark)' : (lead.email_status === 'RISKY' ? '#856404' : 'var(--text-muted)'),
+                              backgroundColor: lead.email_status === 'DELIVERABLE' ? 'var(--sage-light)' : (lead.email_status === 'DOMAIN_OK' ? '#DBEAFE' : (lead.email_status === 'RISKY' ? '#FFF3CD' : 'var(--warm-cream)')),
+                              color: lead.email_status === 'DELIVERABLE' ? 'var(--sage-dark)' : (lead.email_status === 'DOMAIN_OK' ? '#1E40AF' : (lead.email_status === 'RISKY' ? '#856404' : 'var(--text-muted)')),
                               fontWeight: 700
                             }}>
                               {lead.email_status}
                             </span>
+                            {lead.is_named_email && (
+                              <span style={{
+                                fontSize: '0.63rem',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                backgroundColor: '#F3E8FF',
+                                color: '#6B21A8',
+                                fontWeight: 600
+                              }}>
+                                Named
+                              </span>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -489,6 +501,18 @@ export default function ReadyToContact({ onViewLead }) {
                       </div>
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         Status: {lead.lead_status}
+                      </div>
+                      <div style={{ marginTop: '3px' }}>
+                        <span style={{
+                          fontSize: '0.65rem',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          backgroundColor: lead.contact_confidence === 'HIGH' ? '#D1FAE5' : (lead.contact_confidence === 'MEDIUM' ? '#FEF3C7' : '#F3F4F6'),
+                          color: lead.contact_confidence === 'HIGH' ? '#065F46' : (lead.contact_confidence === 'MEDIUM' ? '#92400E' : '#4B5563'),
+                          fontWeight: 700
+                        }}>
+                          Ready: {lead.contact_confidence || 'LOW'}
+                        </span>
                       </div>
                     </td>
 
