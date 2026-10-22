@@ -212,6 +212,7 @@ google_sheets:
 
 # Pipeline & State Configuration
 pipeline:
+  pause_shipper_discovery: true # Pauses shipper discovery until Google Places API key & contact enrichment are operational
   benchmark_states:
     - "TX"
     - "GA"

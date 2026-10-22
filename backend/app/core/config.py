@@ -105,6 +105,7 @@ class GoogleSheetsConfig(BaseModel):
 
 
 class PipelineConfig(BaseModel):
+    pause_shipper_discovery: bool = True
     benchmark_states: List[str] = ["TX", "GA", "OH"]
     sync_states: List[str] = ["TX", "GA", "FL", "NC", "TN"]
 

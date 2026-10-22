@@ -630,4 +630,49 @@ async def test_honest_verification_labels_and_corroboration():
     assert compute_contact_confidence(phone_status="UNKNOWN", email_status="UNKNOWN", is_named_email=False) == "LOW"
 
 
+@pytest.mark.asyncio
+async def test_shipper_contact_enrichment_mock_and_offline():
+    """Validates shipper contact enrichment using MockPlacesProvider with recorded fixtures."""
+    from app.services.shipper_enricher import GooglePlacesClient, MockPlacesProvider, ShipperEnricher
+
+    # 1. Unconfigured GooglePlacesClient
+    real_client = GooglePlacesClient(api_key=None)
+    assert real_client.is_configured() is False
+    res_unconf = await real_client.search_place("Tesla", city="Austin", state="TX")
+    assert res_unconf is None
+
+    # 2. Mock Places Provider with recorded fixtures
+    mock_client = MockPlacesProvider()
+    assert mock_client.is_configured() is True
+    enricher = ShipperEnricher(places_client=mock_client)
+
+    res_tesla = await enricher.enrich_shipper("Tesla", city="Austin", state="TX")
+    assert res_tesla["phone_e164"] == "+15125168177"
+    assert "13101 Tesla Rd" in res_tesla["address"]
+    assert res_tesla["website"] == "https://www.tesla.com"
+    assert len(res_tesla["contacts"]) >= 1
+    assert res_tesla["contacts"][0]["email"] == "mvance@tesla.com"
+    assert res_tesla["contacts"][0]["full_name"] == "Marcus Vance"
+
+
+@pytest.mark.asyncio
+async def test_pause_shipper_discovery_safeguard():
+    """Validates that pause_shipper_discovery config flag halts un-enrichable shipper discovery."""
+    from app.core.config import config
+    from app.adapters.direct_shippers import DirectShippersAdapter
+
+    adapter = DirectShippersAdapter()
+
+    # 1. When paused (default), discovery returns empty list
+    config.pipeline.pause_shipper_discovery = True
+    candidates = await adapter.discover_candidates(target_states=["TX", "GA"], limit=10)
+    assert candidates == []
+
+    # 2. Flag can be toggled via config
+    config.pipeline.pause_shipper_discovery = False
+    assert config.pipeline.pause_shipper_discovery is False
+    config.pipeline.pause_shipper_discovery = True
+
+
+
 

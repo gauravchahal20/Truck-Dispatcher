@@ -5,6 +5,7 @@ from .base import BaseSourceAdapter, RawLeadRecord, EnrichmentResult
 from ..core.live_shipper_scraper import LiveShipperScraper
 from ..core.live_search import LiveSearchClient
 from ..core.url_validator import UrlValidator
+from ..core.config import config
 
 logger = logging.getLogger("trucklead.adapter.shippers")
 
@@ -28,6 +29,10 @@ class DirectShippersAdapter(BaseSourceAdapter):
         limit: int = 25
     ) -> List[RawLeadRecord]:
         """Discovers real companies that generate outbound freight across target states."""
+        if config.pipeline.pause_shipper_discovery:
+            logger.info("Shipper discovery is paused via config.pipeline.pause_shipper_discovery=true. Skipping direct_shippers adapter.")
+            return []
+
         candidates: List[RawLeadRecord] = []
         states = target_states if target_states else ["TX", "CA", "GA", "FL", "OH", "IL"]
         per_state = max(2, limit // max(1, len(states)))

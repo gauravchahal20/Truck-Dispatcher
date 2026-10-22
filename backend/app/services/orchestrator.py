@@ -87,6 +87,10 @@ class LeadOrchestrator:
 
                 async def run_adapter(adapter):
                     try:
+                        if adapter.name == "direct_shippers" and config.pipeline.pause_shipper_discovery:
+                            logger.info("Shipper discovery paused via config.pipeline.pause_shipper_discovery=true. Skipping direct_shippers adapter.")
+                            return adapter.name, [], None
+
                         logger.info(f"Executing discovery adapter: {adapter.name}")
                         adapter_limit = base_per_adapter
                         if adapter.name == "fmcsa_official":
