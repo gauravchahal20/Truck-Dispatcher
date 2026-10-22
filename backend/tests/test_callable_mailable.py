@@ -477,9 +477,81 @@ async def test_status_consistency_and_hard_gates():
 
         assert c_qualified.lead_status == "QUALIFIED"
         assert c_qualified.priority == "B"
-
         assert c_final.lead_status == "FINAL"
         assert c_final.priority == "A"
 
         assert c_unknown_op.lead_status == "NEEDS_ENRICHMENT"
+
+
+@pytest.mark.asyncio
+async def test_draft_email_requires_can_spam_postal_address_and_sender_identity():
+    """Validates that draft-email strictly requires postal_address and sender_identity per CAN-SPAM Act."""
+    from fastapi import HTTPException
+    from app.api.routes_outcomes import generate_compliant_email_draft
+    from app.core.config import config
+
+    async with AsyncSessionLocal() as session:
+        # Create a test company
+        c = Company(
+            company_name="Valid Test Carrier LLC",
+            lead_type="CARRIER",
+            usdot="7788990",
+            operating_status="AUTHORIZED FOR HIRE",
+            state="TX",
+            fleet_size=3,
+            lead_score=8.5,
+            priority="A"
+        )
+        ct = Contact(
+            full_name="Alice Morgan",
+            title="President",
+            is_decision_maker=True,
+            email="alice@validtestcarrier.com"
+        )
+        c.contacts.append(ct)
+        session.add(c)
+        await session.commit()
+        await session.refresh(c)
+
+        # 1. Unset postal_address -> raises 400 with exact instruction
+        config.compliance.postal_address = ""
+        config.outreach.physical_address = None
+        config.compliance.sender_identity = "Dispatch Team"
+
+        with pytest.raises(HTTPException) as exc_info:
+            await generate_compliant_email_draft(c.id, session=session)
+        assert exc_info.value.status_code == 400
+        assert exc_info.value.detail == "Set your postal address in Settings to generate drafts"
+
+        # 2. Placeholder Wilmington address -> raises 400
+        config.compliance.postal_address = "1209 Orange Street, Wilmington, DE 19801"
+        with pytest.raises(HTTPException) as exc_info:
+            await generate_compliant_email_draft(c.id, session=session)
+        assert exc_info.value.status_code == 400
+        assert exc_info.value.detail == "Set your postal address in Settings to generate drafts"
+
+        # 3. Unset sender_identity -> raises 400
+        config.compliance.postal_address = "5000 Freight Express Way, Suite 400, Dallas, TX 75201"
+        config.compliance.sender_identity = ""
+        config.outreach.sender_name = None
+
+        with pytest.raises(HTTPException) as exc_info:
+            await generate_compliant_email_draft(c.id, session=session)
+        assert exc_info.value.status_code == 400
+        assert exc_info.value.detail == "Set your sender identity in Settings to generate drafts"
+
+        # 4. Valid configuration -> returns compliant draft
+        config.compliance.postal_address = "5000 Freight Express Way, Suite 400, Dallas, TX 75201"
+        config.compliance.sender_identity = "TRUCKLEAD Elite Dispatch"
+        config.compliance.sender_email = "dispatch@trucklead.test"
+
+        draft = await generate_compliant_email_draft(c.id, session=session)
+        assert draft["status"] == "DRAFT_ONLY_OPERATOR_SENDS"
+        assert draft["physical_address"] == "5000 Freight Express Way, Suite 400, Dallas, TX 75201"
+        assert draft["sender_name"] == "TRUCKLEAD Elite Dispatch"
+        assert "5000 Freight Express Way" in draft["body"]
+        assert "TRUCKLEAD Elite Dispatch" in draft["body"]
+        assert "UNSUBSCRIBE" in draft["body"]
+        assert "1209 Orange Street" not in draft["body"]
+
 

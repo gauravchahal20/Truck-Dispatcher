@@ -38,6 +38,7 @@ export default function ReadyToContact({ onViewLead }) {
   
   const [draftEmailLead, setDraftEmailLead] = useState(null);
   const [draftEmailContent, setDraftEmailContent] = useState(null);
+  const [draftEmailError, setDraftEmailError] = useState(null);
   const [loadingDraft, setLoadingDraft] = useState(false);
   const [copiedDraft, setCopiedDraft] = useState(false);
 
@@ -61,17 +62,15 @@ export default function ReadyToContact({ onViewLead }) {
     setDraftEmailLead(lead);
     setLoadingDraft(true);
     setCopiedDraft(false);
+    setDraftEmailError(null);
+    setDraftEmailContent(null);
     try {
       const draft = await api.getDraftEmail(lead.id);
       setDraftEmailContent(draft);
     } catch (err) {
       console.error('Failed to fetch email draft:', err);
-      setDraftEmailContent({
-        subject: `Partnership Dispatch Query: ${lead.company}`,
-        body: `Hello ${lead.contact_name},\n\nHope this finds you well. Reaching out regarding dispatch support for your fleet.`,
-        recipient: lead.email,
-        compliance_notes: 'Draft loaded with fallback.'
-      });
+      const msg = err.message || 'Set your postal address in Settings to generate drafts';
+      setDraftEmailError(msg);
     } finally {
       setLoadingDraft(false);
     }
@@ -705,6 +704,35 @@ export default function ReadyToContact({ onViewLead }) {
               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px' }} />
                 <div>Generating fact-grounded draft...</div>
+              </div>
+            ) : draftEmailError ? (
+              <div style={{
+                padding: '28px 20px',
+                textAlign: 'center',
+                backgroundColor: '#FEF2F2',
+                border: '1px solid #FCA5A5',
+                borderRadius: 'var(--radius-md)',
+                margin: '12px 0 20px'
+              }}>
+                <AlertTriangle size={32} color="#DC2626" style={{ margin: '0 auto 10px' }} />
+                <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#991B1B', marginBottom: '8px' }}>
+                  CAN-SPAM Physical Address Required
+                </div>
+                <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#B91C1C', marginBottom: '12px' }}>
+                  {draftEmailError}
+                </div>
+                <div style={{ fontSize: '0.74rem', color: '#6B7280', maxWidth: '420px', margin: '0 auto', lineHeight: 1.4 }}>
+                  Federal CAN-SPAM Act (15 U.S.C. § 7704(a)(5)(A)) strictly mandates a valid physical postal address and verified sender identity on all commercial outreach emails.
+                </div>
+                <div style={{ marginTop: '16px' }}>
+                  <button
+                    onClick={() => setDraftEmailLead(null)}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             ) : draftEmailContent ? (
               <div>

@@ -248,6 +248,38 @@ async def generate_compliant_email_draft(company_id: str, session: AsyncSession 
     first_name = contact_name.split()[0] if contact_name != "Owner & Dispatch Team" else "there"
     recipient_email = (contact.email if contact and contact.email else company.email) or ""
 
+    # CAN-SPAM Compliance Requirements (15 U.S.C. § 7704(a)(5)(A))
+    postal_address = (
+        getattr(config.compliance, "postal_address", None) or
+        getattr(config.outreach, "physical_address", None)
+    )
+    sender_identity = (
+        getattr(config.compliance, "sender_identity", None) or
+        getattr(config.outreach, "sender_name", None)
+    )
+
+    if not postal_address or not postal_address.strip() or "1209 Orange Street" in postal_address:
+        raise HTTPException(
+            status_code=400,
+            detail="Set your postal address in Settings to generate drafts"
+        )
+
+    if not sender_identity or not sender_identity.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Set your sender identity in Settings to generate drafts"
+        )
+
+    sender_email = (
+        getattr(config.compliance, "sender_email", None) or
+        getattr(config.outreach, "sender_email", None) or
+        "dispatch@trucklead-autopilot.internal"
+    )
+    unsubscribe_url = (
+        getattr(config.compliance, "unsubscribe_url", None) or
+        "http://localhost:8000/api/compliance/opt-out"
+    )
+
     # Verified facts only
     eq_list = company.equipment or ["Dry Van", "Reefer"]
     eq_str = " / ".join(eq_list)
@@ -270,7 +302,7 @@ async def generate_compliant_email_draft(company_id: str, session: AsyncSession 
 
 {signal_hook}
 
-I'm reaching out from {config.outreach.sender_name}. We support independent motor carriers and small fleets running {eq_str} equipment out of {state}.
+I'm reaching out from {sender_identity}. We support independent motor carriers and small fleets running {eq_str} equipment out of {state}.
 
 We source top-paying outbound spot and contract freight across your preferred freight corridors, handle all broker setup packets and rate negotiations, and ensure your {fleet_desc} stays loaded with minimal deadhead.
 
@@ -278,13 +310,13 @@ Would you be open to a quick 5-minute phone call this week to see if our lane ne
 
 Best regards,
 
-{config.outreach.sender_name}
-Email: {config.outreach.sender_email}
+{sender_identity}
+Email: {sender_email}
 Direct Dispatch Desk
 
 ---
-Physical Office: {config.outreach.physical_address}
-Opt-out: To unsubscribe or stop receiving dispatch inquiries, reply with 'UNSUBSCRIBE' or visit http://localhost:8000/api/compliance/opt-out
+Physical Office: {postal_address}
+Opt-out: To unsubscribe or stop receiving dispatch inquiries, reply with 'UNSUBSCRIBE' or visit {unsubscribe_url}
 """
 
     return {
@@ -294,8 +326,8 @@ Opt-out: To unsubscribe or stop receiving dispatch inquiries, reply with 'UNSUBS
         "recipient_email": recipient_email,
         "subject": subject,
         "body": body,
-        "physical_address": config.outreach.physical_address,
-        "sender_name": config.outreach.sender_name,
-        "sender_email": config.outreach.sender_email,
+        "physical_address": postal_address,
+        "sender_name": sender_identity,
+        "sender_email": sender_email,
         "status": "DRAFT_ONLY_OPERATOR_SENDS"
     }

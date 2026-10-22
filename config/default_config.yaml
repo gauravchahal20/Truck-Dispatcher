@@ -223,11 +223,15 @@ pipeline:
     - "NC"
     - "TN"
 
-# Compliant Outreach & Mailing Information (CAN-SPAM / TCPA)
-outreach:
-  physical_address: "1209 Orange Street, Wilmington, DE 19801"
-  sender_name: "TRUCKLEAD Dispatch Support"
+# CAN-SPAM Compliance & Sender Identity (15 U.S.C. § 7704(a)(5)(A))
+compliance:
+  postal_address: "" # Operator physical street address required by CAN-SPAM Act
+  sender_identity: "" # Operator / Dispatcher identity required for commercial emails
   sender_email: "dispatch@trucklead-autopilot.internal"
+  unsubscribe_url: "http://localhost:8000/api/compliance/opt-out"
+
+# Compliant Outreach Settings
+outreach:
   enable_continuous_autopilot: false
 
 # Contact Channel Verification Configuration

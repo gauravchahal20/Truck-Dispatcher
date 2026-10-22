@@ -109,10 +109,17 @@ class PipelineConfig(BaseModel):
     sync_states: List[str] = ["TX", "GA", "FL", "NC", "TN"]
 
 
+class ComplianceConfig(BaseModel):
+    postal_address: Optional[str] = None
+    sender_identity: Optional[str] = None
+    sender_email: Optional[str] = "dispatch@trucklead-autopilot.internal"
+    unsubscribe_url: str = "http://localhost:8000/api/compliance/opt-out"
+
+
 class OutreachConfig(BaseModel):
-    physical_address: str = "1209 Orange Street, Wilmington, DE 19801"
-    sender_name: str = "TRUCKLEAD Dispatch Support"
-    sender_email: str = "dispatch@trucklead-autopilot.internal"
+    physical_address: Optional[str] = None
+    sender_name: Optional[str] = None
+    sender_email: Optional[str] = "dispatch@trucklead-autopilot.internal"
     enable_continuous_autopilot: bool = False
 
 
@@ -258,6 +265,9 @@ class SystemConfig:
 
         pipeline_data = self.raw_yaml.get("pipeline", {})
         self.pipeline = PipelineConfig(**pipeline_data) if pipeline_data else PipelineConfig()
+
+        compliance_data = self.raw_yaml.get("compliance", {})
+        self.compliance = ComplianceConfig(**compliance_data) if compliance_data else ComplianceConfig()
 
         outreach_data = self.raw_yaml.get("outreach", {})
         self.outreach = OutreachConfig(**outreach_data) if outreach_data else OutreachConfig()
