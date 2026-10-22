@@ -46,9 +46,9 @@ class DirectShippersAdapter(BaseSourceAdapter):
                 if len(candidates) >= limit:
                     break
 
-                city = item.get("city", "Dallas")
+                city = item.get("city")
                 name = item["company_name"]
-                website = item.get("website") or f"https://www.google.com/search?q={quote_plus(name + ' ' + city + ' ' + st)}"
+                website = item.get("website") or (f"https://www.google.com/search?q={quote_plus(name + ' ' + (city or '') + ' ' + st)}" if city else None)
 
                 record = RawLeadRecord(
                     company_name=name,
@@ -59,7 +59,7 @@ class DirectShippersAdapter(BaseSourceAdapter):
                     website=website,
                     phone=item.get("phone"),
                     email=item.get("email"),
-                    address=item.get("address") or f"{city}, {st}",
+                    address=item.get("address") or (f"{city}, {st}" if city else st),
                     city=city,
                     state=st,
                     zip_code=item.get("zip_code"),
@@ -67,12 +67,12 @@ class DirectShippersAdapter(BaseSourceAdapter):
                     driver_count=0,
                     equipment=item.get("equipment") or equipment_types or [],
                     carrier_operation="Direct Shipper / Freight Demand",
-                    operating_status="ACTIVE SHIPPER",
-                    safety_rating="N/A - Direct Shipper",
+                    operating_status=None,
+                    safety_rating=None,
                     source_name=self.name,
                     source_url=website,
                     extraction_confidence=0.98,
-                    notes=item.get("notes") or f"Direct Freight Shipper: {item.get('industry_sector', 'Manufacturing')} in {city}, {st}. Seeking carrier capacity."
+                    notes=item.get("notes") or f"Direct Freight Shipper: {item.get('industry_sector', 'Manufacturing')} in {city or 'Unknown'}, {st}. Seeking carrier capacity."
                 )
                 candidates.append(record)
 

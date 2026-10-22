@@ -20,6 +20,9 @@ from .decision_maker_finder import DecisionMakerFinder
 from .intent_analyzer import IntentAnalyzer
 from .verifier import Verifier
 from .lead_scorer import LeadScorer
+from .phone_verifier import PhoneVerifier
+from .email_verifier import EmailVerifier
+from .contact_crawler import ContactCrawler
 from .sheets_service import sheets_service
 
 logger = logging.getLogger("trucklead.orchestrator")
@@ -180,8 +183,8 @@ class LeadOrchestrator:
                         driver_count=raw.driver_count,
                         equipment=raw.equipment or [],
                         carrier_operation=raw.carrier_operation or ("Direct Shipper / Freight Demand" if is_shipper else None),
-                        operating_status=raw.operating_status or ("ACTIVE SHIPPER" if is_shipper else None),
-                        safety_rating=raw.safety_rating or ("N/A - Direct Shipper" if is_shipper else None),
+                        operating_status=None if is_shipper else raw.operating_status,
+                        safety_rating=None if is_shipper else raw.safety_rating,
                         mcs_150_date=raw.mcs_150_date,
                         lead_status="RAW",
                         lead_source=raw.source_name,
@@ -241,6 +244,60 @@ class LeadOrchestrator:
                         extraction_confidence=raw.extraction_confidence
                     )
                     candidate_company.sources.append(source_record)
+
+                    # Map official registered officers from MCS-150 if present
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    if raw.company_officer_1:
+                        c1_prov = {
+                            "full_name": {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"},
+                            "title": {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"}
+                        }
+                        if raw.email:
+                            c1_prov["email"] = {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"}
+                        if raw.phone:
+                            c1_prov["phone"] = {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"}
+
+                        c1 = Contact(
+                            company_id=candidate_company.id,
+                            full_name=raw.company_officer_1.strip(),
+                            title="Company officer (per MCS-150)",
+                            email=raw.email,
+                            email_verification_status="UNVERIFIED" if raw.email else "UNKNOWN",
+                            phone=raw.phone,
+                            phone_e164=Normalizer.to_e164(raw.phone) if raw.phone else None,
+                            phone_display=Normalizer.format_phone_display(Normalizer.to_e164(raw.phone)) if raw.phone else None,
+                            phone_verification_status="UNKNOWN",
+                            is_decision_maker=True,
+                            confidence=0.85,
+                            verification_status="UNVERIFIED",
+                            source_url=raw.source_url,
+                            field_provenance=c1_prov
+                        )
+                        candidate_company.contacts.append(c1)
+
+                    if raw.company_officer_2:
+                        c2_prov = {
+                            "full_name": {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"},
+                            "title": {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"}
+                        }
+                        if raw.phone:
+                            c2_prov["phone"] = {"source": raw.source_name, "url": raw.source_url, "retrieved_at": now_iso, "method": "official"}
+
+                        c2 = Contact(
+                            company_id=candidate_company.id,
+                            full_name=raw.company_officer_2.strip(),
+                            title="Company officer (per MCS-150)",
+                            phone=raw.phone,
+                            phone_e164=Normalizer.to_e164(raw.phone) if raw.phone else None,
+                            phone_display=Normalizer.format_phone_display(Normalizer.to_e164(raw.phone)) if raw.phone else None,
+                            phone_verification_status="UNKNOWN",
+                            is_decision_maker=True,
+                            confidence=0.85,
+                            verification_status="UNVERIFIED",
+                            source_url=raw.source_url,
+                            field_provenance=c2_prov
+                        )
+                        candidate_company.contacts.append(c2)
 
                     # Status History: RAW -> RESEARCHING
                     hist1 = LeadStatusHistory(
@@ -351,6 +408,105 @@ class LeadOrchestrator:
                         except Exception as e:
                             logger.warning(f"B2B enrichment error on {candidate_company.company_name}: {e}")
 
+                    # Phone & Email Channel Verification & Normalization
+                    phone_verifier = PhoneVerifier()
+                    email_verifier = EmailVerifier()
+
+                    # 1. Company Phone Normalization & Verification
+                    if candidate_company.phone:
+                        candidate_company.phone_e164 = Normalizer.to_e164(candidate_company.phone)
+                        candidate_company.phone_display = Normalizer.format_phone_display(candidate_company.phone_e164)
+                    else:
+                        candidate_company.phone_e164 = None
+                        candidate_company.phone_display = None
+
+                    tz_name, w_local, w_ist = Normalizer.get_timezone_and_windows(candidate_company.state, candidate_company.phone_e164)
+                    candidate_company.local_timezone = tz_name
+                    candidate_company.call_window_local = w_local
+                    candidate_company.call_window_ist = w_ist
+
+                    if candidate_company.phone_e164:
+                        p_res = await phone_verifier.verify_phone(session, candidate_company.phone_e164)
+                        candidate_company.phone_line_type = p_res.line_type
+                        candidate_company.phone_carrier_name = p_res.carrier_name
+                        candidate_company.phone_verification_status = p_res.phone_verification_status
+                        candidate_company.phone_verified_at = p_res.verified_at
+                        candidate_company.phone_verification_provider = p_res.provider
+                        candidate_company.phone_raw_status = p_res.raw_status
+                        candidate_company.phone_cost = p_res.cost
+                    else:
+                        candidate_company.phone_verification_status = "UNKNOWN"
+
+                    # Sole proprietor call guidance & DNC status
+                    candidate_company.call_guidance = PhoneVerifier.determine_call_guidance(
+                        candidate_company.fleet_size, candidate_company.carrier_operation, candidate_company.phone_line_type
+                    )
+                    candidate_company.dnc_status = "DNC not checked"
+
+                    # 2. Company Website Crawler for Contacts (if contacts sparse)
+                    if candidate_company.website and not candidate_company.email:
+                        try:
+                            crawl_data = await ContactCrawler.crawl_company_website(candidate_company.website, max_pages=3)
+                            if crawl_data.get("emails") and not candidate_company.email:
+                                candidate_company.email = crawl_data["emails"][0]
+                            if crawl_data.get("phones") and not candidate_company.phone_e164:
+                                candidate_company.phone_e164 = crawl_data["phones"][0]
+                                candidate_company.phone_display = Normalizer.format_phone_display(candidate_company.phone_e164)
+                        except Exception as e:
+                            logger.debug(f"Contact crawler error on {candidate_company.website}: {e}")
+
+                    # 3. Company Email Verification
+                    if candidate_company.email:
+                        em_res = await email_verifier.verify_email(candidate_company.email)
+                        candidate_company.email_verification_status = em_res.email_verification_status
+                        candidate_company.email_mx_valid = em_res.mx_valid
+                        candidate_company.email_is_disposable = em_res.is_disposable
+                        candidate_company.email_role_tier = em_res.role_tier
+                        candidate_company.email_verified_at = em_res.verified_at
+                        candidate_company.email_verification_provider = em_res.provider
+                    else:
+                        candidate_company.email_verification_status = "UNKNOWN"
+
+                    # 4. Contacts Normalization & Verification
+                    for ct in candidate_company.contacts:
+                        if ct.phone and not ct.phone_e164:
+                            ct.phone_e164 = Normalizer.to_e164(ct.phone)
+                            ct.phone_display = Normalizer.format_phone_display(ct.phone_e164)
+
+                        if ct.phone_e164 and ct.phone_verification_status == "UNKNOWN":
+                            if ct.phone_e164 == candidate_company.phone_e164:
+                                ct.phone_line_type = candidate_company.phone_line_type
+                                ct.phone_carrier_name = candidate_company.phone_carrier_name
+                                ct.phone_verification_status = candidate_company.phone_verification_status
+                                ct.phone_verified_at = candidate_company.phone_verified_at
+                                ct.phone_verification_provider = candidate_company.phone_verification_provider
+                            else:
+                                ct_p_res = await phone_verifier.verify_phone(session, ct.phone_e164)
+                                ct.phone_line_type = ct_p_res.line_type
+                                ct.phone_carrier_name = ct_p_res.carrier_name
+                                ct.phone_verification_status = ct_p_res.phone_verification_status
+                                ct.phone_verified_at = ct_p_res.verified_at
+                                ct.phone_verification_provider = ct_p_res.provider
+
+                        ct.dnc_status = "DNC not checked"
+
+                        if ct.email and ct.email_verification_status == "UNKNOWN":
+                            if ct.email == candidate_company.email:
+                                ct.email_verification_status = candidate_company.email_verification_status
+                                ct.email_mx_valid = candidate_company.email_mx_valid
+                                ct.email_is_disposable = candidate_company.email_is_disposable
+                                ct.email_role_tier = candidate_company.email_role_tier
+                                ct.email_verified_at = candidate_company.email_verified_at
+                                ct.email_verification_provider = candidate_company.email_verification_provider
+                            else:
+                                ct_em_res = await email_verifier.verify_email(ct.email)
+                                ct.email_verification_status = ct_em_res.email_verification_status
+                                ct.email_mx_valid = ct_em_res.mx_valid
+                                ct.email_is_disposable = ct_em_res.is_disposable
+                                ct.email_role_tier = ct_em_res.role_tier
+                                ct.email_verified_at = ct_em_res.verified_at
+                                ct.email_verification_provider = ct_em_res.provider
+
                     # 10-Point Grounded Verification
                     v_status, v_confidence, v_records, v_reason = Verifier.verify_company(candidate_company)
                     candidate_company.verification_status = v_status
@@ -366,18 +522,73 @@ class LeadOrchestrator:
                     score_entity.company_id = candidate_company.id
                     candidate_company.lead_score_detail = score_entity
 
+                    # Compliance & DNC Screening
+                    from .compliance import ComplianceService
+                    is_suppressed = await ComplianceService.screen_and_apply(session, candidate_company)
+
+                    # Strict FINAL Qualification Gate per Master SOP
+                    is_carrier = candidate_company.lead_type != "SHIPPER"
+                    op_status = (candidate_company.operating_status or "").upper()
+                    has_proven_active_authority = not is_carrier or (
+                        bool(candidate_company.usdot) and
+                        any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]) and
+                        not any(bad in op_status for bad in ["NOT AUTHORIZED", "REVOKED", "INACTIVE", "UNVERIFIED"])
+                    )
+
+                    has_verified_phone = (
+                        (candidate_company.phone_verification_status == "VERIFIED") or
+                        any(c.phone_verification_status == "VERIFIED" for c in (candidate_company.contacts or []))
+                    )
+                    has_verified_email = (
+                        (candidate_company.email_verification_status == "DELIVERABLE") or
+                        any(c.email_verification_status == "DELIVERABLE" for c in (candidate_company.contacts or []))
+                    )
+                    has_named_person = any(
+                        (c.is_decision_maker or (c.full_name and len(c.full_name) > 3 and not c.full_name.lower().startswith("company officer")))
+                        for c in (candidate_company.contacts or [])
+                    )
+                    has_verified_contact_for_named_person = (has_verified_phone or has_verified_email) and has_named_person
+
+                    is_final_candidate = (
+                        has_proven_active_authority and
+                        v_status == "VERIFIED" and
+                        candidate_company.lead_score >= run.score_threshold and
+                        not is_suppressed and
+                        not candidate_company.dnc_flag
+                    )
+
                     # Final Qualification Decision
-                    if v_status == "REJECTED":
+                    if is_suppressed or candidate_company.dnc_flag:
                         candidate_company.lead_status = "REJECTED"
+                        candidate_company.priority = "REJECTED"
+                        candidate_company.rejection_reason = candidate_company.suppression_reason or "Suppressed via compliance / DNC list"
+                        run.rejected_count += 1
+                    elif v_status == "REJECTED":
+                        candidate_company.lead_status = "REJECTED"
+                        candidate_company.priority = "REJECTED"
                         candidate_company.rejection_reason = v_reason
                         run.rejected_count += 1
-                    elif candidate_company.lead_score < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
+                    elif is_carrier and op_status and any(bad in op_status for bad in ["PRIVATE PROPERTY", "NOT AUTHORIZED", "REVOKED", "INACTIVE"]):
                         candidate_company.lead_status = "REJECTED"
-                        candidate_company.rejection_reason = f"Score {candidate_company.lead_score} is below priority threshold ({config.scoring.priority_thresholds.reject_below})"
+                        candidate_company.priority = "REJECTED"
+                        candidate_company.rejection_reason = f"Hard gate failure: Carrier not authorized for-hire ({candidate_company.operating_status})"
                         run.rejected_count += 1
-                    elif candidate_company.lead_score >= run.score_threshold and v_status == "VERIFIED":
+                    elif candidate_company.lead_score < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
+                        if is_carrier:
+                            candidate_company.lead_status = "REJECTED"
+                            candidate_company.priority = "REJECTED"
+                            candidate_company.rejection_reason = f"Score {candidate_company.lead_score:.1f} below minimum threshold {config.scoring.priority_thresholds.reject_below}"
+                            run.rejected_count += 1
+                        else:
+                            candidate_company.lead_status = "NEEDS_ENRICHMENT"
+                            candidate_company.qualification_reason = "Shipper contacts pending Google Places / website enrichment"
+                    elif is_carrier and not candidate_company.operating_status:
+                        candidate_company.lead_status = "NEEDS_ENRICHMENT"
+                        candidate_company.qualification_reason = "Operating authority pending FMCSA census/SAFER verification"
+                    elif is_final_candidate and has_verified_contact_for_named_person:
+                        # Full FINAL qualification: Active authority + score + verified contact for named person
                         candidate_company.lead_status = "FINAL"
-                        candidate_company.qualification_reason = f"Qualified: Score {candidate_company.lead_score} (Priority {priority}) with {v_confidence*100:.0f}% verification."
+                        candidate_company.qualification_reason = f"Qualified: Score {candidate_company.lead_score} (Priority {priority}) with active authority & verified contact channel for named decision maker."
                         run.final_count += 1
                         run.verified_count += 1
                         run.qualified_count += 1
@@ -385,9 +596,11 @@ class LeadOrchestrator:
                             run.priority_a_count += 1
                         elif priority == "B":
                             run.priority_b_count += 1
-                    elif v_status == "VERIFIED":
+                    elif is_final_candidate:
+                        # Meets basic requirements but contacts pending verification -> QUALIFIED
                         candidate_company.lead_status = "QUALIFIED"
-                        candidate_company.qualification_reason = f"Verified: Score {candidate_company.lead_score} (Priority {priority})"
+                        ch_reason = "contacts pending provider verification" if not (has_verified_phone or has_verified_email) else "unverified named officer"
+                        candidate_company.qualification_reason = f"Verified: Score {candidate_company.lead_score} (Priority {priority}, Active Authority), but {ch_reason} (stays QUALIFIED until verified)."
                         run.verified_count += 1
                         run.qualified_count += 1
                     else:

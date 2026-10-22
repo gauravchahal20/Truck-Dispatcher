@@ -208,3 +208,38 @@ google_sheets:
     rejected: "REJECTED"
     source_log: "SOURCE_LOG"
     run_report: "RUN_REPORT"
+    callable_mailable: "CALLABLE_MAILABLE_LEADS"
+
+# Pipeline & State Configuration
+pipeline:
+  benchmark_states:
+    - "TX"
+    - "GA"
+    - "OH"
+  sync_states:
+    - "TX"
+    - "GA"
+    - "FL"
+    - "NC"
+    - "TN"
+
+# Compliant Outreach & Mailing Information (CAN-SPAM / TCPA)
+outreach:
+  physical_address: "1209 Orange Street, Wilmington, DE 19801"
+  sender_name: "TRUCKLEAD Dispatch Support"
+  sender_email: "dispatch@trucklead-autopilot.internal"
+  enable_continuous_autopilot: false
+
+# Contact Channel Verification Configuration
+contact_verification:
+  phone:
+    default_provider: "twilio"
+    cost_cap_per_lead: 0.05
+    cost_cap_per_run: 5.00
+    cache_ttl_days: 30
+  email:
+    verify_mx: true
+    disposable_domain_check: true
+    cost_cap_per_lead: 0.05
+    cost_cap_per_run: 5.00
+

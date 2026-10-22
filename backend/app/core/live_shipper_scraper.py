@@ -83,8 +83,8 @@ class LiveShipperScraper:
                                         "freight_volume": "High Volume Outbound FTL",
                                         "equipment": equipment_types or ["Dry Van", "Flatbed"],
                                         "carrier_operation": "Direct Shipper / Freight Demand",
-                                        "operating_status": "ACTIVE SHIPPER",
-                                        "safety_rating": "N/A - Direct Shipper",
+                                        "operating_status": None,
+                                        "safety_rating": None,
                                         "source_url": url,
                                         "notes": f"Verified Major Manufacturer / Direct Shipper in {city}, {st_clean}. Generates high-volume outbound freight."
                                     })

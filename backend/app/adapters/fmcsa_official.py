@@ -158,6 +158,10 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 existing.phy_state = (raw.get("phy_state") or st_clean).upper()
                 existing.phy_zip = raw.get("phy_zip")
                 existing.phone = raw.get("phone")
+                existing.cell_phone = raw.get("cell_phone")
+                existing.email = raw.get("email_address")
+                existing.company_officer_1 = raw.get("company_officer_1")
+                existing.company_officer_2 = raw.get("company_officer_2")
                 existing.power_units = pu_val
                 existing.total_drivers = drivers_val
                 existing.carrier_operation = raw.get("carrier_operation")
@@ -181,6 +185,10 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                     phy_state=(raw.get("phy_state") or st_clean).upper(),
                     phy_zip=raw.get("phy_zip"),
                     phone=raw.get("phone"),
+                    cell_phone=raw.get("cell_phone"),
+                    email=raw.get("email_address"),
+                    company_officer_1=raw.get("company_officer_1"),
+                    company_officer_2=raw.get("company_officer_2"),
                     power_units=pu_val,
                     total_drivers=drivers_val,
                     operating_status=op_status,
@@ -302,6 +310,12 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 prov["safety_rating"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
             if op_label:
                 prov["carrier_operation"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
+            if rec.email:
+                prov["email"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
+            if rec.company_officer_1:
+                prov["company_officer_1"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
+            if rec.company_officer_2:
+                prov["company_officer_2"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
 
             record = RawLeadRecord(
                 company_name=rec.legal_name or rec.dba_name,
@@ -311,6 +325,9 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 state=rec.phy_state,
                 address=rec.phy_street,
                 phone=norm_phone,
+                email=rec.email,
+                company_officer_1=rec.company_officer_1,
+                company_officer_2=rec.company_officer_2,
                 fleet_size=rec.power_units,
                 driver_count=rec.total_drivers,
                 operating_status=rec.operating_status or "AUTHORIZED FOR HIRE",
@@ -352,9 +369,68 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
             return EnrichmentResult()
 
         source_url = census_rec.source_url or f"https://data.transportation.gov/resource/az4n-8mr2?dot_number={census_rec.dot_number}"
+        
+        # Check az4n email or query kjg3-diqy official dataset
+        official_email = census_rec.email
+        email_source_url = source_url
+        if not official_email:
+            kjg3_email = await self.lookup_kjg3_diqy_email(census_rec.dot_number)
+            if kjg3_email:
+                official_email = kjg3_email
+                email_source_url = f"https://data.transportation.gov/resource/kjg3-diqy?dot_number={census_rec.dot_number}"
+
+        contacts_list = []
+        if census_rec.company_officer_1 or official_email:
+            officer_name = (census_rec.company_officer_1 or "Company Officer (MCS-150)").strip()
+            now_iso = datetime.now(timezone.utc).isoformat()
+            prov = {
+                "full_name": {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"},
+                "title": {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
+            }
+            if official_email:
+                prov["email"] = {"source": self.name, "url": email_source_url, "retrieved_at": now_iso, "method": "official"}
+            if census_rec.phone:
+                prov["phone"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
+
+            contacts_list.append({
+                "full_name": officer_name,
+                "title": "Company officer (per MCS-150)",
+                "email": official_email,
+                "phone": Normalizer.format_phone_display(census_rec.phone) if census_rec.phone else None,
+                "is_decision_maker": True,
+                "confidence": 0.85,
+                "source_url": email_source_url if official_email else source_url,
+                "field_provenance": prov
+            })
+
         return EnrichmentResult(
             phone=Normalizer.format_phone_display(census_rec.phone) if census_rec.phone else None,
+            email=official_email,
             operating_status=census_rec.operating_status or "AUTHORIZED FOR HIRE",
             source_url=source_url,
+            contacts=contacts_list,
             notes=f"Official FMCSA Census Verified: USDOT #{census_rec.dot_number}. Status: {census_rec.operating_status}. Fleet: {census_rec.power_units or 'N/A'} units."
         )
+
+    async def lookup_kjg3_diqy_email(self, dot_number: str) -> Optional[str]:
+        """
+        Queries official Socrata dataset kjg3-diqy (SMS Input - Motor Carrier Census)
+        for official email_address matched by USDOT.
+        """
+        dot_clean = str(dot_number).strip()
+        if not dot_clean.isdigit():
+            return None
+        url = f"https://data.transportation.gov/resource/kjg3-diqy.json?$select=email_address&$where=dot_number='{dot_clean}'&$limit=1"
+        try:
+            await self._rate_limit_wait()
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(url)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data and isinstance(data, list) and len(data) > 0:
+                        em = data[0].get("email_address")
+                        if em and "@" in em:
+                            return em.strip().lower()
+        except Exception as e:
+            logger.debug(f"kjg3-diqy lookup failed for USDOT {dot_clean}: {e}")
+        return None

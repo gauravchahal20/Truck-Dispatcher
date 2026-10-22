@@ -18,8 +18,12 @@ def test_normalize_phone():
     assert Normalizer.normalize_phone("4045550144") == "+14045550144"
 
 def test_format_phone_display():
-    assert Normalizer.format_phone_display("+12145550182") == "(214) 555-0182"
-    assert Normalizer.format_phone_display("2145550182") == "(214) 555-0182"
+    assert Normalizer.format_phone_display("+12145550182") == "+1 (214) 555-0182"
+    assert Normalizer.format_phone_display("2145550182") == "+1 (214) 555-0182"
+    assert Normalizer.format_phone_display("2145550182", include_country_code=False) == "(214) 555-0182"
+    assert Normalizer.to_e164("(214) 555-0182") == "+12145550182"
+    assert Normalizer.get_dial_link("(214) 555-0182") == "tel:+12145550182"
+
 
 def test_normalize_usdot():
     assert Normalizer.normalize_usdot("USDOT# 3849102") == "3849102"

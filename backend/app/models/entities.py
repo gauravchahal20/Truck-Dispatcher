@@ -72,7 +72,32 @@ class Company(Base):
     normalized_domain = Column(String(255), nullable=True, index=True)
     phone = Column(String(50), nullable=True)
     normalized_phone = Column(String(50), nullable=True, index=True)
+    phone_e164 = Column(String(50), nullable=True, index=True)
+    phone_display = Column(String(50), nullable=True)
+    phone_line_type = Column(String(50), nullable=True)  # mobile, landline, voip, tollfree, unknown
+    phone_carrier_name = Column(String(100), nullable=True)
+    phone_country_code = Column(String(10), default="US")
+    phone_verification_status = Column(String(50), default="UNKNOWN", index=True)  # VERIFIED, INVALID, UNREACHABLE, UNKNOWN
+    phone_verified_at = Column(DateTime, nullable=True)
+    phone_verification_provider = Column(String(50), nullable=True)
+    phone_raw_status = Column(String(100), nullable=True)
+    phone_cost = Column(Float, default=0.0)
+    call_guidance = Column(String(100), nullable=True)  # "call manually only, check DNC"
+    dnc_status = Column(String(100), default="DNC not checked")
+
+    # Time Zone & Call Windows (Local & Operator Asia/Kolkata)
+    local_timezone = Column(String(50), nullable=True)
+    call_window_local = Column(String(100), nullable=True)
+    call_window_ist = Column(String(100), nullable=True)
+
+    # Email & Verification Details
     email = Column(String(255), nullable=True)
+    email_verification_status = Column(String(50), default="UNKNOWN", index=True)  # DELIVERABLE, RISKY, UNDELIVERABLE, UNKNOWN
+    email_mx_valid = Column(Boolean, nullable=True)
+    email_is_disposable = Column(Boolean, default=False)
+    email_role_tier = Column(String(50), nullable=True)  # named, departmental, generic
+    email_verified_at = Column(DateTime, nullable=True)
+    email_verification_provider = Column(String(50), nullable=True)
 
     # Location
     address = Column(String(500), nullable=True)
@@ -111,6 +136,8 @@ class Company(Base):
     notes = Column(Text, nullable=True)
     field_provenance = Column(JSON, default=dict)
     needs_reverification = Column(Boolean, default=False, index=True)
+    dnc_flag = Column(Boolean, default=False, index=True)
+    suppression_reason = Column(String(255), nullable=True)
 
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
@@ -123,6 +150,15 @@ class Company(Base):
     intent_signals = relationship("IntentSignal", back_populates="company", cascade="all, delete-orphan", lazy="selectin")
     lead_score_detail = relationship("LeadScore", back_populates="company", uselist=False, cascade="all, delete-orphan", lazy="selectin")
     status_history = relationship("LeadStatusHistory", back_populates="company", cascade="all, delete-orphan", lazy="selectin")
+    outcomes = relationship("LeadOutcome", back_populates="company", cascade="all, delete-orphan", lazy="selectin")
+
+    @property
+    def dial_link(self) -> Optional[str]:
+        return f"tel:{self.phone_e164}" if self.phone_e164 else (f"tel:{self.normalized_phone}" if self.normalized_phone else None)
+
+    @property
+    def mailto_link(self) -> Optional[str]:
+        return f"mailto:{self.email}" if self.email else None
 
 
 class Contact(Base):
@@ -135,16 +171,50 @@ class Contact(Base):
     first_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=True)
     title = Column(String(150), nullable=True)
-    email = Column(String(255), nullable=True)
+
+    # Phone & Line Intelligence
     phone = Column(String(50), nullable=True)
+    phone_e164 = Column(String(50), nullable=True, index=True)
+    phone_display = Column(String(50), nullable=True)
+    phone_line_type = Column(String(50), nullable=True)  # mobile, landline, voip, tollfree, unknown
+    phone_carrier_name = Column(String(100), nullable=True)
+    phone_verification_status = Column(String(50), default="UNKNOWN", index=True)  # VERIFIED, INVALID, UNREACHABLE, UNKNOWN
+    phone_verified_at = Column(DateTime, nullable=True)
+    phone_verification_provider = Column(String(50), nullable=True)
+    phone_raw_status = Column(String(100), nullable=True)
+    phone_cost = Column(Float, default=0.0)
+    dnc_status = Column(String(100), default="DNC not checked")
+
+    # Email & Verification Details
+    email = Column(String(255), nullable=True)
+    email_verification_status = Column(String(50), default="UNKNOWN", index=True)  # DELIVERABLE, RISKY, UNDELIVERABLE, UNKNOWN
+    email_mx_valid = Column(Boolean, nullable=True)
+    email_is_disposable = Column(Boolean, default=False)
+    email_role_tier = Column(String(50), nullable=True)  # named, departmental, generic
+    email_verified_at = Column(DateTime, nullable=True)
+    email_verification_provider = Column(String(50), nullable=True)
+
     linkedin_url = Column(String(500), nullable=True)
     is_decision_maker = Column(Boolean, default=False)
     confidence = Column(Float, default=0.5)
     source_url = Column(String(1000), nullable=True)
+    verification_status = Column(String(50), default="UNVERIFIED")
+    field_provenance = Column(JSON, default=dict)
+    dnc_flag = Column(Boolean, default=False, index=True)
 
     created_at = Column(DateTime, default=utc_now)
 
     company = relationship("Company", back_populates="contacts")
+    outcomes = relationship("LeadOutcome", back_populates="contact", cascade="all, delete-orphan", lazy="selectin")
+
+    @property
+    def dial_link(self) -> Optional[str]:
+        return f"tel:{self.phone_e164}" if self.phone_e164 else (f"tel:{self.phone}" if self.phone else None)
+
+    @property
+    def mailto_link(self) -> Optional[str]:
+        return f"mailto:{self.email}" if self.email else None
+
 
 
 class SourceRecord(Base):
@@ -263,6 +333,10 @@ class FMCSACarrierCensus(Base):
     phy_state = Column(String(50), nullable=False, index=True)
     phy_zip = Column(String(20), nullable=True)
     phone = Column(String(50), nullable=True)
+    cell_phone = Column(String(50), nullable=True)
+    email = Column(String(255), nullable=True)
+    company_officer_1 = Column(String(255), nullable=True)
+    company_officer_2 = Column(String(255), nullable=True)
     power_units = Column(Integer, nullable=True)
     total_drivers = Column(Integer, nullable=True)
     operating_status = Column(String(100), nullable=True)
@@ -291,3 +365,102 @@ class SourceHealthMetric(Base):
     last_error_message = Column(Text, nullable=True)
     avg_latency_ms = Column(Float, default=0.0)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+
+class SuppressionEntry(Base):
+    """Compliance suppression list preventing outreach to opted-out, DNC, or litigator entities."""
+    __tablename__ = "suppression_list"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    email = Column(String(255), nullable=True, index=True)
+    phone = Column(String(50), nullable=True, index=True)
+    normalized_phone = Column(String(50), nullable=True, index=True)
+    domain = Column(String(255), nullable=True, index=True)
+    usdot = Column(String(50), nullable=True, index=True)
+    reason = Column(String(255), default="OPT_OUT")  # OPT_OUT, DNC, LITIGATOR, BOUNCE
+    added_at = Column(DateTime, default=utc_now)
+
+
+class FMCSAInsurance(Base):
+    """Local cache of active and pending FMCSA insurance filings (SODA qh9u-swkp / ypjt-5ydn)."""
+    __tablename__ = "fmcsa_insurance_active_pending"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    dot_number = Column(String(50), nullable=True, index=True)
+    docket_number = Column(String(50), nullable=True, index=True)
+    ins_form_code = Column(String(50), nullable=True)
+    name_company = Column(String(255), nullable=True)
+    policy_no = Column(String(100), nullable=True)
+    underl_lim_amount = Column(String(50), nullable=True)
+    max_cov_amount = Column(String(50), nullable=True)
+    effective_date = Column(String(50), nullable=True)
+    cancl_effective_date = Column(String(50), nullable=True)
+    raw_checksum = Column(String(64), nullable=True)
+    synced_at = Column(DateTime, default=utc_now)
+
+
+class FMCSAAuthorityHistory(Base):
+    """Local cache of FMCSA operating authority dispositions, revocations & suspensions (SODA wb4f-neki / 9mw4-x3tu)."""
+    __tablename__ = "fmcsa_authority_history"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    dot_number = Column(String(50), nullable=True, index=True)
+    docket_number = Column(String(50), nullable=True, index=True)
+    op_auth_type = Column(String(100), nullable=True)
+    order_type_desc = Column(String(255), nullable=True)
+    serve_date = Column(String(50), nullable=True)
+    effective_date = Column(String(50), nullable=True)
+    raw_checksum = Column(String(64), nullable=True)
+    synced_at = Column(DateTime, default=utc_now)
+
+
+class FMCSANewApplication(Base):
+    """Local cache of rejected or pending operating authority applications (SODA 96tg-4mhf)."""
+    __tablename__ = "fmcsa_new_applications"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    dot_number = Column(String(50), nullable=True, index=True)
+    docket_number = Column(String(50), nullable=True, index=True)
+    ins_form_code = Column(String(50), nullable=True)
+    policy_no = Column(String(100), nullable=True)
+    recv_date = Column(String(50), nullable=True)
+    rej_date = Column(String(50), nullable=True)
+    name_company = Column(String(255), nullable=True)
+    rej_reasons = Column(Text, nullable=True)
+    raw_checksum = Column(String(64), nullable=True)
+    synced_at = Column(DateTime, default=utc_now)
+
+
+class PhoneVerificationCache(Base):
+    """30-day cache of phone verification lookups to prevent redundant API queries and cost."""
+    __tablename__ = "phone_verification_cache"
+
+    phone_e164 = Column(String(50), primary_key=True, index=True)
+    valid = Column(Boolean, default=False)
+    line_type = Column(String(50), nullable=True)  # mobile, landline, voip, tollfree, unknown
+    carrier_name = Column(String(100), nullable=True)
+    country_code = Column(String(10), default="US")
+    phone_verification_status = Column(String(50), default="UNKNOWN", index=True)  # VERIFIED, INVALID, UNREACHABLE, UNKNOWN
+    provider = Column(String(50), nullable=True)
+    raw_status = Column(String(100), nullable=True)
+    cost = Column(Float, default=0.0)
+    cached_at = Column(DateTime, default=utc_now)
+    expires_at = Column(DateTime, nullable=False, index=True)
+
+
+class LeadOutcome(Base):
+    """Records one-click call and email outreach outcomes."""
+    __tablename__ = "lead_outcomes"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    company_id = Column(String(36), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    contact_id = Column(String(36), ForeignKey("contacts.id", ondelete="SET NULL"), nullable=True, index=True)
+    channel = Column(String(20), nullable=False)  # "PHONE" or "EMAIL"
+    outcome = Column(String(50), nullable=False)  # "no_answer", "wrong_number", "voicemail", "interested", "not_interested", "do_not_contact", "bounced"
+    target_value = Column(String(255), nullable=True)  # phone number or email address reached
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    company = relationship("Company", back_populates="outcomes")
+    contact = relationship("Contact", back_populates="outcomes")
+

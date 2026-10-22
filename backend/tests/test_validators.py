@@ -167,10 +167,17 @@ def test_nanp_phone_validation():
     assert Normalizer.is_valid_phone_nanp("214-012-3456") is False
     assert Normalizer.is_valid_phone_nanp("214-123-4567") is False
 
-    # Invalid: Fictional TV/movie range (exchange 555, line 0100-0199)
-    assert Normalizer.is_valid_phone_nanp("(214) 555-0182") is False
-    assert Normalizer.is_valid_phone_nanp("404-555-0105") is False
-    assert Normalizer.is_valid_phone_nanp("+12145550199") is False
+    # When override is disabled, fictional TV/movie range (exchange 555, line 0100-0199) is strictly rejected
+    Normalizer.set_allow_fictional_phones_override(False)
+    try:
+        assert Normalizer.is_valid_phone_nanp("(214) 555-0182") is False
+        assert Normalizer.is_valid_phone_nanp("404-555-0105") is False
+        assert Normalizer.is_valid_phone_nanp("+12145550199") is False
+
+        # When test-mode override is injected, fictional fixture numbers pass
+        assert Normalizer.is_valid_phone_nanp("(214) 555-0182", allow_fictional=True) is True
+    finally:
+        Normalizer.set_allow_fictional_phones_override(True)
 
     # Valid non-fictional 555 numbers outside 0100-0199
     assert Normalizer.is_valid_phone_nanp("(214) 555-2345") is True

@@ -63,8 +63,70 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 async def init_db():
-    """Initializes database schema and tables."""
+    """Initializes database schema, tables, and applies schema migrations."""
     # Import all models to ensure they are registered with Base
     from .. import models  # noqa
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        def _migrate_sqlite_columns(sync_conn):
+            from sqlalchemy import text
+            company_new_cols = [
+                ("phone_e164", "VARCHAR(50)"),
+                ("phone_display", "VARCHAR(50)"),
+                ("phone_line_type", "VARCHAR(50)"),
+                ("phone_carrier_name", "VARCHAR(100)"),
+                ("phone_country_code", "VARCHAR(10) DEFAULT 'US'"),
+                ("phone_verification_status", "VARCHAR(50) DEFAULT 'UNKNOWN'"),
+                ("phone_verified_at", "DATETIME"),
+                ("phone_verification_provider", "VARCHAR(50)"),
+                ("phone_raw_status", "VARCHAR(100)"),
+                ("phone_cost", "FLOAT DEFAULT 0.0"),
+                ("call_guidance", "VARCHAR(100)"),
+                ("dnc_status", "VARCHAR(100) DEFAULT 'DNC not checked'"),
+                ("local_timezone", "VARCHAR(50)"),
+                ("call_window_local", "VARCHAR(100)"),
+                ("call_window_ist", "VARCHAR(100)"),
+                ("email_verification_status", "VARCHAR(50) DEFAULT 'UNKNOWN'"),
+                ("email_mx_valid", "BOOLEAN"),
+                ("email_is_disposable", "BOOLEAN DEFAULT 0"),
+                ("email_role_tier", "VARCHAR(50)"),
+                ("email_verified_at", "DATETIME"),
+                ("email_verification_provider", "VARCHAR(50)"),
+            ]
+            contact_new_cols = [
+                ("phone_e164", "VARCHAR(50)"),
+                ("phone_display", "VARCHAR(50)"),
+                ("phone_line_type", "VARCHAR(50)"),
+                ("phone_carrier_name", "VARCHAR(100)"),
+                ("phone_verification_status", "VARCHAR(50) DEFAULT 'UNKNOWN'"),
+                ("phone_verified_at", "DATETIME"),
+                ("phone_verification_provider", "VARCHAR(50)"),
+                ("phone_raw_status", "VARCHAR(100)"),
+                ("phone_cost", "FLOAT DEFAULT 0.0"),
+                ("dnc_status", "VARCHAR(100) DEFAULT 'DNC not checked'"),
+                ("email_verification_status", "VARCHAR(50) DEFAULT 'UNKNOWN'"),
+                ("email_mx_valid", "BOOLEAN"),
+                ("email_is_disposable", "BOOLEAN DEFAULT 0"),
+                ("email_role_tier", "VARCHAR(50)"),
+                ("email_verified_at", "DATETIME"),
+                ("email_verification_provider", "VARCHAR(50)"),
+            ]
+            try:
+                res_comp = sync_conn.execute(text("PRAGMA table_info(companies)")).fetchall()
+                existing_comp = {row[1] for row in res_comp}
+                for col_name, col_type in company_new_cols:
+                    if col_name not in existing_comp:
+                        sync_conn.execute(text(f"ALTER TABLE companies ADD COLUMN {col_name} {col_type}"))
+
+                res_cont = sync_conn.execute(text("PRAGMA table_info(contacts)")).fetchall()
+                existing_cont = {row[1] for row in res_cont}
+                for col_name, col_type in contact_new_cols:
+                    if col_name not in existing_cont:
+                        sync_conn.execute(text(f"ALTER TABLE contacts ADD COLUMN {col_name} {col_type}"))
+            except Exception as e:
+                print(f"Warning: SQLite migration error: {e}")
+
+        await conn.run_sync(_migrate_sqlite_columns)
+
+

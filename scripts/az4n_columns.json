@@ -1,0 +1,737 @@
+[
+  {
+    "name": "MCS150_DATE",
+    "fieldName": "mcs150_date",
+    "type": "text"
+  },
+  {
+    "name": "ADD_DATE",
+    "fieldName": "add_date",
+    "type": "text"
+  },
+  {
+    "name": "STATUS_CODE",
+    "fieldName": "status_code",
+    "type": "text"
+  },
+  {
+    "name": "DOT_NUMBER",
+    "fieldName": "dot_number",
+    "type": "number"
+  },
+  {
+    "name": "DUN_BRADSTREET_NO",
+    "fieldName": "dun_bradstreet_no",
+    "type": "text"
+  },
+  {
+    "name": "PHY_OMC_REGION",
+    "fieldName": "phy_omc_region",
+    "type": "text"
+  },
+  {
+    "name": "SAFETY_INV_TERR",
+    "fieldName": "safety_inv_terr",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_OPERATION",
+    "fieldName": "carrier_operation",
+    "type": "text"
+  },
+  {
+    "name": "BUSINESS_ORG_ID",
+    "fieldName": "business_org_id",
+    "type": "text"
+  },
+  {
+    "name": "MCS150_MILEAGE",
+    "fieldName": "mcs150_mileage",
+    "type": "text"
+  },
+  {
+    "name": "MCS150_MILEAGE_YEAR",
+    "fieldName": "mcs150_mileage_year",
+    "type": "text"
+  },
+  {
+    "name": "MCS151_MILEAGE",
+    "fieldName": "mcs151_mileage",
+    "type": "text"
+  },
+  {
+    "name": "TOTAL_CARS",
+    "fieldName": "total_cars",
+    "type": "text"
+  },
+  {
+    "name": "MCS150_UPDATE_CODE_ID",
+    "fieldName": "mcs150_update_code_id",
+    "type": "text"
+  },
+  {
+    "name": "PRIOR_REVOKE_FLAG",
+    "fieldName": "prior_revoke_flag",
+    "type": "text"
+  },
+  {
+    "name": "PRIOR_REVOKE_DOT_NUMBER",
+    "fieldName": "prior_revoke_dot_number",
+    "type": "text"
+  },
+  {
+    "name": "PHONE",
+    "fieldName": "phone",
+    "type": "text"
+  },
+  {
+    "name": "FAX",
+    "fieldName": "fax",
+    "type": "text"
+  },
+  {
+    "name": "CELL_PHONE",
+    "fieldName": "cell_phone",
+    "type": "text"
+  },
+  {
+    "name": "COMPANY_OFFICER_1",
+    "fieldName": "company_officer_1",
+    "type": "text"
+  },
+  {
+    "name": "COMPANY_OFFICER_2",
+    "fieldName": "company_officer_2",
+    "type": "text"
+  },
+  {
+    "name": "BUSINESS_ORG_DESC",
+    "fieldName": "business_org_desc",
+    "type": "text"
+  },
+  {
+    "name": "TRUCK_UNITS",
+    "fieldName": "truck_units",
+    "type": "text"
+  },
+  {
+    "name": "POWER_UNITS",
+    "fieldName": "power_units",
+    "type": "text"
+  },
+  {
+    "name": "BUS_UNITS",
+    "fieldName": "bus_units",
+    "type": "text"
+  },
+  {
+    "name": "FLEETSIZE",
+    "fieldName": "fleetsize",
+    "type": "text"
+  },
+  {
+    "name": "REVIEW_ID",
+    "fieldName": "review_id",
+    "type": "text"
+  },
+  {
+    "name": "RECORDABLE_CRASH_RATE",
+    "fieldName": "recordable_crash_rate",
+    "type": "text"
+  },
+  {
+    "name": "MAIL_NATIONALITY_INDICATOR",
+    "fieldName": "mail_nationality_indicator",
+    "type": "text"
+  },
+  {
+    "name": "PHY_NATIONALITY_INDICATOR",
+    "fieldName": "phy_nationality_indicator",
+    "type": "text"
+  },
+  {
+    "name": "PHY_BARRIO",
+    "fieldName": "phy_barrio",
+    "type": "text"
+  },
+  {
+    "name": "MAIL_BARRIO",
+    "fieldName": "mail_barrio",
+    "type": "text"
+  },
+  {
+    "name": "CARSHIP",
+    "fieldName": "carship",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET1PREFIX",
+    "fieldName": "docket1prefix",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET1",
+    "fieldName": "docket1",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET2PREFIX",
+    "fieldName": "docket2prefix",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET2",
+    "fieldName": "docket2",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET3PREFIX",
+    "fieldName": "docket3prefix",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET3",
+    "fieldName": "docket3",
+    "type": "text"
+  },
+  {
+    "name": "POINTNUM",
+    "fieldName": "pointnum",
+    "type": "text"
+  },
+  {
+    "name": "TOTAL_INTRASTATE_DRIVERS",
+    "fieldName": "total_intrastate_drivers",
+    "type": "text"
+  },
+  {
+    "name": "MCSIPSTEP",
+    "fieldName": "mcsipstep",
+    "type": "text"
+  },
+  {
+    "name": "MCSIPDATE",
+    "fieldName": "mcsipdate",
+    "type": "text"
+  },
+  {
+    "name": "HM_Ind",
+    "fieldName": "hm_ind",
+    "type": "text"
+  },
+  {
+    "name": "INTERSTATE_BEYOND_100_MILES",
+    "fieldName": "interstate_beyond_100_miles",
+    "type": "text"
+  },
+  {
+    "name": "INTERSTATE_WITHIN_100_MILES",
+    "fieldName": "interstate_within_100_miles",
+    "type": "text"
+  },
+  {
+    "name": "INTRASTATE_BEYOND_100_MILES",
+    "fieldName": "intrastate_beyond_100_miles",
+    "type": "text"
+  },
+  {
+    "name": "INTRASTATE_WITHIN_100_MILES",
+    "fieldName": "intrastate_within_100_miles",
+    "type": "text"
+  },
+  {
+    "name": "TOTAL_CDL",
+    "fieldName": "total_cdl",
+    "type": "text"
+  },
+  {
+    "name": "TOTAL_DRIVERS",
+    "fieldName": "total_drivers",
+    "type": "text"
+  },
+  {
+    "name": "AVG_DRIVERS_LEASED_PER_MONTH",
+    "fieldName": "avg_drivers_leased_per_month",
+    "type": "text"
+  },
+  {
+    "name": "CLASSDEF",
+    "fieldName": "classdef",
+    "type": "text"
+  },
+  {
+    "name": "LEGAL_NAME",
+    "fieldName": "legal_name",
+    "type": "text"
+  },
+  {
+    "name": "DBA_NAME",
+    "fieldName": "dba_name",
+    "type": "text"
+  },
+  {
+    "name": "PHY_STREET",
+    "fieldName": "phy_street",
+    "type": "text"
+  },
+  {
+    "name": "PHY_CITY",
+    "fieldName": "phy_city",
+    "type": "text"
+  },
+  {
+    "name": "PHY_COUNTRY",
+    "fieldName": "phy_country",
+    "type": "text"
+  },
+  {
+    "name": "PHY_STATE",
+    "fieldName": "phy_state",
+    "type": "text"
+  },
+  {
+    "name": "PHY_ZIP",
+    "fieldName": "phy_zip",
+    "type": "text"
+  },
+  {
+    "name": "PHY_CNTY",
+    "fieldName": "phy_cnty",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_STREET",
+    "fieldName": "carrier_mailing_street",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_STATE",
+    "fieldName": "carrier_mailing_state",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_CITY",
+    "fieldName": "carrier_mailing_city",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_COUNTRY",
+    "fieldName": "carrier_mailing_country",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_ZIP",
+    "fieldName": "carrier_mailing_zip",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_CNTY",
+    "fieldName": "carrier_mailing_cnty",
+    "type": "text"
+  },
+  {
+    "name": "CARRIER_MAILING_UND_DATE",
+    "fieldName": "carrier_mailing_und_date",
+    "type": "text"
+  },
+  {
+    "name": "DRIVER_INTER_TOTAL",
+    "fieldName": "driver_inter_total",
+    "type": "text"
+  },
+  {
+    "name": "EMAIL_ADDRESS",
+    "fieldName": "email_address",
+    "type": "text"
+  },
+  {
+    "name": "REVIEW_TYPE",
+    "fieldName": "review_type",
+    "type": "text"
+  },
+  {
+    "name": "REVIEW_DATE",
+    "fieldName": "review_date",
+    "type": "text"
+  },
+  {
+    "name": "SAFETY_RATING",
+    "fieldName": "safety_rating",
+    "type": "text"
+  },
+  {
+    "name": "SAFETY_RATING_DATE",
+    "fieldName": "safety_rating_date",
+    "type": "text"
+  },
+  {
+    "name": "UNDELIV_PHY",
+    "fieldName": "undeliv_phy",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_GENFREIGHT",
+    "fieldName": "crgo_genfreight",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_HOUSEHOLD",
+    "fieldName": "crgo_household",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_METALSHEET",
+    "fieldName": "crgo_metalsheet",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_MOTOVEH",
+    "fieldName": "crgo_motoveh",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_DRIVETOW",
+    "fieldName": "crgo_drivetow",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_LOGPOLE",
+    "fieldName": "crgo_logpole",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_BLDGMAT",
+    "fieldName": "crgo_bldgmat",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_MOBILEHOME",
+    "fieldName": "crgo_mobilehome",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_MACHLRG",
+    "fieldName": "crgo_machlrg",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_PRODUCE",
+    "fieldName": "crgo_produce",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_LIQGAS",
+    "fieldName": "crgo_liqgas",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_INTERMODAL",
+    "fieldName": "crgo_intermodal",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_PASSENGERS",
+    "fieldName": "crgo_passengers",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_OILFIELD",
+    "fieldName": "crgo_oilfield",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_LIVESTOCK",
+    "fieldName": "crgo_livestock",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_GRAINFEED",
+    "fieldName": "crgo_grainfeed",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_COALCOKE",
+    "fieldName": "crgo_coalcoke",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_MEAT",
+    "fieldName": "crgo_meat",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_GARBAGE",
+    "fieldName": "crgo_garbage",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_USMAIL",
+    "fieldName": "crgo_usmail",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_CHEM",
+    "fieldName": "crgo_chem",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_DRYBULK",
+    "fieldName": "crgo_drybulk",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_COLDFOOD",
+    "fieldName": "crgo_coldfood",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_BEVERAGES",
+    "fieldName": "crgo_beverages",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_PAPERPROD",
+    "fieldName": "crgo_paperprod",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_UTILITY",
+    "fieldName": "crgo_utility",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_FARMSUPP",
+    "fieldName": "crgo_farmsupp",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_CONSTRUCT",
+    "fieldName": "crgo_construct",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_WATERWELL",
+    "fieldName": "crgo_waterwell",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_CARGOOTHR",
+    "fieldName": "crgo_cargoothr",
+    "type": "text"
+  },
+  {
+    "name": "CRGO_CARGOOTHR_DESC",
+    "fieldName": "crgo_cargoothr_desc",
+    "type": "text"
+  },
+  {
+    "name": "OWNTRUCK",
+    "fieldName": "owntruck",
+    "type": "text"
+  },
+  {
+    "name": "OWNTRACT",
+    "fieldName": "owntract",
+    "type": "text"
+  },
+  {
+    "name": "OWNTRAIL",
+    "fieldName": "owntrail",
+    "type": "text"
+  },
+  {
+    "name": "OWNCOACH",
+    "fieldName": "owncoach",
+    "type": "text"
+  },
+  {
+    "name": "OWNSCHOOL_1_8",
+    "fieldName": "ownschool_1_8",
+    "type": "text"
+  },
+  {
+    "name": "OWNSCHOOL_9_15",
+    "fieldName": "ownschool_9_15",
+    "type": "text"
+  },
+  {
+    "name": "OWNSCHOOL_16",
+    "fieldName": "ownschool_16",
+    "type": "text"
+  },
+  {
+    "name": "OWNBUS_16",
+    "fieldName": "ownbus_16",
+    "type": "text"
+  },
+  {
+    "name": "OWNVAN_1_8",
+    "fieldName": "ownvan_1_8",
+    "type": "text"
+  },
+  {
+    "name": "OWNVAN_9_15",
+    "fieldName": "ownvan_9_15",
+    "type": "text"
+  },
+  {
+    "name": "OWNLIMO_1_8",
+    "fieldName": "ownlimo_1_8",
+    "type": "text"
+  },
+  {
+    "name": "OWNLIMO_9_15",
+    "fieldName": "ownlimo_9_15",
+    "type": "text"
+  },
+  {
+    "name": "OWNLIMO_16",
+    "fieldName": "ownlimo_16",
+    "type": "text"
+  },
+  {
+    "name": "TRMTRUCK",
+    "fieldName": "trmtruck",
+    "type": "text"
+  },
+  {
+    "name": "TRMTRACT",
+    "fieldName": "trmtract",
+    "type": "text"
+  },
+  {
+    "name": "TRMTRAIL",
+    "fieldName": "trmtrail",
+    "type": "text"
+  },
+  {
+    "name": "TRMCOACH",
+    "fieldName": "trmcoach",
+    "type": "text"
+  },
+  {
+    "name": "TRMSCHOOL_1_8",
+    "fieldName": "trmschool_1_8",
+    "type": "text"
+  },
+  {
+    "name": "TRMSCHOOL_9_15",
+    "fieldName": "trmschool_9_15",
+    "type": "text"
+  },
+  {
+    "name": "TRMSCHOOL_16",
+    "fieldName": "trmschool_16",
+    "type": "text"
+  },
+  {
+    "name": "TRMBUS_16",
+    "fieldName": "trmbus_16",
+    "type": "text"
+  },
+  {
+    "name": "TRMVAN_1_8",
+    "fieldName": "trmvan_1_8",
+    "type": "text"
+  },
+  {
+    "name": "TRMVAN_9_15",
+    "fieldName": "trmvan_9_15",
+    "type": "text"
+  },
+  {
+    "name": "TRMLIMO_1_8",
+    "fieldName": "trmlimo_1_8",
+    "type": "text"
+  },
+  {
+    "name": "TRMLIMO_9_15",
+    "fieldName": "trmlimo_9_15",
+    "type": "text"
+  },
+  {
+    "name": "TRMLIMO_16",
+    "fieldName": "trmlimo_16",
+    "type": "text"
+  },
+  {
+    "name": "TRPTRUCK",
+    "fieldName": "trptruck",
+    "type": "text"
+  },
+  {
+    "name": "TRPTRACT",
+    "fieldName": "trptract",
+    "type": "text"
+  },
+  {
+    "name": "TRPTRAIL",
+    "fieldName": "trptrail",
+    "type": "text"
+  },
+  {
+    "name": "TRPCOACH",
+    "fieldName": "trpcoach",
+    "type": "text"
+  },
+  {
+    "name": "TRPSCHOOL_1_8",
+    "fieldName": "trpschool_1_8",
+    "type": "text"
+  },
+  {
+    "name": "TRPSCHOOL_9_15",
+    "fieldName": "trpschool_9_15",
+    "type": "text"
+  },
+  {
+    "name": "TRPSCHOOL_16",
+    "fieldName": "trpschool_16",
+    "type": "text"
+  },
+  {
+    "name": "TRPBUS_16",
+    "fieldName": "trpbus_16",
+    "type": "text"
+  },
+  {
+    "name": "TRPVAN_1_8",
+    "fieldName": "trpvan_1_8",
+    "type": "text"
+  },
+  {
+    "name": "TRPVAN_9_15",
+    "fieldName": "trpvan_9_15",
+    "type": "text"
+  },
+  {
+    "name": "TRPLIMO_1_8",
+    "fieldName": "trplimo_1_8",
+    "type": "text"
+  },
+  {
+    "name": "TRPLIMO_9_15",
+    "fieldName": "trplimo_9_15",
+    "type": "text"
+  },
+  {
+    "name": "TRPLIMO_16",
+    "fieldName": "trplimo_16",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET1_STATUS_CODE",
+    "fieldName": "docket1_status_code",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET2_STATUS_CODE",
+    "fieldName": "docket2_status_code",
+    "type": "text"
+  },
+  {
+    "name": "DOCKET3_STATUS_CODE",
+    "fieldName": "docket3_status_code",
+    "type": "text"
+  }
+]

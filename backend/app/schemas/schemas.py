@@ -14,6 +14,8 @@ class ContactBase(BaseModel):
     is_decision_maker: bool = False
     confidence: float = 0.5
     source_url: Optional[str] = None
+    verification_status: Optional[str] = "UNVERIFIED"
+    dnc_flag: Optional[bool] = False
 
 
 class ContactCreate(ContactBase):
@@ -115,6 +117,8 @@ class CompanyBase(BaseModel):
     mcs_150_date: Optional[str] = None
     field_provenance: Optional[Dict[str, Any]] = Field(default_factory=dict)
     needs_reverification: Optional[bool] = False
+    dnc_flag: Optional[bool] = False
+    suppression_reason: Optional[str] = None
 
 
 class CompanyCreate(CompanyBase):

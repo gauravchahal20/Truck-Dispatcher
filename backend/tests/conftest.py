@@ -99,3 +99,12 @@ def block_external_sockets(request, monkeypatch):
     monkeypatch.setattr(socket.socket, "connect_ex", guarded_connect_ex)
     monkeypatch.setattr(socket, "getaddrinfo", guarded_getaddrinfo)
     yield
+
+
+@pytest.fixture(autouse=True)
+def enable_test_mode_nanp_override():
+    """Allows offline test fixtures to use standard fictional 555-01xx numbers via validator override."""
+    from app.services.normalizer import Normalizer
+    Normalizer.set_allow_fictional_phones_override(True)
+    yield
+    Normalizer.set_allow_fictional_phones_override(False)

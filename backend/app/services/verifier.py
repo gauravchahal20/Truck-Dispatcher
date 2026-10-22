@@ -114,42 +114,54 @@ class Verifier:
                 checked_at=now
             ))
 
-        # Step 4: Verify Active Operating Authority
-        op_status = (company.operating_status or "").upper()
-        if "REVOKED" in op_status or "INACTIVE" in op_status or "NOT AUTHORIZED" in op_status:
-            is_hard_rejected = True
-            rejection_reasons.append(f"Operating authority status inactive: {company.operating_status}")
-            records.append(VerificationRecord(
-                company_id=company.id,
-                step_name="4. Operating Authority",
-                status="FAILED",
-                confidence=0.0,
-                evidence_text=f"Authority not active: {company.operating_status}",
-                source_url=company.source_url,
-                checked_at=now
-            ))
-        elif any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]):
+        # Step 4: Verify Active Operating Authority (N/A for Shippers)
+        if company.lead_type == "SHIPPER":
             passed_steps += 1
             records.append(VerificationRecord(
                 company_id=company.id,
                 step_name="4. Operating Authority",
                 status="PASSED",
                 confidence=1.0,
-                evidence_text=f"Verified Active Operating Authority: {company.operating_status}",
+                evidence_text="N/A - Direct freight shippers do not hold or require motor carrier operating authority",
                 source_url=company.source_url,
                 checked_at=now
             ))
         else:
-            # Neutral / Unverified
-            records.append(VerificationRecord(
-                company_id=company.id,
-                step_name="4. Operating Authority",
-                status="WARNING",
-                confidence=0.5,
-                evidence_text="Operating authority pending FMCSA check",
-                source_url=company.source_url,
-                checked_at=now
-            ))
+            op_status = (company.operating_status or "").upper()
+            if "REVOKED" in op_status or "INACTIVE" in op_status or "NOT AUTHORIZED" in op_status:
+                is_hard_rejected = True
+                rejection_reasons.append(f"Operating authority status inactive: {company.operating_status}")
+                records.append(VerificationRecord(
+                    company_id=company.id,
+                    step_name="4. Operating Authority",
+                    status="FAILED",
+                    confidence=0.0,
+                    evidence_text=f"Authority not active: {company.operating_status}",
+                    source_url=company.source_url,
+                    checked_at=now
+                ))
+            elif any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]):
+                passed_steps += 1
+                records.append(VerificationRecord(
+                    company_id=company.id,
+                    step_name="4. Operating Authority",
+                    status="PASSED",
+                    confidence=1.0,
+                    evidence_text=f"Verified Active Operating Authority: {company.operating_status}",
+                    source_url=company.source_url,
+                    checked_at=now
+                ))
+            else:
+                # Neutral / Unverified
+                records.append(VerificationRecord(
+                    company_id=company.id,
+                    step_name="4. Operating Authority",
+                    status="WARNING",
+                    confidence=0.5,
+                    evidence_text="Operating authority pending FMCSA check",
+                    source_url=company.source_url,
+                    checked_at=now
+                ))
 
         # Step 5: Verify Fleet Size / Shipper Freight Volume
         is_shipper = (

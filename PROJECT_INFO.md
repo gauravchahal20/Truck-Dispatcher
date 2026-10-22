@@ -418,8 +418,26 @@ The backend contains a 16-test automated suite executed via `pytest`:
 - **Fault-Tolerant Circuit Breaker (`circuit_breaker.py`)**:
   - 3-state circuit breaker (`CLOSED`, `OPEN`, `HALF_OPEN`) with 60s recovery timeout and `SourceHealthMetric` database persistence.
   - Demoted `usdotlookup` scraping to a secondary fallback behind `ENABLE_USDOTLOOKUP_FALLBACK` feature flag and circuit breaker.
-- **Benchmark Run 3 Results (`33dcf26c-c9e6-4a2e-bbd7-525622a0dd27`)**:
-  - **70.2% overall (33/47)** and **94.3% of carriers (33/35)** originated directly from official FMCSA data.
-  - Phone coverage jumped from **48.0%** to **70.2%** (**100.0%** on official carrier leads).
-  - Active operating authority jumped to **95.7%** (45/47).
-  - Average lead score increased from **3.26** to **4.73 / 10.0**, producing **26 Priority B leads** (up from 0 in Step B).
+### Version 1.4.0 — Workstream E: Callable and Mailable Leads & Contact Layer (October 22, 2026)
+- **E1: Reporting & Status Reconciliation**:
+  - Reconciled population counts: 156 benchmark leads (94 carriers / 62 shippers) vs 104 carriers (first cycle of Autopilot adding 10 carriers) vs 296 total leads across all cycles.
+  - Config-driven states: Benchmark states (`TX, GA, OH`) and Sync states (`TX, GA, FL, NC, TN`) configured in `default_config.yaml`.
+  - Strict FINAL gate: Requires active operating authority (carriers), no hard-gate/suppression failure, and at least one **VERIFIED** contact channel (phone or email) for a named person. Unverified MCS-150 officers stay `QUALIFIED`.
+  - Authority scoring fix: Fixed `LeadScorer` so unverified/None authority awards 0.0 points (preventing 76 leads from artificially reaching Priority B without proof).
+- **E2: Phone E.164 & Verification Layer**:
+  - Normalized all phone numbers to E.164 (`+1XXXXXXXXXX`) stored in `phone_e164`, formatted for display as `+1 (214) 555-0182` with click-to-call `tel:+1...`.
+  - Pluggable `PhoneVerifier`: Twilio Lookup v2 (line_type_intelligence), Telnyx, NumVerify with 30-day SQLite cache (`phone_verification_cache`), per-lead ($0.05) and per-run ($5.00) cost caps. Returns honest `UNKNOWN` when API keys are not configured.
+  - TCPA / Sole Proprietor protection: Automatically flags 1-truck fleet mobile numbers as `"call manually only, check DNC"`.
+  - Timezone & Call Windows: Computes local calling window (09:00–17:00 local time) and Asia/Kolkata (IST) equivalent for the operator.
+- **E3: Email Verification & Safe Finding**:
+  - Mapped official email addresses from `kjg3-diqy` and `az4n-8mr2` datasets with `method="official"` provenance.
+  - Implemented `EmailVerifier`: RFC syntax regex, disposable domain blacklist (28 domains), DNS MX lookup via `dnspython`, and role-account tiering (`DELIVERABLE`, `RISKY`, `UNDELIVERABLE`, `UNKNOWN`).
+  - Added SSRF-safe website crawler (`ContactCrawler`) for `mailto:` links and contact pages.
+- **E4: "Ready to Contact" Export & UI**:
+  - Added `/api/leads/callable-mailable` endpoint returning 19 standardized contact columns, call windows, click-to-call, and click-to-email links.
+  - Implemented 1-click outcome logging (`/api/leads/outcome`) for Phone (`interested`, `voicemail`, `no_answer`, `not_interested`, `wrong_number`, `do_not_contact`) and Email (`interested`, `not_interested`, `bounced`, `do_not_contact`).
+  - Automated compliance suppression: "do_not_contact" and "bounced" outcomes immediately create `SuppressionEntry` and mark `dnc_flag=True`.
+  - Fact-grounded CAN-SPAM email draft generator (`/api/leads/companies/{id}/draft-email`) with sender physical address and unsubscribe footer for manual operator dispatch.
+  - Frontend component `ReadyToContact.jsx` integrated into sidebar with verified badge, stat cards, filter tabs, draft modal, and call outcome logger.
+- **E5: Comprehensive Offline Test Suite**:
+  - Added `backend/tests/test_callable_mailable.py` with 10 offline tests (100% pass rate; full suite: 76 passed, 0 failed).

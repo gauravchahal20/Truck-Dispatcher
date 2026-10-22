@@ -47,15 +47,24 @@ class LeadScorer:
 
         # 2. Verified Active / Authorized Carrier (+2.0)
         active_score = 0.0
-        op_status = (company.operating_status or "").upper()
-        if company.usdot and any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]):
-            active_score = weights.verified_active_carrier
-            breakdown["active_carrier"] = f"+{active_score} (USDOT {company.usdot} Active & Authorized For-Hire)"
-        elif company.usdot:
-            active_score = weights.verified_active_carrier * 0.5
-            breakdown["active_carrier"] = f"+{active_score} (USDOT {company.usdot} registered, status: {company.operating_status or 'UNVERIFIED'})"
+        if is_shipper:
+            # Authority is N/A for Shippers
+            active_score = 0.0
+            breakdown["active_carrier"] = "+0 (N/A for Shippers - Direct freight demand)"
         else:
-            breakdown["active_carrier"] = "+0 (No USDOT verified)"
+            op_status = (company.operating_status or "").upper()
+            is_actively_authorized = (
+                bool(company.usdot) and
+                any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]) and
+                not any(bad in op_status for bad in ["NOT AUTHORIZED", "REVOKED", "INACTIVE", "UNVERIFIED"])
+            )
+            if is_actively_authorized:
+                active_score = weights.verified_active_carrier
+                breakdown["active_carrier"] = f"+{active_score} (USDOT {company.usdot} Proven Active & Authorized For-Hire)"
+            else:
+                active_score = 0.0
+                dot_info = f"USDOT {company.usdot}" if company.usdot else "No USDOT"
+                breakdown["active_carrier"] = f"+0 ({dot_info} authority not proven active: {company.operating_status or 'UNVERIFIED'})"
         total += active_score
 
         # 3. Decision Maker Identified (+2.0)

@@ -13,7 +13,7 @@ def test_scorer_all_criteria_maximum_score():
         fleet_size=4,
         operating_status="AUTHORIZED FOR Property",
         equipment=["dry_van", "reefer"],
-        phone="(214) 748-3647",
+        phone="(214) 555-0182",
         email="marcus.vance@apexfreight.example.com",
         contacts=[
             Contact(company_id="c-max", full_name="Marcus Vance", title="Owner & President", is_decision_maker=True)
@@ -73,7 +73,7 @@ def test_scorer_priority_tiers():
         fleet_size=4,
         operating_status="ACTIVE",
         equipment=["dry_van"],
-        phone="+12147483647",
+        phone="+12145550182",
         email="owner@lonestar.com",
         contacts=[Contact(company_id="c-a", full_name="John Doe", title="Owner", is_decision_maker=True)],
         intent_signals=[IntentSignal(company_id="c-a", signal_type="HIRING_DISPATCH", title="Hiring dispatcher")]
@@ -125,7 +125,7 @@ def test_scorer_priority_tiers():
         usdot="5544332",
         fleet_size=2,
         operating_status="ACTIVE",
-        phone="+12147483647",
+        phone="+12145550182",
         contacts=[],
         intent_signals=[]
     )
@@ -143,7 +143,7 @@ def test_priority_thresholds_from_config():
         fleet_size=4,
         operating_status="ACTIVE",
         equipment=["dry_van"],
-        phone="+12147483647",
+        phone="+12145550182",
         intent_signals=[IntentSignal(company_id="c-cfg", signal_type="HIRING_DISPATCH", title="Hiring dispatcher")]
     )
     # Score is 6.8 (normally Priority B with default 6.0 threshold)
@@ -170,7 +170,7 @@ def test_scorer_direct_shipper_scoring():
         company_name="Continental Distribution Center",
         lead_type="SHIPPER",
         freight_volume="50+ truckloads/week",
-        phone="+14046591234",
+        phone="+14045550199",
         email="marcus.vance@continental.example.com",
         contacts=[
             Contact(company_id="c-ship", full_name="Elena Rostova", title="Director of Logistics", is_decision_maker=True)
@@ -186,22 +186,22 @@ def test_scorer_direct_shipper_scoring():
 def test_scorer_contactability_role_account_tiers():
     """Tests contact score tiered penalties: named person (1.0), dispatch/sales (0.5), info/admin (0.2)."""
     # 1. Both phone and named email -> full 1.0
-    c_named = Company(phone="+12147483647", email="marcus.vance@example.com")
+    c_named = Company(phone="+12145550182", email="marcus.vance@example.com")
     s_named, _ = LeadScorer.calculate_score(c_named)
     assert s_named.usable_contact_score == 1.0
 
     # 2. Both phone and departmental email (dispatch@) -> medium 0.75
-    c_dept = Company(phone="+12147483647", email="dispatch@example.com")
+    c_dept = Company(phone="+12145550182", email="dispatch@example.com")
     s_dept, _ = LeadScorer.calculate_score(c_dept)
     assert s_dept.usable_contact_score == 0.75
 
     # 3. Both phone and generic inbox (info@) -> lowest 0.60
-    c_generic = Company(phone="+12147483647", email="info@example.com")
+    c_generic = Company(phone="+12145550182", email="info@example.com")
     s_generic, _ = LeadScorer.calculate_score(c_generic)
     assert s_generic.usable_contact_score == 0.60
 
     # 4. Phone only -> 0.75
-    c_phone = Company(phone="+12147483647", email=None)
+    c_phone = Company(phone="+12145550182", email=None)
     s_phone, _ = LeadScorer.calculate_score(c_phone)
     assert s_phone.usable_contact_score == 0.75
 

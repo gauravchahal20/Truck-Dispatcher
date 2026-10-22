@@ -88,4 +88,15 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ interval_seconds: intervalSeconds }),
   }),
+
+  // Callable & Mailable Leads (Workstream E)
+  getCallableMailableLeads: (filterMode = 'all', limit = 100) =>
+    request(`/api/leads/callable-mailable?filter_mode=${filterMode}&limit=${limit}`),
+  logLeadOutcome: (data) =>
+    request('/api/leads/outcome', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getDraftEmail: (companyId) =>
+    request(`/api/leads/companies/${companyId}/draft-email`),
 };

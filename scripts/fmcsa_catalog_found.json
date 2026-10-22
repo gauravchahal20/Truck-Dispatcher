@@ -1,0 +1,1164 @@
+[
+  {
+    "id": "ydr8-5enu",
+    "name": "Building Permits",
+    "updatedAt": "2026-10-22T12:08:50.000Z",
+    "description": "This dataset includes information about building permits issued by the City of Chicago from 2006 to the present, excludi",
+    "type": "dataset"
+  },
+  {
+    "id": "a7mk-8suc",
+    "name": "Vehicle Inspection Facility Locations Map",
+    "updatedAt": "2026-08-27T15:05:20.000Z",
+    "description": "List of all vehicle inspection stations located within New Jersey.",
+    "type": "map"
+  },
+  {
+    "id": "mu99-t4jn",
+    "name": "NHTSA Recalls by Manufacturer",
+    "updatedAt": "2026-10-22T09:39:56.000Z",
+    "description": "The dataset includes recall information related to specific NHTSA campaigns.  Users can filter based on characteristics ",
+    "type": "chart"
+  },
+  {
+    "id": "ijzp-q8t2",
+    "name": "Crimes - 2001 to Present",
+    "updatedAt": "2026-10-22T12:02:45.000Z",
+    "description": "This dataset reflects reported incidents of crime (with the exception of murders where data exists for each victim) that",
+    "type": "dataset"
+  },
+  {
+    "id": "az4n-8mr2",
+    "name": "Company Census File",
+    "updatedAt": "2026-10-22T10:22:14.000Z",
+    "description": "The Company Census File contains records for active, inactive, and pending entities registered with FMCSA. Entities incl",
+    "type": "dataset"
+  },
+  {
+    "id": "g62h-syeh",
+    "name": "COVID-19 Reported Patient Impact and Hospital Capacity by State Timeseries (RAW)",
+    "updatedAt": "2025-07-03T14:27:18.000Z",
+    "description": "<p><b>After May 3, 2024, this dataset and webpage will no longer be updated because hospitals are no longer required to ",
+    "type": "dataset"
+  },
+  {
+    "id": "k397-673e",
+    "name": "Citywide Payroll Data (Fiscal Year)",
+    "updatedAt": "2026-04-16T20:25:34.000Z",
+    "description": "Data is collected because of public interest in how the City\u2019s budget is being spent on salary and overtime pay for all ",
+    "type": "dataset"
+  },
+  {
+    "id": "h9gi-nx95",
+    "name": "Motor Vehicle Collisions - Crashes",
+    "updatedAt": "2026-07-31T20:59:38.000Z",
+    "description": "<b>NOTE:</b> This dataset is temporarily not updating while its automated update process is being fixed. This fix is exp",
+    "type": "dataset"
+  },
+  {
+    "id": "7wgr-qwgb",
+    "name": "Wyoming Connected Vehicle Pilot Basic Safety Message Visualization",
+    "updatedAt": "2026-04-23T17:46:29.743Z",
+    "description": "This is a data story for Wyoming Connected Vehicle Pilot Basic Safety Message Visualization.",
+    "type": "story"
+  },
+  {
+    "id": "85ca-t3if",
+    "name": "Traffic Crashes - Crashes",
+    "updatedAt": "2026-10-21T15:41:50.000Z",
+    "description": "<b> Note: As of 5/20/2026 we have added IDOT_CONTROL_NO to the dataset.</b> -- Crash data shows information about each t",
+    "type": "dataset"
+  },
+  {
+    "id": "anag-cw7u",
+    "name": "COVID-19 Reported Patient Impact and Hospital Capacity by Facility",
+    "updatedAt": "2025-07-03T14:26:47.000Z",
+    "description": "<p><b>After May 3, 2024, this dataset and webpage will no longer be updated because hospitals are no longer required to ",
+    "type": "dataset"
+  },
+  {
+    "id": "6rrh-rzua",
+    "name": "Listing of Active Businesses",
+    "updatedAt": "2026-10-15T18:06:00.000Z",
+    "description": "Listing of all active businesses currently registered with the Office of Finance. An \"active\" business is defined as a r",
+    "type": "dataset"
+  },
+  {
+    "id": "mpc8-8ayu",
+    "name": "BSM Point Map",
+    "updatedAt": "2026-10-06T14:28:55.000Z",
+    "description": "Contains all Basic Safety Messages (BSMs) collected during the Advanced Messaging Concept Development (AMCD) field testi",
+    "type": "map"
+  },
+  {
+    "id": "cnih-y5dw",
+    "name": "Food Service Establishment: Last Inspection",
+    "updatedAt": "2026-10-15T18:19:24.000Z",
+    "description": "This data includes the name and location of food service establishments and the violations that were found at the time o",
+    "type": "dataset"
+  },
+  {
+    "id": "4ijn-s7e5",
+    "name": "Food Inspections",
+    "updatedAt": "2026-10-22T09:08:25.000Z",
+    "description": "This information is derived from inspections of restaurants and other food establishments in Chicago from January 1, 201",
+    "type": "dataset"
+  },
+  {
+    "id": "3nnm-4jni",
+    "name": "United States COVID-19 Community Levels by County",
+    "updatedAt": "2026-09-22T23:18:41.000Z",
+    "description": "Reporting of Aggregate Case and Death Count data was discontinued May 11, 2023, with the expiration of the COVID-19 publ",
+    "type": "dataset"
+  },
+  {
+    "id": "dx9v-zd7x",
+    "name": "Real-Time Traffic Incident Reports",
+    "updatedAt": "2026-10-22T13:50:32.000Z",
+    "description": "This dataset contains traffic incident information from the Austin-Travis County traffic reports collected from the vari",
+    "type": "dataset"
+  },
+  {
+    "id": "vank-fyx9",
+    "name": "Providence Police Department  Arrests and Citations- Past 180 Days",
+    "updatedAt": "2026-10-22T13:31:19.000Z",
+    "description": "Adults arrested or issued citations by the Providence Police Department during the past 60 days.  Arrests are custodial ",
+    "type": "dataset"
+  },
+  {
+    "id": "cab7-wvn5",
+    "name": "Police Active Warrants",
+    "updatedAt": "2026-10-22T11:19:41.000Z",
+    "description": "This dataset represents all active warrants recorded by the Norfolk Police Department. Warrants can be searched by type ",
+    "type": "dataset"
+  },
+  {
+    "id": "3x8r-34rs",
+    "name": "Solar Electric Programs Reported by NYSERDA: Beginning 2000",
+    "updatedAt": "2026-10-06T20:07:16.000Z",
+    "description": "This dataset includes information on completed and pipeline (not yet installed) solar electric projects supported by the",
+    "type": "dataset"
+  },
+  {
+    "id": "43nn-pn8j",
+    "name": "DOHMH New York City Restaurant Inspection Results",
+    "updatedAt": "2026-10-21T22:04:24.000Z",
+    "description": "The dataset contains every sustained or not yet adjudicated violation citation from every full or special program inspec",
+    "type": "dataset"
+  },
+  {
+    "id": "jz4z-kudi",
+    "name": "OATH Hearings Division Case Status",
+    "updatedAt": "2026-10-22T04:55:59.000Z",
+    "description": "<b>NOTE:</b> As of May 4, 2026, the Respondent First Name, Respondent Address (Street Name), Respondent Address (City), ",
+    "type": "dataset"
+  },
+  {
+    "id": "6axg-epim",
+    "name": "Recalls Data",
+    "updatedAt": "2026-10-22T09:39:56.000Z",
+    "description": "About the Data:\nThe dataset includes recall information related to specific NHTSA campaigns. Users can filter based on c",
+    "type": "dataset"
+  },
+  {
+    "id": "r5kz-chrr",
+    "name": "Business Licenses",
+    "updatedAt": "2026-10-22T09:55:53.000Z",
+    "description": "NOTE, 9/25/2025 - We have populated the Address column for <a href=\"https://data.cityofchicago.org/stories/s/pnmi-a3z5\" ",
+    "type": "dataset"
+  },
+  {
+    "id": "22u3-xenr",
+    "name": "Building Violations",
+    "updatedAt": "2026-10-22T06:50:09.000Z",
+    "description": "Violations issued by the Department of Buildings from 2006 to the present.  Lenders and title companies, please note: Th",
+    "type": "dataset"
+  },
+  {
+    "id": "kn9c-c2s2",
+    "name": "Census Data - Selected socioeconomic indicators in Chicago, 2008 \u2013 2012",
+    "updatedAt": "2026-08-31T21:41:13.000Z",
+    "description": "This dataset contains a selection of six socioeconomic indicators of public health significance and a \u201chardship index,\u201d ",
+    "type": "dataset"
+  },
+  {
+    "id": "nc67-uf89",
+    "name": "Open Parking and Camera Violations",
+    "updatedAt": "2026-10-22T09:21:39.000Z",
+    "description": "The Open Parking and Camera Violations dataset was initially loaded with all violations contained in the mainframe datab",
+    "type": "dataset"
+  },
+  {
+    "id": "w6qn-gx72",
+    "name": "High Cost Disbursements",
+    "updatedAt": "2026-09-27T05:53:25.000Z",
+    "description": "This dataset provides information about total dollar amounts disbursed by month and year to Eligible Telecommunication C",
+    "type": "dataset"
+  },
+  {
+    "id": "vfnx-vebw",
+    "name": "2018 Central Park Squirrel Census - Squirrel Data",
+    "updatedAt": "2023-04-18T19:29:57.000Z",
+    "description": "The Squirrel Census (https://www.thesquirrelcensus.com/) is a multimedia science, design, and storytelling project focus",
+    "type": "dataset"
+  },
+  {
+    "id": "r6dx-fz2d",
+    "name": "Short Line Casualties 2019-2021",
+    "updatedAt": "2026-10-05T06:13:30.000Z",
+    "description": "Curated FRA Safety data pertaining to Casualty Injury and Illness data (Form 55A)",
+    "type": "filter"
+  },
+  {
+    "id": "fx4q-ay7w",
+    "name": "Vehicle Inspection File",
+    "updatedAt": "2026-10-22T12:50:43.000Z",
+    "description": "Federal and State field enforcement staff performs Inspections on Interstate and Intrastate Motor Carriers and Hazardous",
+    "type": "dataset"
+  },
+  {
+    "id": "wvxf-dwi5",
+    "name": "Housing Maintenance Code Violations",
+    "updatedAt": "2026-10-21T14:53:13.000Z",
+    "description": "Pursuant to New York City\u2019s Housing Maintenance Code, the Department of Housing Preservation and Development (HPD) issue",
+    "type": "dataset"
+  },
+  {
+    "id": "aksk-kvfp",
+    "name": "City-Owned Land Inventory",
+    "updatedAt": "2026-10-21T23:04:27.000Z",
+    "description": "<b> Note, 9/16/2026:</b> We have <a href=\"https://data.cityofchicago.org/stories/s/hp7d-y2ta\" target=\"_blank\">added</a> ",
+    "type": "dataset"
+  },
+  {
+    "id": "qgea-i56i",
+    "name": "NYPD Complaint Data Historic",
+    "updatedAt": "2026-04-28T16:10:09.000Z",
+    "description": "This dataset includes all valid felony, misdemeanor, and violation crimes reported to the New York City Police Departmen",
+    "type": "dataset"
+  },
+  {
+    "id": "6xf2-c3ie",
+    "name": "COVID-19 Reported Patient Impact and Hospital Capacity by State (RAW)",
+    "updatedAt": "2026-06-08T16:35:59.000Z",
+    "description": "<p><b>After May 3, 2024, this dataset and webpage will no longer be updated because hospitals are no longer required to ",
+    "type": "dataset"
+  },
+  {
+    "id": "6z8x-wfk4",
+    "name": "Evictions",
+    "updatedAt": "2026-10-22T11:42:07.000Z",
+    "description": "This dataset lists executed evictions within the five boroughs for the years 2017-Present (data prior to January 1, 2017",
+    "type": "dataset"
+  },
+  {
+    "id": "9s3h-dpkz",
+    "name": "Current Liquor Authority Active Licenses",
+    "updatedAt": "2026-10-22T00:36:17.000Z",
+    "description": "Liquor Authority current list of all active licenses, includes Temporary Operating Permits and Additional Bar licenses.",
+    "type": "dataset"
+  },
+  {
+    "id": "nze5-dppu",
+    "name": "Texas Department of Transportation Traffic Safety Data Portal",
+    "updatedAt": "2024-09-03T15:00:47.217Z",
+    "description": "See statewide data and traffic safety categories data.",
+    "type": "story"
+  },
+  {
+    "id": "ecmv-9xxi",
+    "name": "Food Establishment Inspection Scores",
+    "updatedAt": "2026-10-15T17:07:56.000Z",
+    "description": "Provides food establishment inspection scores performed within the last 3 years. Inspections are conducted in accordance",
+    "type": "dataset"
+  },
+  {
+    "id": "fmuw-smd7",
+    "name": "Vehicle Inspection Stations Across New York State Map",
+    "updatedAt": "2026-10-05T20:46:46.000Z",
+    "description": "Data set containing information on the facilities licensed by DMV in accordance with Vehicle and Traffic Law.",
+    "type": "map"
+  },
+  {
+    "id": "j8mb-icvb",
+    "name": "COVID-19 Diagnostic Laboratory Testing (PCR Testing) Time Series",
+    "updatedAt": "2026-06-08T16:57:01.000Z",
+    "description": "<p><b>After May 3, 2024, this dataset and webpage will no longer be updated because hospitals are no longer required to ",
+    "type": "dataset"
+  },
+  {
+    "id": "9xs2-f89t",
+    "name": "Chicago Public Schools - Progress Report Cards (2011-2012)",
+    "updatedAt": "2018-09-14T21:38:54.000Z",
+    "description": "This dataset shows all school level performance data used to create CPS School Report Cards for the 2011-2012 school yea",
+    "type": "dataset"
+  },
+  {
+    "id": "4y6x-dmck",
+    "name": "SMS AB PassProperty",
+    "updatedAt": "2026-10-13T07:05:22.000Z",
+    "description": "SMS All Interstate and Intrastate Hazmat - This data file is calculated from the monthly snapshots of the input data fil",
+    "type": "dataset"
+  },
+  {
+    "id": "876r-jsdb",
+    "name": "Vehicle Inspections and Violations",
+    "updatedAt": "2026-10-22T11:29:48.000Z",
+    "description": "The report includes inspections involving violations of the FMCSR or HRM.",
+    "type": "dataset"
+  },
+  {
+    "id": "aayw-vxb3",
+    "name": "Crash File",
+    "updatedAt": "2026-10-22T13:06:32.000Z",
+    "description": "The FMCSA Crash File contains 59 data elements comprised of data received from state police crash reports involving driv",
+    "type": "dataset"
+  },
+  {
+    "id": "wrvz-psew",
+    "name": "Taxi Trips (2013-2023)",
+    "updatedAt": "2026-03-19T18:55:14.000Z",
+    "description": "<b>This dataset ends with 2023. Please see the Featured Content link below for the dataset that starts in 2024.</b>\r\n\r\nT",
+    "type": "dataset"
+  },
+  {
+    "id": "wt8s-2hbx",
+    "name": "Inspections Per Unit",
+    "updatedAt": "2026-10-22T10:52:21.000Z",
+    "description": "Identifies the type, make, company number, license plate, license plate state, VIN, CVSA Decal, and CVSA Number. There c",
+    "type": "dataset"
+  },
+  {
+    "id": "w3v8-k4d4",
+    "name": "Food Service Establishment Map: Last Inspection",
+    "updatedAt": "2026-10-15T18:19:24.000Z",
+    "description": "This data includes the name and location of food service establishments and the violations that were found at the time o",
+    "type": "map"
+  },
+  {
+    "id": "kjg3-diqy",
+    "name": "SMS Input - Motor Carrier Census Information",
+    "updatedAt": "2026-10-13T08:31:57.000Z",
+    "description": "This data is from an FMCSA Comprehensive Safety Analysis (CSA) monthly data run, which contains the FMCSA registration d",
+    "type": "dataset"
+  },
+  {
+    "id": "swc5-untb",
+    "name": "PLACES: Local Data for Better Health, County Data, 2025 release",
+    "updatedAt": "2026-09-22T23:05:24.000Z",
+    "description": "This dataset contains model-based county estimates. PLACES covers the entire United States\u201450 states and the District of",
+    "type": "dataset"
+  },
+  {
+    "id": "t6tk-mr48",
+    "name": "Vehicle Inspection Facility Locations",
+    "updatedAt": "2026-08-27T15:05:20.000Z",
+    "description": "List of all vehicle inspection stations located within New Jersey.",
+    "type": "dataset"
+  },
+  {
+    "id": "rbkj-cgst",
+    "name": "SMS Input - Inspection",
+    "updatedAt": "2026-10-13T08:22:41.000Z",
+    "description": "This file contains the publicly available inspection data used for the current month\u2019s SMS calculations. Contains identi",
+    "type": "dataset"
+  },
+  {
+    "id": "awqx-tuwv",
+    "name": "Ordinance Violations (Buildings)",
+    "updatedAt": "2026-10-22T11:50:25.000Z",
+    "description": "<b>Note: For questions related to a specific violation or code requirements, please contact the Department of Buildings.",
+    "type": "filter"
+  },
+  {
+    "id": "qbt8-7vic",
+    "name": "Inspections and Citations",
+    "updatedAt": "2026-10-22T10:14:08.000Z",
+    "description": "The report includes inspections and associated citations.",
+    "type": "dataset"
+  },
+  {
+    "id": "p2mt-9ige",
+    "name": "OUT OF SERVICE ORDERS",
+    "updatedAt": "2026-10-22T08:31:46.000Z",
+    "description": "The FMCSA New Entrant Safety Assurance Program out of service (OOS) data, consists of all entities that have received an",
+    "type": "dataset"
+  },
+  {
+    "id": "8mt8-2mdr",
+    "name": "SMS Input - Violation",
+    "updatedAt": "2026-10-13T07:31:00.000Z",
+    "description": "This file contains the publicly available violation data used for the current month\u2019s SMS calculations. Contains details",
+    "type": "dataset"
+  },
+  {
+    "id": "cwsq-ngmh",
+    "name": "PLACES: Local Data for Better Health, Census Tract Data, 2025 release",
+    "updatedAt": "2026-09-22T22:42:32.000Z",
+    "description": "This dataset contains model-based census tract estimates. PLACES covers the entire United States\u201450 states and the Distr",
+    "type": "dataset"
+  },
+  {
+    "id": "tinb-kbst",
+    "name": "America Movil",
+    "updatedAt": "2025-01-30T03:27:17.000Z",
+    "description": "All facilities-based broadband providers are required to file data with the FCC twice a year (Form 477) on where they of",
+    "type": "filter"
+  },
+  {
+    "id": "4wxs-vbns",
+    "name": "SMS Input - Crash",
+    "updatedAt": "2026-10-13T07:04:37.000Z",
+    "description": "This file contains the publicly available crash data used for the current month\u2019s SMS calculations. Contains a record fo",
+    "type": "dataset"
+  },
+  {
+    "id": "fabb-cnnu",
+    "name": "Legacy Baton Rouge Police Crime Incidents",
+    "updatedAt": "2023-09-08T00:06:46.000Z",
+    "description": "***On January 1, 2021, the Baton Rouge Police Department switched to a new reporting system. This dataset contains data ",
+    "type": "dataset"
+  },
+  {
+    "id": "ygr5-vcbg",
+    "name": "Towed Vehicles",
+    "updatedAt": "2026-10-22T13:46:47.000Z",
+    "description": "This dataset displays location for vehicles that have been towed and impounded by the City of Chicago within the last 90",
+    "type": "dataset"
+  },
+  {
+    "id": "3h2n-5cm9",
+    "name": "DOB Violations",
+    "updatedAt": "2026-10-21T17:46:29.000Z",
+    "description": "This data set includes older civil penalties (commonly referred to as \u2018DOB Violations\u2019) that were issued by the Departme",
+    "type": "dataset"
+  },
+  {
+    "id": "h9zy-gjn8",
+    "name": "SMS C PassProperty",
+    "updatedAt": "2026-10-13T07:05:54.000Z",
+    "description": "SMS Intrastate Non-Hazmat - This data file is calculated from the monthly snapshots of the input data files, contains th",
+    "type": "dataset"
+  },
+  {
+    "id": "6eyk-hxee",
+    "name": "Carrier - All With History",
+    "updatedAt": "2026-10-22T13:26:41.000Z",
+    "description": "*Dataset*  Records for all carriers/brokers/freight forwarders with active, inactive, or pending authorities (common or ",
+    "type": "dataset"
+  },
+  {
+    "id": "kxv3-diwf",
+    "name": "Insurance agents, adjusters, and people approved to manage insurance-related products or claims",
+    "updatedAt": "2026-10-22T07:04:54.000Z",
+    "description": "The Texas Department of Insurance (TDI) is responsible for licensing, registering, certifying, and regulating people who",
+    "type": "dataset"
+  },
+  {
+    "id": "5uac-w243",
+    "name": "NYPD Complaint Data Current (Year To Date)",
+    "updatedAt": "2026-07-27T15:31:19.000Z",
+    "description": "This dataset includes all valid felony, misdemeanor, and violation crimes reported to the New York City Police Departmen",
+    "type": "dataset"
+  },
+  {
+    "id": "uy6s-ine5",
+    "name": "Tree Service Provider Registry",
+    "updatedAt": "2026-10-22T00:13:19.000Z",
+    "description": "Database of all active Tree Service Providers registered to do business in Seattle and have met the registration require",
+    "type": "dataset"
+  },
+  {
+    "id": "4f3n-jbg2",
+    "name": "Consumer Airfare Report: Table 1 - Top 1,000 Contiguous State City-Pair Markets",
+    "updatedAt": "2026-09-03T17:51:21.000Z",
+    "description": "Table 1 of this report covers the 1,000 largest city-pair markets in the 48 contiguous states. For each of the 1,000 lar",
+    "type": "filter"
+  },
+  {
+    "id": "c7ck-438e",
+    "name": "Chicago Police Department - Illinois Uniform Crime Reporting (IUCR) Codes",
+    "updatedAt": "2026-06-02T21:08:34.000Z",
+    "description": "Illinois Uniform Crime Reporting (IUCR) codes are four digit codes that law enforcement agencies use to classify crimina",
+    "type": "dataset"
+  },
+  {
+    "id": "wmj4-ygbf",
+    "name": "City of Cincinnati Employees w/ Salaries",
+    "updatedAt": "2026-10-22T03:08:40.000Z",
+    "description": "Data Description: This dataset lists all current City of Cincinnati employees, including full names, department, positio",
+    "type": "dataset"
+  },
+  {
+    "id": "an65-3p9b",
+    "name": "Motor Vehicle Occupant Death Rate, by Age and Sex, 2012 & 2014, HHS Region 1 - Boston",
+    "updatedAt": "2026-09-09T23:02:05.000Z",
+    "description": "Rate of deaths by age/sex (per 100,000 population) for motor vehicle occupants killed in crashes, 2012 & 2014. 2012 Sour",
+    "type": "dataset"
+  },
+  {
+    "id": "bhju-22kf",
+    "name": "Crash Reporting - Incidents Data",
+    "updatedAt": "2026-10-16T05:42:11.000Z",
+    "description": "This dataset provides general information about each collision and details of all traffic collisions occurring on county",
+    "type": "dataset"
+  },
+  {
+    "id": "u4ud-w55t",
+    "name": "Hospital Inpatient Discharges (SPARCS De-Identified): 2012",
+    "updatedAt": "2025-04-01T18:24:35.000Z",
+    "description": "The Statewide Planning and Research Cooperative System (SPARCS) Inpatient De-Identified dataset contains discharge level",
+    "type": "dataset"
+  },
+  {
+    "id": "ebbj-sh54",
+    "name": "Impaired Driving Death Rate, by Age and Sex, 2012 & 2014, All States",
+    "updatedAt": "2026-09-09T22:58:20.000Z",
+    "description": "Rate of deaths by age/sex (per 100,000 population) for people killed in crashes involving a driver with BAC =>0.08%, 201",
+    "type": "dataset"
+  },
+  {
+    "id": "5pue-gfbe",
+    "name": "Food Inspection",
+    "updatedAt": "2024-10-04T04:45:15.000Z",
+    "description": "The Licensure & Regulatory Services Program inspects all licensed retail food establishments in Montgomery County for a ",
+    "type": "dataset"
+  },
+  {
+    "id": "2hcc-shji",
+    "name": "Food Service Establishment Inspections: Beginning 2005 (ACTIVE)",
+    "updatedAt": "2026-10-15T17:22:10.000Z",
+    "description": "This data includes the name and location of active food service establishments and the violations that were found at the",
+    "type": "dataset"
+  },
+  {
+    "id": "kjtb-4uf7",
+    "name": "Lifeline Companies Near Me",
+    "updatedAt": "2026-10-20T11:37:23.000Z",
+    "description": "This dataset provides the information of all the carriers providing Lifeline service, their customer service number, ser",
+    "type": "dataset"
+  },
+  {
+    "id": "uvpi-gqnh",
+    "name": "2015 Street Tree Census - Tree Data",
+    "updatedAt": "2024-11-12T14:28:19.000Z",
+    "description": "Street tree data from the TreesCount! 2015 Street Tree Census, conducted by volunteers and staff organized by NYC Parks ",
+    "type": "dataset"
+  },
+  {
+    "id": "f8i8-k2gm",
+    "name": "Current SLA Pending Licenses",
+    "updatedAt": "2026-10-22T00:32:50.000Z",
+    "description": "Liquor Authority Pending Licenses",
+    "type": "dataset"
+  },
+  {
+    "id": "rqg5-mkef",
+    "name": "Motor Vehicle Occupant Death Rate, by Age and Sex, 2012 & 2014, All States",
+    "updatedAt": "2026-09-09T23:32:40.000Z",
+    "description": "Rate of deaths by age/sex (per 100,000 population) for motor vehicle occupants killed in crashes, 2012 & 2014. 2012 Sour",
+    "type": "dataset"
+  },
+  {
+    "id": "bi63-dtpu",
+    "name": "NCHS - Leading Causes of Death: United States",
+    "updatedAt": "2026-09-22T23:17:03.000Z",
+    "description": "This dataset presents the age-adjusted death rates for the 10 leading causes of death in the United States beginning in ",
+    "type": "dataset"
+  },
+  {
+    "id": "pvqr-7yc4",
+    "name": "Parking Violations Issued - Fiscal Year 2027",
+    "updatedAt": "2026-10-15T14:03:32.000Z",
+    "description": "This dataset provides data on Parking Violations Issued between July 1, 2026 to June 30, 2027.  In New York City, the fi",
+    "type": "dataset"
+  },
+  {
+    "id": "dri5-wcct",
+    "name": "Restaurant and Food Establishment Inspections (October 2016 to January 2024)",
+    "updatedAt": "2024-03-25T14:19:36.000Z",
+    "description": "This data set is sunset and will not be updating any more. Please go to this link for updated information: https://inspe",
+    "type": "dataset"
+  },
+  {
+    "id": "68nd-jvt3",
+    "name": "Traffic Crashes - Vehicles",
+    "updatedAt": "2026-10-21T15:12:50.000Z",
+    "description": "This dataset contains information about vehicles (or units as they are identified in crash reports) involved in a traffi",
+    "type": "dataset"
+  },
+  {
+    "id": "6sqe-dvqs",
+    "name": "InsHist - All With History",
+    "updatedAt": "2026-10-22T13:13:10.000Z",
+    "description": "*Dataset*  This dataset contains information on a carrier\u2019s/broker\u2019s/freight forwarder\u2019s previous insurance policy(ies).",
+    "type": "dataset"
+  },
+  {
+    "id": "7ghq-u8j6",
+    "name": "Missouri Docket Locations",
+    "updatedAt": "2023-06-01T20:05:25.000Z",
+    "description": "",
+    "type": "dataset"
+  },
+  {
+    "id": "hgat-td99",
+    "name": "Building Code Scofflaw List - Map",
+    "updatedAt": "2026-10-01T14:29:55.000Z",
+    "description": "The Chicago Building Scofflaw Ordinance (Section 2-92-416 of the Municipal Code of Chicago) is designed to prevent landl",
+    "type": "map"
+  },
+  {
+    "id": "izta-vnpq",
+    "name": "Nursing Home Weekly Bed Census: Last Submission",
+    "updatedAt": "2026-10-01T18:00:14.000Z",
+    "description": "The Nursing Home Weekly Bed Census: Last Submission data is the most current nursing home data available. Available bed ",
+    "type": "dataset"
+  },
+  {
+    "id": "ypjt-5ydn",
+    "name": "Insur - All With History",
+    "updatedAt": "2026-10-22T13:25:08.000Z",
+    "description": "*Dataset*  Records for carrier/broker/freight forwarder active or pending individual insurance policies. The records are",
+    "type": "dataset"
+  },
+  {
+    "id": "sa6p-acbp",
+    "name": "Revocation - All With History",
+    "updatedAt": "2026-10-22T13:27:35.000Z",
+    "description": "*Dataset*  Information on carrier/broker/freight forwarder authorities that have been revoked by FMCSA. The dataset incl",
+    "type": "dataset"
+  },
+  {
+    "id": "6bgk-3dad",
+    "name": "DOB ECB Violations",
+    "updatedAt": "2026-10-21T17:05:11.000Z",
+    "description": "This data set includes summonses issued by the Department of Buildings that are adjudicated by OATH/ECB. Separately, civ",
+    "type": "dataset"
+  },
+  {
+    "id": "qh9u-swkp",
+    "name": "ActPendInsur - All With History",
+    "updatedAt": "2026-10-22T13:22:52.000Z",
+    "description": "*Dataset*  Information on the implementation dates of an active or pending insurance policy (posted date, effective date",
+    "type": "dataset"
+  },
+  {
+    "id": "tx5i-i2ja",
+    "name": "WAOFM - Census - Population and Housing, 2000 and 2010",
+    "updatedAt": "2021-09-01T17:20:31.000Z",
+    "description": "Population and housing information extracted from decennial census Public Law 94-171 redistricting summary files for Was",
+    "type": "dataset"
+  },
+  {
+    "id": "9mw4-x3tu",
+    "name": "AuthHist - All With History",
+    "updatedAt": "2026-10-22T13:14:45.000Z",
+    "description": "*Dataset*  Records showing the history of each authority granted to a carrier/broker/freight forwarder, along with the d",
+    "type": "dataset"
+  },
+  {
+    "id": "2emp-mxtb",
+    "name": "BOC3 - All With History",
+    "updatedAt": "2026-10-22T13:22:00.000Z",
+    "description": "*Dataset*  Records for each BOC3 agent hired by a carrier/broker/freight forwarder. Each entity must hire a BOC3 agent t",
+    "type": "dataset"
+  },
+  {
+    "id": "vdjc-pybd",
+    "name": "Calgary Business Licenses",
+    "updatedAt": "2026-10-22T04:36:59.000Z",
+    "description": "This file includes the licensed businesses in the City of Calgary. Data fields include: Trade name, Business Location, C",
+    "type": "dataset"
+  },
+  {
+    "id": "xywu-7bv9",
+    "name": "New York City Population by Borough, 1950 - 2040",
+    "updatedAt": "2022-05-09T22:20:51.000Z",
+    "description": "Unadjusted decennial census data from 1950-2000 and projected figures from 2010-2040: summary table of New York City pop",
+    "type": "dataset"
+  },
+  {
+    "id": "xw5s-2pdn",
+    "name": "The State of New Jersey's Inspection Facility Wait Queue Information Website",
+    "updatedAt": "2023-03-24T15:54:45.000Z",
+    "description": "Link to The State of New Jersey's Inspection Facility Wait Queue Information Website.\nYou can view the following informa",
+    "type": "href"
+  },
+  {
+    "id": "dakf-i7zd",
+    "name": "FRA Safety Data Landing Page",
+    "updatedAt": "2026-10-01T13:05:42.207Z",
+    "description": "FRA\u2019s Office of Safety public data portal includes railroad safety information, reports and data tables on topics such a",
+    "type": "story"
+  },
+  {
+    "id": "45xw-qksz",
+    "name": "Freight Facts and Figures",
+    "updatedAt": "2026-04-29T16:15:32.529Z",
+    "description": "Freight Facts and Figures is a collection of charts and statistical tables about freight transportation in the United St",
+    "type": "story"
+  },
+  {
+    "id": "96tg-4mhf",
+    "name": "Rejected - All With History",
+    "updatedAt": "2026-10-22T13:24:46.000Z",
+    "description": "*Dataset* Information on insurance forms that were rejected by FMCSA. The dataset contains information on the insurance ",
+    "type": "dataset"
+  },
+  {
+    "id": "aruj-fgbm",
+    "name": "Nursing Home Quality Initiative: Beginning 2012",
+    "updatedAt": "2025-12-30T19:07:06.000Z",
+    "description": "The New York State Nursing Home Quality Initiative (NHQI) is an annual quality and performance evaluation project to imp",
+    "type": "dataset"
+  },
+  {
+    "id": "civu-giic",
+    "name": "Active Code Official Certifications",
+    "updatedAt": "2026-10-19T14:50:21.000Z",
+    "description": "The Division of Building Standards and Codes administers the mandatory statewide Uniform Fire Prevention and Building Co",
+    "type": "dataset"
+  },
+  {
+    "id": "6m8a-tsjg",
+    "name": "COVID-19 Test to Treat",
+    "updatedAt": "2025-07-03T14:26:37.000Z",
+    "description": "<b>NOTE: This dataset is no longer updated as of 1/31/2024. Please use <a href=\"https://healthdata.gov/ASPR/COVID-19-Tre",
+    "type": "dataset"
+  },
+  {
+    "id": "ia2d-e54m",
+    "name": "Water Consumption in the City of New York",
+    "updatedAt": "2025-05-21T16:20:18.000Z",
+    "description": "A brief history of water consumption in the New York City Water Supply System (Based on New York City Census population)",
+    "type": "dataset"
+  },
+  {
+    "id": "8u28-hw9f",
+    "name": "Takata Recall",
+    "updatedAt": "2026-09-02T22:06:59.000Z",
+    "description": "Tens of millions of vehicles with Takata air bags are under recall. Long-term exposure to high heat and humidity can cau",
+    "type": "dataset"
+  },
+  {
+    "id": "u6jv-9ijr",
+    "name": "Weekly Counts of Death by Jurisdiction and Select Causes of Death",
+    "updatedAt": "2026-09-22T23:54:21.000Z",
+    "description": "Effective September 27, 2023, this dataset will no longer be updated. Similar data are accessible from wonder.cdc.gov.\n\n",
+    "type": "dataset"
+  },
+  {
+    "id": "m6dm-c72p",
+    "name": "Transportation Network Providers - Trips (2018 - 2022)",
+    "updatedAt": "2026-03-19T18:53:52.000Z",
+    "description": "<b>This dataset ends with 2022. Please see the Featured Content link below for the dataset that starts in 2023.</b>\r\n\r\nA",
+    "type": "dataset"
+  },
+  {
+    "id": "d6dy-3h7r",
+    "name": "Food Safety Inspections \u2013 Current Ratings",
+    "updatedAt": "2026-08-15T00:00:15.000Z",
+    "description": "Dataset includes all food safety inspections conducted in last 24 months.",
+    "type": "dataset"
+  },
+  {
+    "id": "vy3x-niyc",
+    "name": "NJ MVC Vehicle Inspection Appointment System",
+    "updatedAt": "2023-03-24T14:17:14.000Z",
+    "description": "Link to NJ MVC's Vehicle Inspection Appointment System.  This site will enable you to schedule an appointment at selecte",
+    "type": "href"
+  },
+  {
+    "id": "b794-huf2",
+    "name": "Stormwater Management Inspections: January 2015 - Present",
+    "updatedAt": "2026-10-06T13:25:44.000Z",
+    "description": "This is a month-by-month list of all stormwater management inspections performed or overseen by the Stormwater Managemen",
+    "type": "dataset"
+  },
+  {
+    "id": "yg42-q284",
+    "name": "WFPS Call Logs",
+    "updatedAt": "2026-10-22T13:51:53.000Z",
+    "description": "The data set will list every call the WFPS has responded to between 2015 to present, which units responded, whether it w",
+    "type": "dataset"
+  },
+  {
+    "id": "76xm-jjuj",
+    "name": "EMS Incident Dispatch Data",
+    "updatedAt": "2026-10-07T14:42:18.000Z",
+    "description": "The EMS Incident Dispatch Data file contains data that is generated by the EMS Computer Aided Dispatch System. The data ",
+    "type": "dataset"
+  },
+  {
+    "id": "h4ti-be2n",
+    "name": "Edible Fruit Trees",
+    "updatedAt": "2026-10-19T08:38:54.000Z",
+    "description": "Please Note: Citizens are welcome to harvest from fruit trees on COE property with full understanding of the following:\r",
+    "type": "map"
+  },
+  {
+    "id": "u6pd-qa9d",
+    "name": "Traffic Crashes - People",
+    "updatedAt": "2026-10-21T15:08:45.000Z",
+    "description": "This data contains information about people involved in a crash and if any injuries were sustained. This dataset should ",
+    "type": "dataset"
+  },
+  {
+    "id": "cb42-qumz",
+    "name": "Child Care Regulated Programs",
+    "updatedAt": "2026-10-22T04:14:35.000Z",
+    "description": "Information on OCFS regulated child care programs, which includes program overview information and violation history.",
+    "type": "dataset"
+  },
+  {
+    "id": "9ivb-8ae9",
+    "name": "Major Safety and Security Events",
+    "updatedAt": "2026-10-06T19:04:06.000Z",
+    "description": "This is a list of all Major Safety and Security Events from January of 2014 to the most recently published data within t",
+    "type": "dataset"
+  },
+  {
+    "id": "myhq-rm6q",
+    "name": "Dashboard",
+    "updatedAt": "2025-01-31T22:06:21.088Z",
+    "description": "The Bureau of Transportation Statistics (BTS) TransBorder Freight program provides North American cross border freight d",
+    "type": "story"
+  },
+  {
+    "id": "8v6a-z6zq",
+    "name": "American Rescue Plan (ARP) Rural Payments",
+    "updatedAt": "2026-09-22T23:22:18.000Z",
+    "description": "The U.S. Department of Health and Human Services (HHS) via the Health Resources and Services Administration (HRSA) is re",
+    "type": "dataset"
+  },
+  {
+    "id": "n4j6-wkkf",
+    "name": "Chicago Traffic Tracker - Congestion Estimates by Segments - Deprecated",
+    "updatedAt": "2026-08-06T16:56:34.000Z",
+    "description": "<b>This dataset is no longer updated and contains no data not also present in <a href=\"https://data.cityofchicago.org/d/",
+    "type": "dataset"
+  },
+  {
+    "id": "cpkv-aajs",
+    "name": "Building Permits: New Housing Units",
+    "updatedAt": "2025-01-29T02:48:45.000Z",
+    "description": "The Department of Building and Safety issues permits for the construction, remodeling, and repair of buildings and struc",
+    "type": "filter"
+  },
+  {
+    "id": "inys-ebih",
+    "name": "Motus Carrier - All With History",
+    "updatedAt": "2026-10-22T10:04:31.000Z",
+    "description": "*This is an All With History dataset*. Records for all carriers/brokers/freight forwarders with active, inactive, or pen",
+    "type": "dataset"
+  },
+  {
+    "id": "5jrd-6zik",
+    "name": "Boundaries - Census Tracts - 2010 - Map",
+    "updatedAt": "2026-09-29T21:31:53.000Z",
+    "description": "Map of Census tract boundaries used in Chicago for the 2010 Census.",
+    "type": "map"
+  },
+  {
+    "id": "6vp6-wxuq",
+    "name": "500 Cities: Local Data for Better Health, 2019 release",
+    "updatedAt": "2026-09-22T23:22:30.000Z",
+    "description": "This is the complete dataset for the 500 Cities project 2019 release. This dataset includes 2017, 2016 model-based small",
+    "type": "dataset"
+  },
+  {
+    "id": "384s-wygj",
+    "name": "Food Establishment Inspection Violations",
+    "updatedAt": "2026-10-16T07:31:11.000Z",
+    "description": "This is a public use data file on Delaware Food Establishment inspections for the past two years. It includes a list of ",
+    "type": "dataset"
+  },
+  {
+    "id": "r4uk-afju",
+    "name": "Listing of All Businesses",
+    "updatedAt": "2026-10-16T16:27:56.000Z",
+    "description": "Listing of all (active and inactive) businesses registered with the Office of Finance. An \"active\" business is defined a",
+    "type": "dataset"
+  },
+  {
+    "id": "c5y8-a4uz",
+    "name": "Motus Insur - All With History",
+    "updatedAt": "2026-10-22T10:05:46.000Z",
+    "description": "*This is an All With History dataset*. Records for carrier/broker/freight forwarder active or pending individual insuran",
+    "type": "dataset"
+  },
+  {
+    "id": "qb45-rw2t",
+    "name": "CSRIC Best Practices",
+    "updatedAt": "2022-12-07T18:22:19.000Z",
+    "description": "The CSRIC Best Practices Search Tool allows you to search CSRIC's collection of Best Practices using a variety of criter",
+    "type": "dataset"
+  },
+  {
+    "id": "mpx5-t7tu",
+    "name": "Provisional COVID-19 death counts, rates, and percent of total deaths, by jurisdiction of residence",
+    "updatedAt": "2026-09-22T23:20:49.000Z",
+    "description": "This file contains COVID-19 death counts, death rates, and percent of total deaths by jurisdiction of residence. The dat",
+    "type": "dataset"
+  },
+  {
+    "id": "kiw9-p7ha",
+    "name": "Intersection Safety Devices",
+    "updatedAt": "2022-08-02T18:12:29.862Z",
+    "description": "Superseded: please visit the Safe Streets Map at https://gis.edmonton.ca/portal/apps/instant/minimalist/index.html?appid",
+    "type": "story"
+  },
+  {
+    "id": "yhhz-zm2v",
+    "name": "COVID-19 Cases, Tests, and Deaths by ZIP Code - Historical",
+    "updatedAt": "2026-08-31T21:43:16.000Z",
+    "description": "NOTE: This dataset has been retired and marked as historical-only.\n\nOnly Chicago residents are included based on the hom",
+    "type": "dataset"
+  },
+  {
+    "id": "izdx-gtc9",
+    "name": "Child Health Plus Program Enrollment: Beginning 2009",
+    "updatedAt": "2026-10-15T11:00:26.000Z",
+    "description": "This dataset contains the aggregate number of Child Health Plus Beneficiaries by eligibility year and month within each ",
+    "type": "dataset"
+  },
+  {
+    "id": "yb5c-ur9z",
+    "name": "Seattle Department of Construction and Inspections Employee Contact",
+    "updatedAt": "2026-10-21T14:31:49.000Z",
+    "description": "Contact information for the Seattle Department of Construction and Inspections' staff, including name, title, phone, ema",
+    "type": "dataset"
+  },
+  {
+    "id": "c4xz-httr",
+    "name": "Workers' compensation insurance coverage subscriber information",
+    "updatedAt": "2026-10-06T13:48:35.000Z",
+    "description": "The Texas Department of Insurance, Division of Workers\u2019 Compensation (DWC) publishes a quarterly report of employers wit",
+    "type": "dataset"
+  },
+  {
+    "id": "q3qs-7g3d",
+    "name": "Secondary Suites (Completed Permits)",
+    "updatedAt": "2026-10-22T11:52:23.000Z",
+    "description": "<p>This data illustrates the locations of secondary suites within Edmonton based on information provided. <br />These se",
+    "type": "map"
+  },
+  {
+    "id": "jc4q-e3ez",
+    "name": "Fire And Rescue Formal Classroom Training Courses: 2012 - 2018",
+    "updatedAt": "2019-11-14T16:38:18.000Z",
+    "description": "All sessions of training courses conducted at the Public Safety Training Center by HCDFRS or affiliate agencies. This da",
+    "type": "dataset"
+  },
+  {
+    "id": "s8uq-s4wq",
+    "name": "Child Care Regulated Programs Map",
+    "updatedAt": "2026-10-22T04:14:35.000Z",
+    "description": "Information on OCFS regulated child care programs, which includes program overview information and violation history.",
+    "type": "map"
+  },
+  {
+    "id": "yu5v-wbh6",
+    "name": "Motus AuthHist - All With History",
+    "updatedAt": "2026-10-22T10:04:51.000Z",
+    "description": "*This is an All With History dataset*. Records showing the history of each authority granted to a carrier/broker/freight",
+    "type": "dataset"
+  },
+  {
+    "id": "vbkk-tipq",
+    "name": "Quality Assurance Reporting Requirements: Beginning 2008",
+    "updatedAt": "2026-04-02T16:57:24.000Z",
+    "description": "As a way of monitoring managed care plan performance and improving the quality of care provided to New York State reside",
+    "type": "dataset"
+  },
+  {
+    "id": "dypu-nabu",
+    "name": "Nursing Home Profile",
+    "updatedAt": "2026-09-25T19:54:29.000Z",
+    "description": "This dataset supports the New York State Department of Health Nursing Home Profile public website. The dataset includes ",
+    "type": "file"
+  },
+  {
+    "id": "nkkt-2c9e",
+    "name": "Child Health Plus Program Enrollment by County and Insurer: Beginning 2009",
+    "updatedAt": "2026-10-15T11:00:48.000Z",
+    "description": "The Child Health Plus enrollment and demographic data show the aggregate number of Child Health Plus Beneficiaries by el",
+    "type": "dataset"
+  },
+  {
+    "id": "t2qc-9pjd",
+    "name": "Chicago Traffic Tracker - Congestion Estimates by Regions - Deprecated",
+    "updatedAt": "2026-08-06T16:55:55.000Z",
+    "description": "<b>This dataset is no longer updated and contains no data not also present in <a href=\"https://data.cityofchicago.org/d/",
+    "type": "dataset"
+  },
+  {
+    "id": "wb4f-neki",
+    "name": "Motus RevokeSuspend \u2013 All With History",
+    "updatedAt": "2026-10-22T10:04:10.000Z",
+    "description": "*This is an All With History dataset*. Information on carrier/broker/freight forwarder authorities that have been suspen",
+    "type": "dataset"
+  },
+  {
+    "id": "4mse-ku6q",
+    "name": "Traffic Violations",
+    "updatedAt": "2026-10-22T09:10:12.000Z",
+    "description": "This dataset contains traffic violation information from all electronic traffic violations issued in the County.  Any in",
+    "type": "dataset"
+  },
+  {
+    "id": "bs8b-p36w",
+    "name": "DOB Certificate Of Occupancy",
+    "updatedAt": "2026-10-21T20:31:09.000Z",
+    "description": "A Certificate of Occupancy (CO) states a building\u2019s legal use and/or type of permitted occupancy. New buildings must hav",
+    "type": "dataset"
+  },
+  {
+    "id": "cegz-dzzi",
+    "name": "High Cost Funding Disbursement Search",
+    "updatedAt": "2026-09-27T05:53:25.000Z",
+    "description": "This dataset provides information about total dollar amounts disbursed by month and year to Eligible Telecommunication C",
+    "type": "chart"
+  },
+  {
+    "id": "kc9i-wq85",
+    "name": "Vacant and Abandoned Buildings - Violations",
+    "updatedAt": "2026-03-20T21:03:50.000Z",
+    "description": "NOTE, 6/28/2021: There are changes and correction in this dataset. See https://data.cityofchicago.org/stories/s/Vacant-a",
+    "type": "dataset"
+  },
+  {
+    "id": "pbin-pcm7",
+    "name": "Baton Rouge Police Crime Incidents",
+    "updatedAt": "2026-10-06T10:42:43.000Z",
+    "description": "Crime incident reports beginning January 1, 2021. Includes records for all crimes such as burglaries (vehicle, residenti",
+    "type": "dataset"
+  },
+  {
+    "id": "3uet-3z4i",
+    "name": "Motus InsHist - All With History",
+    "updatedAt": "2026-10-22T10:04:36.000Z",
+    "description": "*This is an All With History dataset*. This dataset contains information on a carrier\u2019s/broker\u2019s/freight forwarder\u2019s pre",
+    "type": "dataset"
+  },
+  {
+    "id": "4kcp-cfmm",
+    "name": "SAFER - Company Snapshot",
+    "updatedAt": "2026-09-02T21:34:28.000Z",
+    "description": "The Company Snapshot is a concise electronic record of company identification, size, commodity information, and safety r",
+    "type": "href"
+  },
+  {
+    "id": "6snj-ed7q",
+    "name": "Motus BOC3 - All With History",
+    "updatedAt": "2026-10-22T10:05:58.000Z",
+    "description": "*This is an All With History dataset*. This dataset contains records for each Blanket Company (BOC-3 agent) hired by a c",
+    "type": "dataset"
+  },
+  {
+    "id": "2art-mint",
+    "name": "Vehicle Inspection Stations Across New York State",
+    "updatedAt": "2026-10-05T20:46:46.000Z",
+    "description": "Data set containing information on the facilities licensed by DMV in accordance with Vehicle and Traffic Law.",
+    "type": "filter"
+  },
+  {
+    "id": "8pt5-q6wp",
+    "name": "Indicators of Anxiety or Depression Based on Reported Frequency of Symptoms During Last 7 Days",
+    "updatedAt": "2026-09-22T22:41:16.000Z",
+    "description": "The U.S. Census Bureau, in collaboration with five federal agencies, launched the Household Pulse Survey to produce data",
+    "type": "dataset"
+  },
+  {
+    "id": "y3c3-hqwu",
+    "name": "Electrical",
+    "updatedAt": "2025-01-29T03:00:12.000Z",
+    "description": "The Department of Building and Safety issues permits for the construction, remodeling, and repair of buildings and struc",
+    "type": "filter"
+  },
+  {
+    "id": "kf7e-cur8",
+    "name": "Chicago Traffic Tracker - Historical Congestion Estimates by Region - 2018-2026",
+    "updatedAt": "2026-08-06T16:39:08.000Z",
+    "description": "<b>This dataset is no longer updated.</b>\n\nThis dataset contains the historical estimated congestion for the 29 traffic ",
+    "type": "dataset"
+  },
+  {
+    "id": "xp92-5xme",
+    "name": "Crossing Inventory Source Data (Form 71) - Current",
+    "updatedAt": "2026-10-22T08:54:21.000Z",
+    "description": "A highway-rail crossing is a location where a public highway, road, street, or private roadway, including associated sid",
+    "type": "dataset"
+  },
+  {
+    "id": "8ejy-sj4q",
+    "name": "Missouri Zipcode Data",
+    "updatedAt": "2021-09-08T15:06:11.000Z",
+    "description": "This dataset comes from the census data",
+    "type": "dataset"
+  },
+  {
+    "id": "5qik-smay",
+    "name": "Special Studies",
+    "updatedAt": "2026-10-22T10:15:16.000Z",
+    "description": "Identifies the study field and study results that arise from ad hoc examination of items, usually inspected in support o",
+    "type": "dataset"
+  },
+  {
+    "id": "rtst-p7t3",
+    "name": "Missouri County Geography",
+    "updatedAt": "2021-09-08T14:54:42.000Z",
+    "description": "The following dataset is created from the 2009 census file available at ftp://ftp.census.gov/geo/tiger/TIGER2009/29_MISS",
+    "type": "dataset"
+  },
+  {
+    "id": "ez4a-iug7",
+    "name": "Code Complaints and Violations",
+    "updatedAt": "2026-10-22T00:21:01.000Z",
+    "description": "All code compliance complaints and violations that SDCI is reviewing and processing.",
+    "type": "dataset"
+  },
+  {
+    "id": "cw3n-fkji",
+    "name": "Cancer Mapping Data: 2005-2009",
+    "updatedAt": "2015-03-10T16:54:41.000Z",
+    "description": "The Cancer Mapping data consists of counts of newly diagnosed cancer among New York State residents and is in response t",
+    "type": "file"
+  },
+  {
+    "id": "wb4e-w4nf",
+    "name": "Crime Incidents February 2017 to 5th July 2023",
+    "updatedAt": "2025-05-15T18:55:46.000Z",
+    "description": "The Prince George\u2019s County Police Department (PGPD) provides the displayed data as a service to our community. The inclu",
+    "type": "dataset"
+  },
+  {
+    "id": "dts9-793t",
+    "name": "Dispatch Incident Dashboard",
+    "updatedAt": "2026-10-06T14:56:48.462Z",
+    "description": "This dashboard shows 911 emergency and non-emergency calls from the public; internal calls and incidents generated by po",
+    "type": "story"
+  },
+  {
+    "id": "qnzd-25i4",
+    "name": "PLACES: Local Data for Better Health, ZCTA Data, 2025 release",
+    "updatedAt": "2026-09-22T23:02:16.000Z",
+    "description": "This dataset contains model-based ZIP Code Tabulation Area (ZCTA) level estimates. PLACES covers the entire United State",
+    "type": "dataset"
+  },
+  {
+    "id": "kiki-imre",
+    "name": "YourMoney Authority Payroll",
+    "updatedAt": "2026-08-04T19:42:36.000Z",
+    "description": "This file contains data for employees of independent authorities (NOT paid through the Centralized Payroll System). The ",
+    "type": "dataset"
+  },
+  {
+    "id": "w9j2-ggv5",
+    "name": "NCHS - Death rates and life expectancy at birth",
+    "updatedAt": "2026-09-23T00:12:50.000Z",
+    "description": "This dataset of U.S. mortality trends since 1900 highlights the differences in age-adjusted death rates and life expecta",
+    "type": "dataset"
+  }
+]

@@ -97,11 +97,28 @@ async def test_end_to_end_pipeline_offline():
         run = await LeadOrchestrator.create_run(session, req)
         run_id = run.id
 
+    from datetime import datetime, timezone
+    from app.services.phone_verifier import PhoneVerificationResult, PhoneVerifier
+
+    mock_phone_res = PhoneVerificationResult(
+        phone_e164="+12145550182",
+        valid=True,
+        line_type="mobile",
+        carrier_name="Mock Wireless",
+        country_code="US",
+        phone_verification_status="VERIFIED",
+        provider="mock",
+        raw_status="SUCCESS",
+        cost=0.0,
+        verified_at=datetime.now(timezone.utc)
+    )
+
     # 3. Execute pipeline with mocked network layer
     with patch("app.core.live_carrier_scraper.LiveCarrierScraper.fetch_carriers_for_state", new=AsyncMock(return_value=MOCK_CARRIERS)), \
          patch("app.core.live_search.LiveSearchClient.search_web", new=AsyncMock(return_value=[])), \
          patch("app.core.live_search.LiveSearchClient.search_nominatim", new=AsyncMock(return_value=[])), \
-         patch("app.adapters.company_website.CompanyWebsiteAdapter.enrich_company", new=AsyncMock(return_value=MOCK_ENRICHMENT)):
+         patch("app.adapters.company_website.CompanyWebsiteAdapter.enrich_company", new=AsyncMock(return_value=MOCK_ENRICHMENT)), \
+         patch.object(PhoneVerifier, "verify_phone", new=AsyncMock(return_value=mock_phone_res)):
         await LeadOrchestrator.run_pipeline_async(run_id)
 
     # 4. Verify Database Records

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.entities import Run, Company, Contact, SourceRecord, VerificationRecord, IntentSignal, ErrorLog
 from ..core.config import config, settings, PROJECT_ROOT
+from .normalizer import Normalizer
 
 logger = logging.getLogger("trucklead.sheets")
 
@@ -20,6 +21,14 @@ FINAL_LEADS_HEADERS = [
     "Lead Source", "Source URL", "Intent Signal", "Intent Source", "Qualification Reason",
     "Lead Score", "Priority", "Verification Status", "Verification Confidence",
     "Verification Date", "Created Date", "Notes"
+]
+
+CALLABLE_MAILABLE_HEADERS = [
+    "Company", "Contact Name", "Title", "+1 Phone (E.164)", "Phone Display",
+    "Phone Line Type", "Phone Status", "DNC Status", "Email", "Email Status",
+    "Local Call Window", "Asia/Kolkata Call Window (IST)", "USDOT", "MC Number",
+    "State", "Fleet Size", "Equipment", "Top Signal", "Score", "Priority",
+    "Source", "Verified At", "Suppression Status"
 ]
 
 RUN_REPORT_HEADERS = [
@@ -76,15 +85,30 @@ class GoogleSheetsService:
         companies = result.scalars().all()
 
         final_rows = []
+        callable_mailable_rows = []
         queue_rows = []
         rejected_rows = []
         source_rows = []
 
         for c in companies:
-            # 1. Decision maker
-            dm_contact = next((ct for ct in c.contacts if ct.is_decision_maker), None)
-            dm_name = dm_contact.full_name if dm_contact else (c.contacts[0].full_name if c.contacts else "UNKNOWN")
-            dm_title = dm_contact.title if dm_contact else (c.contacts[0].title if c.contacts else "UNKNOWN")
+            # Compliance hard gate: Any company marked DNC or suppressed is strictly barred from outreach exports
+            if getattr(c, "dnc_flag", False) or c.lead_status == "REJECTED":
+                rejected_rows.append([
+                    c.company_name,
+                    c.usdot or "N/A",
+                    c.state or "N/A",
+                    c.fleet_size if c.fleet_size is not None else "N/A",
+                    c.rejection_reason or "Suppressed via compliance / DNC list",
+                    c.lead_score,
+                    c.created_at.strftime("%Y-%m-%d %H:%M") if c.created_at else ""
+                ])
+                continue
+
+            # 1. Decision maker (screening out DNC contacts)
+            dm_contact = next((ct for ct in c.contacts if ct.is_decision_maker and not getattr(ct, "dnc_flag", False)), None)
+            valid_contacts = [ct for ct in (c.contacts or []) if not getattr(ct, "dnc_flag", False)]
+            dm_name = dm_contact.full_name if dm_contact else (valid_contacts[0].full_name if valid_contacts else "UNKNOWN")
+            dm_title = dm_contact.title if dm_contact else (valid_contacts[0].title if valid_contacts else "UNKNOWN")
             dm_email = dm_contact.email if dm_contact and dm_contact.email else (c.email or "UNKNOWN")
             dm_phone = dm_contact.phone if dm_contact and dm_contact.phone else (c.phone or "UNKNOWN")
             dm_linkedin = dm_contact.linkedin_url if dm_contact and dm_contact.linkedin_url else "UNKNOWN"
@@ -132,8 +156,49 @@ class GoogleSheetsService:
                 ]
                 final_rows.append(row)
 
-            # 2. RESEARCH QUEUE
-            elif c.lead_status in ("RAW", "RESEARCHING", "ENRICHED", "NEEDS_REVIEW"):
+            # Callable & Mailable rows (FINAL and QUALIFIED leads)
+            if c.lead_status in ("FINAL", "QUALIFIED"):
+                p_e164 = getattr(c, "phone_e164", None) or Normalizer.to_e164(c.phone)
+                p_disp = getattr(c, "phone_display", None) or Normalizer.format_phone_display(p_e164)
+                p_type = getattr(c, "phone_line_type", None) or "unknown"
+                p_status = getattr(c, "phone_verification_status", None) or "UNKNOWN"
+                dnc_st = getattr(c, "dnc_status", None) or "DNC not checked"
+                em = c.email
+                em_status = getattr(c, "email_verification_status", None) or "UNKNOWN"
+                tz_n = getattr(c, "local_timezone", None)
+                w_loc = getattr(c, "call_window_local", None)
+                w_ist = getattr(c, "call_window_ist", None)
+                if not tz_n or not w_loc:
+                    tz_n, w_loc, w_ist = Normalizer.get_timezone_and_windows(c.state, p_e164)
+
+                callable_mailable_rows.append([
+                    c.company_name or "",
+                    dm_name,
+                    dm_title,
+                    p_e164 or "",
+                    p_disp or "",
+                    p_type,
+                    p_status,
+                    dnc_st,
+                    em or "",
+                    em_status,
+                    w_loc or "",
+                    w_ist or "",
+                    c.usdot or "N/A",
+                    c.mc_number or "N/A",
+                    c.state or "N/A",
+                    c.fleet_size if c.fleet_size is not None else "Unknown",
+                    equipment_str,
+                    intent_sig_text,
+                    c.lead_score,
+                    c.priority or "B",
+                    c.lead_source or "",
+                    v_date,
+                    "Active"
+                ])
+
+            # 2. RESEARCH QUEUE / NEEDS ENRICHMENT
+            elif c.lead_status in ("RAW", "RESEARCHING", "ENRICHED", "NEEDS_REVIEW", "NEEDS_ENRICHMENT"):
                 queue_rows.append([
                     c.company_name,
                     c.usdot or "N/A",
@@ -192,21 +257,24 @@ class GoogleSheetsService:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         xlsx_path = self.backup_dir / f"run_{run.id[:8]}_{timestamp}.xlsx"
         csv_path = self.backup_dir / f"final_leads_{run.id[:8]}_{timestamp}.csv"
+        csv_cm_path = self.backup_dir / f"callable_mailable_{run.id[:8]}_{timestamp}.csv"
 
         try:
             with pd.ExcelWriter(xlsx_path, engine="openpyxl") as writer:
                 pd.DataFrame(final_rows, columns=FINAL_LEADS_HEADERS).to_excel(writer, sheet_name=config.sheets.tabs["final_leads"], index=False)
+                pd.DataFrame(callable_mailable_rows, columns=CALLABLE_MAILABLE_HEADERS).to_excel(writer, sheet_name=config.sheets.tabs.get("callable_mailable", "CALLABLE_MAILABLE_LEADS"), index=False)
                 pd.DataFrame(queue_rows, columns=["Company", "USDOT", "State", "Status", "Source", "Date", "Notes"]).to_excel(writer, sheet_name=config.sheets.tabs["research_queue"], index=False)
                 pd.DataFrame(rejected_rows, columns=["Company", "USDOT", "State", "Fleet Size", "Reason", "Score", "Date"]).to_excel(writer, sheet_name=config.sheets.tabs["rejected"], index=False)
                 pd.DataFrame(source_rows, columns=["Run ID", "Company", "Source", "URL", "Date", "Confidence"]).to_excel(writer, sheet_name=config.sheets.tabs["source_log"], index=False)
                 pd.DataFrame([report_row], columns=RUN_REPORT_HEADERS).to_excel(writer, sheet_name=config.sheets.tabs["run_report"], index=False)
 
-            # Export standalone CSV of final leads
+            # Export standalone CSV of final leads and callable/mailable leads
             pd.DataFrame(final_rows, columns=FINAL_LEADS_HEADERS).to_csv(csv_path, index=False)
+            pd.DataFrame(callable_mailable_rows, columns=CALLABLE_MAILABLE_HEADERS).to_csv(csv_cm_path, index=False)
 
             run.export_xlsx_path = str(xlsx_path)
             run.export_csv_path = str(csv_path)
-            logger.info(f"Local lead reports exported to: {xlsx_path} and {csv_path}")
+            logger.info(f"Local lead reports exported to: {xlsx_path}, {csv_path}, and {csv_cm_path}")
         except Exception as e:
             logger.error(f"Failed to generate local Excel/CSV backup: {e}")
 
@@ -223,6 +291,11 @@ class GoogleSheetsService:
                 ws_final = self._get_or_create_worksheet(sh, config.sheets.tabs["final_leads"], FINAL_LEADS_HEADERS)
                 if final_rows:
                     ws_final.append_rows(final_rows)
+
+                # Tab: CALLABLE_MAILABLE_LEADS
+                ws_cm = self._get_or_create_worksheet(sh, config.sheets.tabs.get("callable_mailable", "CALLABLE_MAILABLE_LEADS"), CALLABLE_MAILABLE_HEADERS)
+                if callable_mailable_rows:
+                    ws_cm.append_rows(callable_mailable_rows)
 
                 # Tab 2: RESEARCH_QUEUE
                 ws_queue = self._get_or_create_worksheet(sh, config.sheets.tabs["research_queue"], ["Company", "USDOT", "State", "Status", "Source", "Date", "Notes"])

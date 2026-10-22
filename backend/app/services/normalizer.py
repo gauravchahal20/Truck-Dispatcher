@@ -82,30 +82,124 @@ class Normalizer:
         return clean not in cls.GENERIC_DOMAINS and not any(clean.endswith("." + g) for g in cls.GENERIC_DOMAINS)
 
 
+    STATE_TIMEZONES = {
+        # Eastern
+        "CT": "America/New_York", "DE": "America/New_York", "FL": "America/New_York",
+        "GA": "America/New_York", "IN": "America/Indiana/Indianapolis", "KY": "America/New_York",
+        "ME": "America/New_York", "MD": "America/New_York", "MA": "America/New_York",
+        "MI": "America/Detroit", "NH": "America/New_York", "NJ": "America/New_York",
+        "NY": "America/New_York", "NC": "America/New_York", "OH": "America/New_York",
+        "PA": "America/New_York", "RI": "America/New_York", "SC": "America/New_York",
+        "VT": "America/New_York", "VA": "America/New_York", "WV": "America/New_York",
+        "DC": "America/New_York",
+        # Central
+        "AL": "America/Chicago", "AR": "America/Chicago", "IL": "America/Chicago",
+        "IA": "America/Chicago", "KS": "America/Chicago", "LA": "America/Chicago",
+        "MN": "America/Chicago", "MS": "America/Chicago", "MO": "America/Chicago",
+        "NE": "America/Chicago", "ND": "America/Chicago", "OK": "America/Chicago",
+        "SD": "America/Chicago", "TN": "America/Chicago", "TX": "America/Chicago",
+        "WI": "America/Chicago",
+        # Mountain
+        "AZ": "America/Phoenix", "CO": "America/Denver", "ID": "America/Boise",
+        "MT": "America/Denver", "NM": "America/Denver", "UT": "America/Denver",
+        "WY": "America/Denver",
+        # Pacific
+        "CA": "America/Los_Angeles", "NV": "America/Los_Angeles",
+        "OR": "America/Los_Angeles", "WA": "America/Los_Angeles",
+        # Alaska & Hawaii
+        "AK": "America/Anchorage", "HI": "Pacific/Honolulu"
+    }
+
+    AREA_CODE_TIMEZONES = {
+        "214": "America/Chicago", "972": "America/Chicago", "469": "America/Chicago",
+        "713": "America/Chicago", "281": "America/Chicago", "832": "America/Chicago",
+        "512": "America/Chicago", "210": "America/Chicago", "817": "America/Chicago",
+        "404": "America/New_York", "770": "America/New_York", "678": "America/New_York",
+        "216": "America/New_York", "614": "America/New_York", "513": "America/New_York",
+        "305": "America/New_York", "786": "America/New_York", "954": "America/New_York",
+        "704": "America/New_York", "919": "America/New_York", "615": "America/Chicago",
+        "312": "America/Chicago", "773": "America/Chicago", "213": "America/Los_Angeles",
+        "310": "America/Los_Angeles", "415": "America/Los_Angeles", "909": "America/Los_Angeles"
+    }
+
+    @staticmethod
+    def to_e164(phone: Optional[str]) -> Optional[str]:
+        """Normalizes any phone string to valid E.164 (+1XXXXXXXXXX) format."""
+        if not phone:
+            return None
+        digits = re.sub(r"\D", "", str(phone))
+        if len(digits) == 11 and digits.startswith("1"):
+            return f"+{digits}"
+        if len(digits) == 10:
+            return f"+1{digits}"
+        if len(digits) > 11 and digits.startswith("1"):
+            return f"+{digits[:11]}"
+        return None
+
     @staticmethod
     def normalize_phone(phone: Optional[str]) -> str:
         """Normalizes phone numbers to standard 10-digit / E.164 string."""
-        if not phone:
-            return ""
-        digits = re.sub(r"\D", "", phone)
-        # Handle US country code
-        if len(digits) == 11 and digits.startswith("1"):
-            digits = digits[1:]
-        if len(digits) == 10:
-            return f"+1{digits}"
-        return digits
+        return Normalizer.to_e164(phone) or (re.sub(r"\D", "", str(phone)) if phone else "")
 
     @staticmethod
-    def format_phone_display(phone: Optional[str]) -> str:
-        """Formats E.164 phone into (XXX) XXX-XXXX display format."""
+    def format_phone_display(phone: Optional[str], include_country_code: bool = True) -> str:
+        """Formats E.164 phone into '+1 (XXX) XXX-XXXX' or '(XXX) XXX-XXXX' display format."""
         if not phone:
             return ""
-        digits = re.sub(r"\D", "", phone)
+        digits = re.sub(r"\D", "", str(phone))
         if len(digits) == 11 and digits.startswith("1"):
             digits = digits[1:]
         if len(digits) == 10:
-            return f"({digits[0:3]}) {digits[3:6]}-{digits[6:10]}"
-        return phone
+            prefix = "+1 " if include_country_code else ""
+            return f"{prefix}({digits[0:3]}) {digits[3:6]}-{digits[6:10]}"
+        return str(phone)
+
+    @staticmethod
+    def get_dial_link(phone: Optional[str]) -> Optional[str]:
+        """Generates tel:+1... URI link for click-to-call."""
+        e164 = Normalizer.to_e164(phone)
+        return f"tel:{e164}" if e164 else None
+
+    @classmethod
+    def get_timezone_and_windows(cls, state: Optional[str], phone: Optional[str] = None) -> Tuple[str, str, str]:
+        """
+        Calculates the company/carrier local timezone, local call window (09:00 - 17:00 local),
+        and the operator's equivalent in Asia/Kolkata (IST).
+        Returns: (tz_name, local_window_str, ist_window_str)
+        """
+        import zoneinfo
+        from datetime import datetime
+
+        norm_state = cls.normalize_state(state) if state else None
+        tz_name = cls.STATE_TIMEZONES.get(norm_state) if norm_state else None
+
+        if not tz_name and phone:
+            digits = re.sub(r"\D", "", str(phone))
+            if len(digits) == 11 and digits.startswith("1"):
+                digits = digits[1:]
+            if len(digits) >= 3:
+                area = digits[:3]
+                tz_name = cls.AREA_CODE_TIMEZONES.get(area)
+
+        if not tz_name:
+            tz_name = "America/Chicago"  # Central freight hub default if undetermined
+
+        try:
+            local_tz = zoneinfo.ZoneInfo(tz_name)
+            ist_tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+            now = datetime.now()
+            dt_start = datetime(now.year, now.month, now.day, 9, 0, tzinfo=local_tz)
+            dt_end = datetime(now.year, now.month, now.day, 17, 0, tzinfo=local_tz)
+
+            ist_start = dt_start.astimezone(ist_tz)
+            ist_end = dt_end.astimezone(ist_tz)
+
+            tz_abbr = dt_start.tzname() or "Local"
+            local_window = f"09:00 - 17:00 {tz_abbr}"
+            ist_window = f"{ist_start.strftime('%H:%M')} - {ist_end.strftime('%H:%M')} IST"
+            return tz_name, local_window, ist_window
+        except Exception:
+            return tz_name, "09:00 - 17:00 Local", "19:30 - 03:30 IST"
 
     @staticmethod
     def normalize_usdot(usdot: Optional[str]) -> Optional[str]:
@@ -320,11 +414,18 @@ class Normalizer:
 
         raise ValueError(f"Redirect limit ({max_redirects}) exceeded")
 
-    @staticmethod
-    def is_valid_phone_nanp(phone: Optional[str]) -> bool:
+    _ALLOW_FICTIONAL_PHONES_OVERRIDE: bool = False
+
+    @classmethod
+    def set_allow_fictional_phones_override(cls, allow: bool):
+        """Allows tests to inject a test-mode override to accept fictional 555-01xx numbers in fixtures."""
+        cls._ALLOW_FICTIONAL_PHONES_OVERRIDE = allow
+
+    @classmethod
+    def is_valid_phone_nanp(cls, phone: Optional[str], allow_fictional: bool = False) -> bool:
         """
         Validates North American Numbering Plan (NANP) phone compliance.
-        Format: +1NXXNXXXXXX where N=2-9, X=0-9. Rejects fictional/dummy ranges.
+        Format: +1NXXNXXXXXX where N=2-9, X=0-9. Rejects fictional/dummy ranges unless test-mode override is active.
         """
         if not phone:
             return False
@@ -349,9 +450,10 @@ class Normalizer:
             return False
 
         # Reject US fictional range reserved for movies/TV (area code 555, exchange 0100-0199)
-        # Note: 555-0100 through 555-0199 in ANY area code or 555 exchange
-        if co_code == "555" and 100 <= int(line_num) <= 199:
-            return False
+        # unless allow_fictional is True or test override is active
+        if not allow_fictional and not cls._ALLOW_FICTIONAL_PHONES_OVERRIDE:
+            if co_code == "555" and 100 <= int(line_num) <= 199:
+                return False
 
         return True
 

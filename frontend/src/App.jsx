@@ -9,6 +9,7 @@ import ConfigSettings from './components/ConfigSettings';
 import SearchPlaybook from './components/SearchPlaybook';
 import LeadDetailModal from './components/LeadDetailModal';
 import NewRunModal from './components/NewRunModal';
+import ReadyToContact from './components/ReadyToContact';
 import { api } from './services/api';
 
 export default function App() {
@@ -150,6 +151,12 @@ export default function App() {
               onTriggerAutopilot={handleTriggerAutopilot}
               onChangeAutopilotInterval={handleChangeAutopilotInterval}
               isTriggeringAutopilot={isTriggeringAutopilot}
+            />
+          )}
+
+          {activeTab === 'contact' && (
+            <ReadyToContact
+              onViewLead={handleViewLead}
             />
           )}
 

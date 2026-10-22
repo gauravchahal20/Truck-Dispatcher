@@ -9,7 +9,8 @@ import {
   BookOpen,
   Sparkles,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  PhoneCall
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -20,6 +21,7 @@ export default function Sidebar({
 }) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'contact', label: 'Ready to Contact', icon: PhoneCall, badge: 'Verified' },
     { id: 'leads', label: 'Leads Database', icon: Users },
     { id: 'runs', label: 'Pipeline Runs', icon: Zap, badge: activeRun ? 'Live' : null },
     { id: 'playbook', label: 'SOP Playbook', icon: BookOpen, badge: '41+ Methods' },

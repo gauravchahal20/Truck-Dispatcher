@@ -22,8 +22,11 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing relational database schema...")
     await init_db()
     logger.info("Database schema successfully initialized.")
-    logger.info("Launching Continuous Autopilot background runner...")
-    await continuous_autopilot.start()
+    if config.outreach.enable_continuous_autopilot or settings.enable_continuous_autopilot:
+        logger.info("Launching Continuous Autopilot background runner...")
+        await continuous_autopilot.start()
+    else:
+        logger.info("Continuous Autopilot background runner is standby (start via API or config).")
     yield
     logger.info("Stopping Continuous Autopilot background runner...")
     await continuous_autopilot.stop()

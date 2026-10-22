@@ -413,3 +413,27 @@ The frontend is a single-page application built with **React 18** and **Vite**:
    - Persists latency and success/failure metrics to `source_health_metrics` table.
    - Demotes `usdotlookup` HTML scraping to a feature-flagged fallback (`ENABLE_USDOTLOOKUP_FALLBACK=true`) guarded by circuit breaker.
 
+---
+
+## 10. Contact Verification & Outreach Architecture (Workstream E)
+
+### 1. Phone Verification & TCPA Compliance Layer
+- **Pluggable Architecture**: Implemented via `PhoneVerifier` supporting Twilio Lookup v2 (`line_type_intelligence`), Telnyx, and NumVerify.
+- **Strict Honesty & Cost Caps**: In the absence of provider API keys, status defaults to `UNKNOWN` (zero false `VERIFIED` assertions). Caches results for 30 days in `phone_verification_cache` table and enforces per-lead ($0.05) and per-run ($5.00) cost caps.
+- **TCPA / Sole Proprietor Protection**: Carriers with 1-truck fleet or sole-proprietor indicators with mobile numbers are automatically flagged as `"call manually only, check DNC"`.
+- **Time Zone Engine**: Derives carrier local timezone from state/area code using `zoneinfo` and computes the local call window (09:00–17:00) alongside the exact Asia/Kolkata (IST) equivalent for dispatch operators.
+
+### 2. Email Deliverability Engine
+- **Multi-Stage Verification**: `EmailVerifier` validates syntax (RFC 5322 regex), checks a blacklist of 28 disposable email domains, queries DNS MX records via `dnspython`, and tiers role accounts (generic mailboxes classified as `RISKY`; named mailboxes classified as `DELIVERABLE`).
+- **Official Dataset Ingestion**: Maps official registered contact emails from Socrata `kjg3-diqy` and `az4n-8mr2` datasets with official provenance.
+- **SSRF-Safe Website Crawler**: `ContactCrawler` scrapes company websites (`/`, `/contact`, `/about`) for `mailto:` links adhering to SSRF private-IP blocking and robots.txt.
+
+### 3. Strict Qualification & Outreach Governance
+- **Strict FINAL Gate**: A lead can only achieve `FINAL` status if it possesses:
+  1. Proven active operating authority (for carriers).
+  2. Passing score ($\ge 5.0$).
+  3. Zero hard-gate or suppression failures.
+  4. At least one **VERIFIED** contact channel (phone or email) for a named decision-maker. Unverified MCS-150 officers remain `QUALIFIED`.
+- **Outcome Feedback & Auto-Suppression**: The `LeadOutcome` engine logs calls and emails (`no_answer`, `voicemail`, `interested`, `not_interested`, `wrong_number`, `do_not_contact`, `bounced`). Selecting `do_not_contact` or `bounced` immediately inserts a `SuppressionEntry` and sets `dnc_flag=True`.
+- **CAN-SPAM Compliant Drafting**: The draft generator (`routes_outcomes.py`) constructs emails derived solely from verified facts (equipment, fleet size, state, signals) with mandatory physical mailing address and opt-out unsubscribe lines. Automated outbound sending is strictly blocked; output is mail-merge ready for manual review.
+

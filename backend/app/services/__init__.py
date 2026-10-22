@@ -5,6 +5,7 @@ from .intent_analyzer import IntentAnalyzer
 from .verifier import Verifier
 from .lead_scorer import LeadScorer
 from .sheets_service import GoogleSheetsService, sheets_service
+from .compliance import ComplianceService
 
 __all__ = [
     "Normalizer",
@@ -15,4 +16,5 @@ __all__ = [
     "LeadScorer",
     "GoogleSheetsService",
     "sheets_service",
+    "ComplianceService",
 ]

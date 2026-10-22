@@ -32,6 +32,8 @@ class RawLeadRecord(BaseModel):
     operating_status: Optional[str] = None
     safety_rating: Optional[str] = None
     mcs_150_date: Optional[str] = None
+    company_officer_1: Optional[str] = None
+    company_officer_2: Optional[str] = None
 
     source_name: str
     source_url: Optional[str] = None

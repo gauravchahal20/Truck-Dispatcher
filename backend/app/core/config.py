@@ -104,6 +104,37 @@ class GoogleSheetsConfig(BaseModel):
     }
 
 
+class PipelineConfig(BaseModel):
+    benchmark_states: List[str] = ["TX", "GA", "OH"]
+    sync_states: List[str] = ["TX", "GA", "FL", "NC", "TN"]
+
+
+class OutreachConfig(BaseModel):
+    physical_address: str = "1209 Orange Street, Wilmington, DE 19801"
+    sender_name: str = "TRUCKLEAD Dispatch Support"
+    sender_email: str = "dispatch@trucklead-autopilot.internal"
+    enable_continuous_autopilot: bool = False
+
+
+class PhoneVerificationSettings(BaseModel):
+    default_provider: str = "twilio"
+    cost_cap_per_lead: float = 0.05
+    cost_cap_per_run: float = 5.00
+    cache_ttl_days: int = 30
+
+
+class EmailVerificationSettings(BaseModel):
+    verify_mx: bool = True
+    disposable_domain_check: bool = True
+    cost_cap_per_lead: float = 0.05
+    cost_cap_per_run: float = 5.00
+
+
+class ContactVerificationConfig(BaseModel):
+    phone: PhoneVerificationSettings = Field(default_factory=PhoneVerificationSettings)
+    email: EmailVerificationSettings = Field(default_factory=EmailVerificationSettings)
+
+
 class SourceConfigItem(BaseModel):
     enabled: bool = True
     priority: int = 1
@@ -130,6 +161,20 @@ class AppSettings(BaseSettings):
     serper_api_key: Optional[str] = None
     google_custom_search_api_key: Optional[str] = None
     google_custom_search_engine_id: Optional[str] = None
+
+    # Phone Verification API Keys (Twilio Lookup v2, Telnyx, NumVerify)
+    twilio_account_sid: Optional[str] = None
+    twilio_auth_token: Optional[str] = None
+    telnyx_api_key: Optional[str] = None
+    numverify_api_key: Optional[str] = None
+
+    # Email Verification API Keys (ZeroBounce, Hunter, Anymail finder, Apollo)
+    zerobounce_api_key: Optional[str] = None
+    hunter_api_key: Optional[str] = None
+    anymail_api_key: Optional[str] = None
+    apollo_api_key: Optional[str] = None
+
+    enable_continuous_autopilot: bool = False
 
     playwright_headless: bool = True
     browser_timeout_ms: int = 25000
@@ -210,6 +255,16 @@ class SystemConfig:
         )
 
         self.intent_keywords: Dict[str, List[str]] = self.raw_yaml.get("intent_signals", {}).get("keywords", {})
+
+        pipeline_data = self.raw_yaml.get("pipeline", {})
+        self.pipeline = PipelineConfig(**pipeline_data) if pipeline_data else PipelineConfig()
+
+        outreach_data = self.raw_yaml.get("outreach", {})
+        self.outreach = OutreachConfig(**outreach_data) if outreach_data else OutreachConfig()
+
+        cv_data = self.raw_yaml.get("contact_verification", {})
+        self.contact_verification = ContactVerificationConfig(**cv_data) if cv_data else ContactVerificationConfig()
+
 
     def reload(self, config_file: Optional[str] = None):
         target_file = config_file or (str(self.config_file_path) if self.config_file_path else None)
