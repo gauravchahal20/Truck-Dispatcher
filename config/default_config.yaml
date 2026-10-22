@@ -1,0 +1,205 @@
+# TRUCKLEAD AUTOPILOT - Global System Configuration
+
+system:
+  app_name: "TRUCKLEAD AUTOPILOT"
+  version: "1.0.0"
+  log_level: "INFO"
+  database_url: "sqlite+aiosqlite:///./trucklead.db"
+  environment: "development"
+
+# Default Target Ideal Customer Profile (ICP)
+icp:
+  target_country: "US"
+  target_states:
+    - "TX"
+    - "CA"
+    - "GA"
+    - "IL"
+    - "OH"
+    - "PA"
+    - "FL"
+    - "NC"
+    - "IN"
+    - "MI"
+  fleet_size:
+    min: 1
+    max: 9999
+    preferred_min: 1
+    preferred_max: 9999
+  equipment_types:
+    - "dry_van"
+    - "reefer"
+    - "flatbed"
+    - "drayage"
+    - "stepdeck"
+    - "power_only"
+  carrier_operations:
+    - "Interstate"
+    - "Intrastate Hazmat"
+    - "Intrastate Non-Hazmat"
+  authorized_only: true
+  min_verification_confidence: 0.70
+  score_threshold_for_final: 5.0
+
+# Decision Maker Prioritization
+decision_makers:
+  priority_order:
+    - "Owner"
+    - "Founder"
+    - "Co-Founder"
+    - "President"
+    - "CEO"
+    - "Managing Partner"
+    - "Fleet Manager"
+    - "Operations Manager"
+    - "Director of Operations"
+    - "Dispatch Manager"
+    - "Lead Dispatcher"
+    - "Safety Director"
+    - "Transportation Coordinator"
+
+# Intent Signal Detection Rules
+intent_signals:
+  enabled: true
+  keywords:
+    hiring_dispatch:
+      - "hiring truck dispatcher"
+      - "seeking freight dispatcher"
+      - "night dispatcher"
+      - "dispatch supervisor"
+    hiring_fleet_mgr:
+      - "fleet manager wanted"
+      - "transportation coordinator"
+      - "logistics coordinator"
+    fleet_expansion:
+      - "adding new trucks"
+      - "fleet expansion"
+      - "new terminal"
+      - "purchased new tractors"
+      - "leased 5 new power units"
+    public_dispatch_request:
+      - "looking for dispatch service"
+      - "need reliable dispatch"
+      - "for hire carrier seeking freight"
+    awards_and_contracts:
+      - "awarded freight contract"
+      - "government transportation award"
+      - "DOD carrier contract"
+
+# Configurable Lead Scoring Matrix
+scoring:
+  weights:
+    target_fleet_size: 2.0        # Fleet size in target range (2-10)
+    verified_active_carrier: 2.0  # FMCSA active for-hire authority
+    decision_maker_identified: 2.0 # Named decision maker found
+    equipment_verified: 1.0       # Target equipment confirmed
+    usable_contact: 1.0           # Verified email or valid phone
+    intent_signal_present: 1.0    # Detected hiring / expansion / dispatch need
+    tech_or_business_event: 1.0   # News / tech adoption / award
+  priority_thresholds:
+    priority_a_min: 8.0           # Score >= 8: Priority A
+    priority_b_min: 5.0           # Score 5-7: Priority B
+    priority_c_max: 4.9           # Score < 5: Priority C (Rejected or Queue)
+
+# Research Budget & Rate Limits per Company
+research_budget:
+  max_discovery_pages_per_source: 10
+  max_verification_attempts: 3
+  max_decision_maker_searches: 3
+  max_intent_searches: 2
+  max_website_pages_to_crawl: 6
+  http_timeout_seconds: 15
+  browser_timeout_seconds: 25
+  delay_between_requests_ms: 1200
+
+# Security, Domain Allowlist & Safe Scraping
+security:
+  strict_robots_respect: true
+  pause_on_captcha: true
+  allowed_domains:
+    - "safer.fmcsa.dot.gov"
+    - "ai.fmcsa.dot.gov"
+    - "google.com"
+    - "www.google.com"
+    - "maps.google.com"
+    - "news.google.com"
+    - "linkedin.com"
+    - "www.linkedin.com"
+    - "indeed.com"
+    - "www.indeed.com"
+    - "bbb.org"
+    - "www.bbb.org"
+    - "yellowpages.com"
+    - "www.yellowpages.com"
+    - "chamberofcommerce.com"
+  blocked_domains:
+    - "*.gov.ru"
+    - "*.cn"
+
+# Source Adapter Toggles (Phase 1 + Phase 2 Preview)
+sources:
+  fmcsa_safer:
+    enabled: true
+    priority: 1
+    timeout: 20
+  google_maps:
+    enabled: true
+    priority: 2
+    timeout: 20
+  google_search:
+    enabled: true
+    priority: 3
+    timeout: 15
+  company_website:
+    enabled: true
+    priority: 4
+    timeout: 25
+  linkedin_public:
+    enabled: true
+    priority: 5
+    timeout: 20
+  indeed:
+    enabled: true
+    priority: 6
+    timeout: 15
+  google_news:
+    enabled: true
+    priority: 7
+    timeout: 15
+  # Phase 2 Adapters (Registered & Staged)
+  ziprecruiter:
+    enabled: false
+    priority: 8
+  bbb:
+    enabled: false
+    priority: 9
+  yellow_pages:
+    enabled: false
+    priority: 10
+  chamber_of_commerce:
+    enabled: false
+    priority: 11
+  sam_gov:
+    enabled: false
+    priority: 12
+  freightwaves:
+    enabled: false
+    priority: 13
+  transport_topics:
+    enabled: false
+    priority: 14
+
+# Google Sheets Output Settings
+google_sheets:
+  enabled: true
+  spreadsheet_id: ""  # Set via GOOGLE_SHEET_ID env var or UI
+  sheet_name: "TRUCKLEAD_AUTOPILOT_RESULTS"
+  export_local_backup_csv: true
+  export_local_backup_xlsx: true
+  backup_dir: "./exports"
+  tabs:
+    final_leads: "FINAL_LEADS"
+    research_queue: "RESEARCH_QUEUE"
+    rejected: "REJECTED"
+    source_log: "SOURCE_LOG"
+    run_report: "RUN_REPORT"
