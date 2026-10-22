@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, Tuple
 from ..models.entities import Company, LeadScore
 from ..core.config import config
+from .normalizer import Normalizer
 
 logger = logging.getLogger("trucklead.scorer")
 
@@ -87,14 +88,34 @@ class LeadScorer:
 
         # 5. Usable Business Contact (+1.0)
         contact_score = 0.0
-        has_email = bool(company.email or any(c.email for c in (company.contacts or [])))
+        primary_email = company.email or next((c.email for c in (company.contacts or []) if c.email), None)
+        has_email = bool(primary_email)
         has_phone = bool(company.phone or any(c.phone for c in (company.contacts or [])))
+
+        role_cfg = config.scoring.role_account_weights
+        email_weight = 1.0
+        email_label = "Named person"
+        if has_email:
+            tier = Normalizer.classify_email_tier(primary_email)
+            if tier == "generic":
+                email_weight = role_cfg.generic_inbox
+                email_label = "Generic inbox"
+            elif tier == "departmental":
+                email_weight = role_cfg.departmental
+                email_label = "Departmental inbox"
+            else:
+                email_weight = role_cfg.named_person
+                email_label = "Named individual"
+
         if has_email and has_phone:
-            contact_score = weights.usable_contact
-            breakdown["contactability"] = f"+{contact_score} (Both verified email and phone available)"
-        elif has_email or has_phone:
-            contact_score = weights.usable_contact * 0.75
-            breakdown["contactability"] = f"+{contact_score} (Single verified contact channel: {'Email' if has_email else 'Phone'})"
+            contact_score = round(weights.usable_contact * (0.5 + 0.5 * email_weight), 2)
+            breakdown["contactability"] = f"+{contact_score} (Verified phone + {email_label} email)"
+        elif has_email:
+            contact_score = round(weights.usable_contact * 0.75 * email_weight, 2)
+            breakdown["contactability"] = f"+{contact_score} ({email_label} email only)"
+        elif has_phone:
+            contact_score = round(weights.usable_contact * 0.75, 2)
+            breakdown["contactability"] = f"+{contact_score} (Single verified contact channel: Phone)"
         else:
             breakdown["contactability"] = "+0 (No contact details verified)"
         total += contact_score
@@ -121,13 +142,15 @@ class LeadScorer:
 
         total_rounded = round(min(10.0, total), 1)
 
-        # Determine Priority Tier
+        # Determine Priority Tier from config
         if total_rounded >= thresholds.priority_a_min:
             priority = "A"
         elif total_rounded >= thresholds.priority_b_min:
             priority = "B"
-        else:
+        elif total_rounded >= thresholds.priority_c_min:
             priority = "C"
+        else:
+            priority = "REJECTED"
 
         lead_score_entity = LeadScore(
             company_id=company.id,

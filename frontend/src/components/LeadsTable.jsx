@@ -298,9 +298,10 @@ export default function LeadsTable({
               style={{ height: '36px', fontSize: '0.775rem' }}
             >
               <option value="">All Priorities</option>
-              <option value="A">Priority A (High)</option>
-              <option value="B">Priority B (Med)</option>
-              <option value="C">Priority C (Low)</option>
+              <option value="A">Priority A (≥ 8.0)</option>
+              <option value="B">Priority B (6.0 - 7.9)</option>
+              <option value="C">Priority C (5.0 - 5.9)</option>
+              <option value="REJECTED">Rejected (&lt; 5.0)</option>
             </select>
           </div>
 
@@ -543,10 +544,10 @@ export default function LeadsTable({
                             fontWeight: 800,
                             padding: '2px 7px',
                             borderRadius: '999px',
-                            backgroundColor: lead.priority === 'A' ? 'var(--sage)' : (lead.priority === 'B' ? 'var(--warm-cream)' : 'var(--sand-light)'),
-                            color: lead.priority === 'A' ? 'var(--sage-dark)' : (lead.priority === 'B' ? 'var(--terracotta-dark)' : 'var(--text-secondary)')
+                            backgroundColor: lead.priority === 'A' ? 'var(--sage)' : (lead.priority === 'B' ? 'var(--warm-cream)' : (lead.priority === 'C' ? 'var(--sand-light)' : '#fee2e2')),
+                            color: lead.priority === 'A' ? 'var(--sage-dark)' : (lead.priority === 'B' ? 'var(--terracotta-dark)' : (lead.priority === 'C' ? 'var(--text-secondary)' : '#991b1b'))
                           }}>
-                            Tier {lead.priority || 'B'} ({lead.lead_score || 7})
+                            {lead.priority === 'REJECTED' ? `Rejected (${lead.lead_score ?? 0})` : `Tier ${lead.priority || 'C'} (${lead.lead_score ?? 0})`}
                           </span>
 
                           <ChevronRight size={14} color="var(--text-muted)" />

@@ -192,9 +192,15 @@ Best regards,
                       🚚 Motor Carrier (Has Trucks)
                     </span>
                   )}
-                  <span className={`badge badge-priority-${(lead.priority || 'b').toLowerCase()}`}>
-                    Tier {lead.priority || 'B'} &bull; {lead.lead_score?.toFixed(1)}/10
-                  </span>
+                  {lead.priority === 'REJECTED' ? (
+                    <span className="badge badge-status-rejected">
+                      Rejected &bull; {lead.lead_score?.toFixed(1)}/10
+                    </span>
+                  ) : (
+                    <span className={`badge badge-priority-${(lead.priority || 'c').toLowerCase()}`}>
+                      Tier {lead.priority || 'C'} &bull; {lead.lead_score?.toFixed(1)}/10
+                    </span>
+                  )}
                 </>
               )}
             </div>

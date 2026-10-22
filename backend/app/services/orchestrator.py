@@ -371,6 +371,10 @@ class LeadOrchestrator:
                         candidate_company.lead_status = "REJECTED"
                         candidate_company.rejection_reason = v_reason
                         run.rejected_count += 1
+                    elif candidate_company.lead_score < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
+                        candidate_company.lead_status = "REJECTED"
+                        candidate_company.rejection_reason = f"Score {candidate_company.lead_score} is below priority threshold ({config.scoring.priority_thresholds.reject_below})"
+                        run.rejected_count += 1
                     elif candidate_company.lead_score >= run.score_threshold and v_status == "VERIFIED":
                         candidate_company.lead_status = "FINAL"
                         candidate_company.qualification_reason = f"Qualified: Score {candidate_company.lead_score} (Priority {priority}) with {v_confidence*100:.0f}% verification."

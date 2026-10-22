@@ -36,13 +36,21 @@ class ScoringWeights(BaseModel):
 
 class ScoringThresholds(BaseModel):
     priority_a_min: float = 8.0
-    priority_b_min: float = 5.0
-    priority_c_max: float = 4.9
+    priority_b_min: float = 6.0
+    priority_c_min: float = 5.0
+    reject_below: float = 5.0
+
+
+class RoleAccountWeights(BaseModel):
+    named_person: float = 1.0       # Full credit (+1.0)
+    departmental: float = 0.5       # Medium credit (+0.5 for sales@, dispatch@, ops@)
+    generic_inbox: float = 0.2      # Lowest credit (+0.2 for info@, admin@, support@)
 
 
 class ScoringConfig(BaseModel):
     weights: ScoringWeights = Field(default_factory=ScoringWeights)
     priority_thresholds: ScoringThresholds = Field(default_factory=ScoringThresholds)
+    role_account_weights: RoleAccountWeights = Field(default_factory=RoleAccountWeights)
 
 
 class ResearchBudgetConfig(BaseModel):
@@ -59,6 +67,10 @@ class ResearchBudgetConfig(BaseModel):
 class SecurityConfig(BaseModel):
     strict_robots_respect: bool = True
     pause_on_captcha: bool = True
+    max_redirects: int = 3
+    connect_timeout_seconds: float = 5.0
+    read_timeout_seconds: float = 10.0
+    response_size_cap_bytes: int = 2 * 1024 * 1024  # 2MB cap
     allowed_domains: List[str] = [
         "safer.fmcsa.dot.gov",
         "ai.fmcsa.dot.gov",

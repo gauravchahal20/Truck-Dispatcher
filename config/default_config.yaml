@@ -97,9 +97,14 @@ scoring:
     intent_signal_present: 1.0    # Detected hiring / expansion / dispatch need
     tech_or_business_event: 1.0   # News / tech adoption / award
   priority_thresholds:
-    priority_a_min: 8.0           # Score >= 8: Priority A
-    priority_b_min: 5.0           # Score 5-7: Priority B
-    priority_c_max: 4.9           # Score < 5: Priority C (Rejected or Queue)
+    priority_a_min: 8.0           # Score >= 8.0: Priority A
+    priority_b_min: 6.0           # Score 6.0 - 7.9: Priority B
+    priority_c_min: 5.0           # Score 5.0 - 5.9: Priority C
+    reject_below: 5.0             # Score < 5.0: Rejected
+  role_account_weights:
+    named_person: 1.0             # Full credit (+1.0)
+    departmental: 0.5             # Medium credit (+0.5 for sales@, dispatch@, ops@)
+    generic_inbox: 0.2            # Lowest credit (+0.2 for info@, admin@, support@)
 
 # Research Budget & Rate Limits per Company
 research_budget:

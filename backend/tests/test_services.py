@@ -37,7 +37,7 @@ def test_verifier_qualification():
         fleet_size=4,
         equipment=["dry_van", "reefer"],
         website="http://lonestareaglexpress.com",
-        phone="(214) 555-0182",
+        phone="(214) 748-3647",
         email="dispatch@lonestareaglexpress.com",
         lead_source="fmcsa_safer",
         source_url="https://safer.fmcsa.dot.gov",
@@ -75,8 +75,8 @@ def test_lead_scorer_priority_a():
         operating_status="AUTHORIZED FOR Property",
         fleet_size=4,
         equipment=["dry_van", "reefer"],
-        phone="(214) 555-0182",
-        email="dispatch@lonestareaglexpress.com",
+        phone="(214) 748-3647",
+        email="marcus.vance@lonestareaglexpress.com",
         contacts=[
             Contact(company_id="comp-3", full_name="Marcus Vance", title="Owner", is_decision_maker=True)
         ],

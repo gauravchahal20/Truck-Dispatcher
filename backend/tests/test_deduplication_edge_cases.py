@@ -45,15 +45,15 @@ def test_legal_and_industry_suffix_stripping():
 
 def test_phone_format_variations():
     phones = [
-        "(214) 555-0182",
-        "2145550182",
-        "+12145550182",
-        "1-214-555-0182",
-        "214.555.0182",
-        "+1 (214) 555-0182",
+        "(214) 748-3647",
+        "2147483647",
+        "+12147483647",
+        "1-214-748-3647",
+        "214.748.3647",
+        "+1 (214) 748-3647",
     ]
     for p in phones:
-        assert Normalizer.normalize_phone(p) == "+12145550182"
+        assert Normalizer.normalize_phone(p) == "+12147483647"
 
 
 def test_domain_normalization_and_path_stripping():
@@ -119,8 +119,8 @@ async def test_dedup_by_phone():
     async with AsyncSessionLocal() as session:
         c1 = Company(
             company_name="Blue Ridge Transport LLC",
-            phone="(404) 555-0199",
-            normalized_phone="+14045550199",
+            phone="(404) 659-1234",
+            normalized_phone="+14046591234",
             state="GA",
             run_id="run-101"
         )
@@ -130,7 +130,7 @@ async def test_dedup_by_phone():
         # Candidate with different name format but same normalized phone
         candidate = Company(
             company_name="Blue Ridge Logistics",
-            normalized_phone="+14045550199",
+            normalized_phone="+14046591234",
             state="GA"
         )
         duplicate = await Deduplicator.find_duplicate(session, candidate)
@@ -191,7 +191,7 @@ def test_merge_records_preserves_higher_quality_and_merges_provenance():
     existing = Company(
         company_name="Apex Freight Lines LLC",
         usdot="3849102",
-        phone="(214) 555-0182",
+        phone="(214) 748-3647",
         city="Dallas",
         state="TX",
         fleet_size=4,
@@ -218,7 +218,7 @@ def test_merge_records_preserves_higher_quality_and_merges_provenance():
     merged = Deduplicator.merge_records(existing, candidate)
 
     # Existing phone should NOT be overwritten
-    assert merged.phone == "(214) 555-0182"
+    assert merged.phone == "(214) 748-3647"
     # Missing fields should be populated
     assert merged.email == "dispatch@apexfreight.example.com"
     assert merged.website == "https://apexfreight.example.com"
