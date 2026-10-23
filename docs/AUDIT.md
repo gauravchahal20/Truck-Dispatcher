@@ -31,15 +31,15 @@ This audit establishes the baseline facts across all 10 workstreams and outlines
 ## 3. Bugs, Logic Flaws & Vulnerabilities
 
 1. **Heuristic Fabrication in Adapters**:
-   - Files: [`indeed_jobs.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/indeed_jobs.py#L60-L75), [`procurement_news.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/procurement_news.py#L60-L75), [`google_search.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/google_search.py#L70-L84), [`industry_directories.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/industry_directories.py#L74-L85).
+   - Files: [`indeed_jobs.py`](../backend/app/adapters/indeed_jobs.py#L60-L75), [`procurement_news.py`](../backend/app/adapters/procurement_news.py#L60-L75), [`google_search.py`](../backend/app/adapters/google_search.py#L70-L84), [`industry_directories.py`](../backend/app/adapters/industry_directories.py#L74-L85).
    - Bug: Defaults `city`, `fleet_size=5/6`, `operating_status="ACTIVE"`, `safety_rating="SATISFACTORY"`.
    - Fix: Store `None` / `UNKNOWN` when not present in source snippet; rely on subsequent enrichment and verification.
 2. **Missing `UNKNOWN` Status in Verification**:
-   - File: [`verifier.py`](file:///f:/GAURAV/GENLEAD/backend/app/services/verifier.py).
+   - File: [`verifier.py`](../backend/app/services/verifier.py).
    - Bug: Steps mark `status="WARNING"` or `status="FAILED"` on missing values. Leads with incomplete public data cannot be distinguished from leads that affirmatively failed checks.
    - Fix: Introduce `status="UNKNOWN"` for unverified attributes; separate hard gates (e.g. revoked authority, passenger carrier) from missing soft signals.
 3. **No Time Decay on Intent Signals**:
-   - File: [`lead_scorer.py`](file:///f:/GAURAV/GENLEAD/backend/app/services/lead_scorer.py#L102-L111).
+   - File: [`lead_scorer.py`](../backend/app/services/lead_scorer.py#L102-L111).
    - Bug: `intent_signals` table records `detected_date`, but `LeadScorer` ignores age completely.
    - Fix: Implement exponential half-life decay ($\text{Strength} = S_0 \times 2^{-\Delta t / t_{1/2}}$).
 4. **No Rate Limiting or Circuit Breaker on Web Scrapers**:

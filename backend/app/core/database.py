@@ -8,7 +8,7 @@ from .config import settings, config, PROJECT_ROOT
 Base = declarative_base()
 
 # Determine DB URL
-db_url = settings.database_url or config.raw_yaml.get("system", {}).get("database_url", "sqlite+aiosqlite:///./trucklead.db")
+db_url = settings.database_url or config.raw_yaml.get("system", {}).get("database_url", "sqlite+aiosqlite:///./data/trucklead.db")
 
 # Normalize relative SQLite paths to PROJECT_ROOT
 if "sqlite" in db_url:

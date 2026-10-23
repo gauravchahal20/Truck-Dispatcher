@@ -124,15 +124,15 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 ### 1.3 End-to-End Pipeline Stages Status
 | Stage # | Pipeline Stage | Purpose | Implementation Status | Code Evidence (File & Function) |
 | :---: | :--- | :--- | :---: | :--- |
-| **S1** | **Candidate Discovery** | Ingest raw carriers and shippers from official FMCSA and shipper datasets | **IMPLEMENTED** | [`backend/app/services/orchestrator.py:LeadOrchestrator._run_discovery`](file:///f:/GAURAV/GENLEAD/backend/app/services/orchestrator.py#L140) |
-| **S2** | **Normalization & Deduplication** | Clean names, states, domains, E.164 phone normalization, merge duplicates | **IMPLEMENTED** | [`backend/app/services/normalizer.py:Normalizer.merge_company_records`](file:///f:/GAURAV/GENLEAD/backend/app/services/normalizer.py#L380) |
-| **S3** | **Operating Authority & Census Mirror** | Mirror federal datasets (az4n-8mr2, qh9u-swkp, wb4f-neki) and verify status | **IMPLEMENTED** | [`backend/app/services/fmcsa_service.py:FMCSAService.verify_carrier_live`](file:///f:/GAURAV/GENLEAD/backend/app/services/fmcsa_service.py#L210) |
-| **S4** | **Shipper Contact Enrichment** | Google Places API integration & SSRF-safe website contact crawler | **PARTIAL** | [`backend/app/services/shipper_enricher.py:ShipperEnricher.enrich_shipper`](file:///f:/GAURAV/GENLEAD/backend/app/services/shipper_enricher.py#L50) (Keys not set) |
-| **S5** | **Contact Verification** | Phone format/corroboration/Twilio Lookup; Email syntax/disposable/MX/ZeroBounce | **IMPLEMENTED** | [`backend/app/services/phone_verifier.py:PhoneVerifier.verify_phone`](file:///f:/GAURAV/GENLEAD/backend/app/services/phone_verifier.py#L416) & [`email_verifier.py`](file:///f:/GAURAV/GENLEAD/backend/app/services/email_verifier.py#L195) |
-| **S6** | **Lead Scoring & Prioritization** | 8-attribute weighted matrix (capacity, authority, decision-maker, signals) | **IMPLEMENTED** | [`backend/app/services/lead_scorer.py:LeadScorer.calculate_score`](file:///f:/GAURAV/GENLEAD/backend/app/services/lead_scorer.py#L13) |
-| **S7** | **Compliance Screening** | Multi-attribute DNC and suppression screening (phone, email, domain, USDOT) | **IMPLEMENTED** | [`backend/app/services/compliance.py:ComplianceService.screen_and_apply`](file:///f:/GAURAV/GENLEAD/backend/app/services/compliance.py#L40) |
-| **S8** | **Ready to Contact Funnel** | Categorize into QUALIFIED, NEEDS_ENRICHMENT, REJECTED, compute confidence | **IMPLEMENTED** | [`backend/app/api/routes_outcomes.py:list_callable_mailable_leads`](file:///f:/GAURAV/GENLEAD/backend/app/api/routes_outcomes.py#L134) |
-| **S9** | **Continuous Autopilot Runner** | Autonomous background corridor runner with rate limits, spend caps, kill switch | **IMPLEMENTED** | [`backend/app/services/continuous_runner.py:ContinuousAutopilot._loop`](file:///f:/GAURAV/GENLEAD/backend/app/services/continuous_runner.py#L236) |
+| **S1** | **Candidate Discovery** | Ingest raw carriers and shippers from official FMCSA and shipper datasets | **IMPLEMENTED** | [`backend/app/services/orchestrator.py:LeadOrchestrator._run_discovery`](../../backend/app/services/orchestrator.py#L140) |
+| **S2** | **Normalization & Deduplication** | Clean names, states, domains, E.164 phone normalization, merge duplicates | **IMPLEMENTED** | [`backend/app/services/normalizer.py:Normalizer.merge_company_records`](../../backend/app/services/normalizer.py#L380) |
+| **S3** | **Operating Authority & Census Mirror** | Mirror federal datasets (az4n-8mr2, qh9u-swkp, wb4f-neki) and verify status | **IMPLEMENTED** | [`backend/app/services/fmcsa_service.py:FMCSAService.verify_carrier_live`](../../backend/app/services/fmcsa_service.py#L210) |
+| **S4** | **Shipper Contact Enrichment** | Google Places API integration & SSRF-safe website contact crawler | **PARTIAL** | [`backend/app/services/shipper_enricher.py:ShipperEnricher.enrich_shipper`](../../backend/app/services/shipper_enricher.py#L50) (Keys not set) |
+| **S5** | **Contact Verification** | Phone format/corroboration/Twilio Lookup; Email syntax/disposable/MX/ZeroBounce | **IMPLEMENTED** | [`backend/app/services/phone_verifier.py:PhoneVerifier.verify_phone`](../../backend/app/services/phone_verifier.py#L416) & [`email_verifier.py`](../../backend/app/services/email_verifier.py#L195) |
+| **S6** | **Lead Scoring & Prioritization** | 8-attribute weighted matrix (capacity, authority, decision-maker, signals) | **IMPLEMENTED** | [`backend/app/services/lead_scorer.py:LeadScorer.calculate_score`](../../backend/app/services/lead_scorer.py#L13) |
+| **S7** | **Compliance Screening** | Multi-attribute DNC and suppression screening (phone, email, domain, USDOT) | **IMPLEMENTED** | [`backend/app/services/compliance.py:ComplianceService.screen_and_apply`](../../backend/app/services/compliance.py#L40) |
+| **S8** | **Ready to Contact Funnel** | Categorize into QUALIFIED, NEEDS_ENRICHMENT, REJECTED, compute confidence | **IMPLEMENTED** | [`backend/app/api/routes_outcomes.py:list_callable_mailable_leads`](../../backend/app/api/routes_outcomes.py#L134) |
+| **S9** | **Continuous Autopilot Runner** | Autonomous background corridor runner with rate limits, spend caps, kill switch | **IMPLEMENTED** | [`backend/app/services/continuous_runner.py:ContinuousAutopilot._loop`](../../backend/app/services/continuous_runner.py#L236) |
 | **S10**| **Playbook v2 Adaptive Weights** | Dynamic ML weight tuning based on outcome feedback loop | **STUB / PLANNED** | Awaiting Playbook v2 kickoff; outcome analytics starter active |
 
 ---
@@ -282,11 +282,11 @@ def build_section_4() -> str:
 ### 4.1 Ingestion Adapters & Provenance Matrix
 | Adapter Name | Implementation File | Source Classification | ToS & Robots Stance | Enabled Flag | API Key Needed | Current Key Status | Leads Contributed | Share of Leads (%) | Fields Provided | Fields Never Provided | Known Failure Modes |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- | :--- | :--- |
-| **FMCSA SODA Official** | [`fmcsa_official.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/fmcsa_official.py) | Federal Public Domain (data.transportation.gov) | Public API (No robots prohibition) | **YES** | Optional (App Token) | `<NOT SET>` (Throttled gracefully) | **{source_counts.get('fmcsa_official', 0)}** | **{official_pct:.1f}%** | USDOT, Legal Name, DBA, Address, Power Units, Drivers, MCS-150 Date, Declared Phone/Email, Cargo | Personal mobile, verified email status | HTTP 429 if unauthenticated over 1,000 req/hr |
-| **FMCSA SAFER Crawler** | [`fmcsa_safer.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/fmcsa_safer.py) | Federal Web Registry (safer.fmcsa.dot.gov) | Public lookup (Respects delay, no auth) | **YES** | No | N/A | **{source_counts.get('fmcsa_safer', 0)}** | **{source_counts.get('fmcsa_safer', 0) / total_companies * 100:.1f}%** | Operating status, For-Hire active authority, Safety rating, Inspections, Out-of-service % | Named contacts, direct email | Cloudflare / Akamai challenge if request rate > 10/min |
-| **Direct Shippers** | [`direct_shippers.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/direct_shippers.py) | Curated Freight Hubs & Google Places | Subject to Google Places ToS | **PAUSED** | Yes (`GOOGLE_PLACES_API_KEY`) | `<NOT SET>` | **{source_counts.get('direct_shippers', 0)}** | **{source_counts.get('direct_shippers', 0) / total_companies * 100:.1f}%** | Business name, website, facility address, industrial classification | USDOT, fleet size, driver counts | Paused via `pipeline.pause_shipper_discovery = true` to prevent un-enrichable records |
-| **Carrier411 Mock** | [`carrier411.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/carrier411.py) | Commercial Freight Broker Tool | Commercial ToS requires licensing | **MOCK** | Yes | `<NOT SET>` | **0** | **0.0%** | Broker fraud flags, identity theft signals | Operating authority details | Strictly mock-isolated; never called in production |
-| **Google Search** | [`google_search.py`](file:///f:/GAURAV/GENLEAD/backend/app/adapters/google_search.py) | Google Custom Search JSON API | Official Google API Terms | **STANDBY**| Yes | `<NOT SET>` | **0** | **0.0%** | Official corporate website URL, domain | Direct executive contact | Quota exhausted (100 req/day free tier) |
+| **FMCSA SODA Official** | [`fmcsa_official.py`](../../backend/app/adapters/fmcsa_official.py) | Federal Public Domain (data.transportation.gov) | Public API (No robots prohibition) | **YES** | Optional (App Token) | `<NOT SET>` (Throttled gracefully) | **{source_counts.get('fmcsa_official', 0)}** | **{official_pct:.1f}%** | USDOT, Legal Name, DBA, Address, Power Units, Drivers, MCS-150 Date, Declared Phone/Email, Cargo | Personal mobile, verified email status | HTTP 429 if unauthenticated over 1,000 req/hr |
+| **FMCSA SAFER Crawler** | [`fmcsa_safer.py`](../../backend/app/adapters/fmcsa_safer.py) | Federal Web Registry (safer.fmcsa.dot.gov) | Public lookup (Respects delay, no auth) | **YES** | No | N/A | **{source_counts.get('fmcsa_safer', 0)}** | **{source_counts.get('fmcsa_safer', 0) / total_companies * 100:.1f}%** | Operating status, For-Hire active authority, Safety rating, Inspections, Out-of-service % | Named contacts, direct email | Cloudflare / Akamai challenge if request rate > 10/min |
+| **Direct Shippers** | [`direct_shippers.py`](../../backend/app/adapters/direct_shippers.py) | Curated Freight Hubs & Google Places | Subject to Google Places ToS | **PAUSED** | Yes (`GOOGLE_PLACES_API_KEY`) | `<NOT SET>` | **{source_counts.get('direct_shippers', 0)}** | **{source_counts.get('direct_shippers', 0) / total_companies * 100:.1f}%** | Business name, website, facility address, industrial classification | USDOT, fleet size, driver counts | Paused via `pipeline.pause_shipper_discovery = true` to prevent un-enrichable records |
+| **Carrier411 Mock** | [`carrier411.py`](../../backend/app/adapters/carrier411.py) | Commercial Freight Broker Tool | Commercial ToS requires licensing | **MOCK** | Yes | `<NOT SET>` | **0** | **0.0%** | Broker fraud flags, identity theft signals | Operating authority details | Strictly mock-isolated; never called in production |
+| **Google Search** | [`google_search.py`](../../backend/app/adapters/google_search.py) | Google Custom Search JSON API | Official Google API Terms | **STANDBY**| Yes | `<NOT SET>` | **0** | **0.0%** | Official corporate website URL, domain | Direct executive contact | Quota exhausted (100 req/day free tier) |
 
 ### 4.2 Official SODA Public Datasets Mirror
 | Dataset SODA ID | Dataset Formal Name | Local Mirror SQLite Table | Core Columns Ingested | Mirror Row Count | Checksum Differential Tracking |
@@ -551,7 +551,7 @@ def build_section_7() -> str:
     return """## 7. Logic Audit & Code Inspection
 
 ### 7.1 Lead Scoring Engine
-* **Source**: [`backend/app/services/lead_scorer.py:25-135`](file:///f:/GAURAV/GENLEAD/backend/app/services/lead_scorer.py#L25-L135)
+* **Source**: [`backend/app/services/lead_scorer.py:25-135`](../../backend/app/services/lead_scorer.py#L25-L135)
 ```python
 # 1. Target Fleet Capacity / Shipper Demand (+2.0)
 if is_shipper:
@@ -573,7 +573,7 @@ elif company.contacts:
 ```
 
 ### 7.2 Status Qualification Rules
-* **Source**: [`backend/app/services/orchestrator.py:568-615`](file:///f:/GAURAV/GENLEAD/backend/app/services/orchestrator.py#L568-L615)
+* **Source**: [`backend/app/services/orchestrator.py:568-615`](../../backend/app/services/orchestrator.py#L568-L615)
 ```python
 # Hard Gate Failures -> REJECTED
 if is_suppressed or candidate_company.dnc_flag:
@@ -593,7 +593,7 @@ elif is_final_candidate:
 ```
 
 ### 7.3 SSRF-Safe Fetcher Implementation
-* **Source**: [`backend/app/core/live_search.py:24-95`](file:///f:/GAURAV/GENLEAD/backend/app/core/live_search.py#L24-L95)
+* **Source**: [`backend/app/core/live_search.py:24-95`](../../backend/app/core/live_search.py#L24-L95)
 ```python
 def is_ssrf_safe_ip(ip_str: str) -> bool:
     ip = ipaddress.ip_address(ip_str)
@@ -632,9 +632,9 @@ def build_section_8() -> str:
 * **Enforcement Paradigm**: The system is strictly **draft-only** and **read-only**. Outreach requires manual human click-to-call or click-to-mail actions in the operator UI.
 
 ### 8.2 Compliance Enforcement Touchpoints
-* **TCPA Safe Calling Hours (47 U.S.C. § 227)**: [`backend/app/services/normalizer.py:170-208`](file:///f:/GAURAV/GENLEAD/backend/app/services/normalizer.py#L170-L208). Calculates dynamic 09:00–17:00 recipient local call windows and maps to Asia/Kolkata (IST).
-* **Sole Proprietor Mobile Guidance**: [`backend/app/api/routes_outcomes.py:226`](file:///f:/GAURAV/GENLEAD/backend/app/api/routes_outcomes.py#L226). Sole owner-operators with mobile numbers are marked `"call manually only, check DNC"`.
-* **Automated Suppression Cascade**: [`backend/app/api/routes_outcomes.py:86-119`](file:///f:/GAURAV/GENLEAD/backend/app/api/routes_outcomes.py#L86-L119). Dispositioning a lead as `do_not_contact` or `bounced` automatically writes suppression entries and blocks all future contact.
+* **TCPA Safe Calling Hours (47 U.S.C. § 227)**: [`backend/app/services/normalizer.py:170-208`](../../backend/app/services/normalizer.py#L170-L208). Calculates dynamic 09:00–17:00 recipient local call windows and maps to Asia/Kolkata (IST).
+* **Sole Proprietor Mobile Guidance**: [`backend/app/api/routes_outcomes.py:226`](../../backend/app/api/routes_outcomes.py#L226). Sole owner-operators with mobile numbers are marked `"call manually only, check DNC"`.
+* **Automated Suppression Cascade**: [`backend/app/api/routes_outcomes.py:86-119`](../../backend/app/api/routes_outcomes.py#L86-L119). Dispositioning a lead as `do_not_contact` or `bounced` automatically writes suppression entries and blocks all future contact.
 
 ---
 """

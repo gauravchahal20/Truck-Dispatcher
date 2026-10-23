@@ -5,51 +5,125 @@
 
 ---
 
-## Quick Navigation
+## 1. Project Directory Structure
 
-- **System Architecture & Technical Blueprint**: [`ARCHITECTURE.md`](file:///f:/GAURAV/GENLEAD/ARCHITECTURE.md)
-- **Master Project Information & Operations Manual**: [`PROJECT_INFO.md`](file:///f:/GAURAV/GENLEAD/PROJECT_INFO.md)
-- **Backend API**: `http://127.0.0.1:8000` (Docs: `http://127.0.0.1:8000/docs`)
-- **Frontend Dashboard**: `http://127.0.0.1:5173`
+```text
+GENLEAD/
+├── README.md                           # System overview, setup & usage guide
+├── docker-compose.yml                  # Production container stack (Postgres + Backend + Frontend)
+├── pytest.ini                          # Test configuration & markers
+├── config/
+│   ├── default_config.yaml             # System defaults, ICP rules, scoring & verification parameters
+│   └── .env.example                    # Environment variable template
+├── docs/
+│   ├── ARCHITECTURE.md                 # Technical architecture & pipeline specification
+│   ├── PROJECT_INFO.md                 # System overview, data dictionary & changelog
+│   ├── DATA_SOURCES.md                 # Ingestion sources & SODA catalog dictionary
+│   ├── BENCHMARKS.md                   # Throughput & accuracy benchmarks
+│   ├── AUDIT.md                        # Audit findings & hardening tracker
+│   ├── RUNBOOK.md                      # Operational runbook & troubleshooting
+│   └── reports/
+│       ├── PROJECT_ANALYSIS_REPORT.md  # Automated evidence-based project report
+│       ├── step_b_baseline_results.json
+│       └── step_d_benchmark_results.json
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt                # Python dependencies
+│   ├── alembic.ini                     # Migration configuration
+│   ├── alembic/                        # Database migration scripts
+│   ├── app/                            # Application package (api, core, adapters, models, schemas, services)
+│   └── tests/
+│       ├── conftest.py                 # Pytest runner setup & network isolation fixtures
+│       ├── unit/                       # Deterministic offline unit test suite
+│       ├── integration/                # End-to-end offline pipeline integration tests
+│       ├── live/                       # Network-touching external endpoint & parser drift tests
+│       └── fixtures/                   # Offline HTML/JSON test fixtures
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.js
+│   └── src/
+│       ├── App.jsx                     # Main shell & tab navigation
+│       ├── components/                 # UI views (DashboardStats, ReadyToContact, LeadsTable, etc.)
+│       ├── services/                   # API client & URL utility helpers
+│       └── styles/                     # Layout & design tokens (App.css, index.css)
+├── scripts/
+│   ├── audit/                          # Audit & reporting scripts (generate_analysis_report.py, etc.)
+│   ├── maintenance/                    # Data migration & reconciliation scripts
+│   └── dev/                            # Benchmarking & dev test utilities
+├── data/                               # (gitignored) Active SQLite DB (trucklead.db) & test DBs
+└── backups/                            # (gitignored) Master DB snapshots & historical backups
+```
 
 ---
 
-## Core Capabilities
+## 2. Setup & Installation
 
-1. **100% Real Live Data Pipeline**: No static mock datasets. Discovers real active U.S. motor carriers and direct shippers dynamically from official registries and live web sources.
-2. **Dual-Persona Targeting**:
-   - **Carriers**: Fleets with 1–10 trucks seeking dispatch support and higher revenue loads.
-   - **Direct Shippers**: Manufacturing plants, distribution centers, and warehouses with outbound freight demand.
-3. **10-Point Grounded Verification Engine**: Evaluates federal authority, safety ratings, phone validity, equipment types, and physical yard addresses with evidence notes.
-4. **Weighted Scoring (0–10) & Prioritization**: Automatically classifies prospects into Priority A (Ready for outreach), Priority B, and Priority C.
-5. **Zero-403 Safe URLs**: Prevents government WAF blocks by automatically resolving carrier profiles to open public links (`https://usdotlookup.com/carrier/{usdot}`) with zero 403 Forbidden errors.
-6. **Continuous 24/7 Autopilot**: Background runner that executes scheduled discovery sweeps across target states.
-7. **Google Sheets Live Sync**: Exports qualified leads with verified decision-maker emails, direct phones, and AI outreach scripts.
+### Prerequisites
+- Python 3.11+
+- Node.js 18+ & npm
+- Git
 
----
-
-## Quick Start
-
-### 1. Backend Server (FastAPI)
+### Initial Setup
 ```bash
-# Activate virtual environment
+# Clone and enter repo
+git clone <repo-url>
+cd GENLEAD
+
+# Setup Python Virtual Environment
+python -m venv venv
 .\venv\Scripts\activate
+pip install -r backend/requirements.txt
 
-# Launch FastAPI server
-cd backend
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-
-### 2. Frontend Application (React + Vite)
-```bash
-# In a new terminal
+# Setup Frontend
 cd frontend
-npm run dev
+npm install
+cd ..
+
+# Copy Environment Configuration
+cp config/.env.example .env
 ```
 
-### 3. Run Automated Tests
+---
+
+## 3. Running Locally
+
+### Backend Server (FastAPI)
 ```bash
-.\venv\Scripts\python.exe -m pytest backend/tests
+.\venv\Scripts\activate
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+- API Docs: `http://127.0.0.1:8000/docs`
+- Healthcheck: `http://127.0.0.1:8000/health`
+
+### Frontend Application (React + Vite)
+```bash
+cd frontend
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+- Web UI: `http://127.0.0.1:5173`
+
+---
+
+## 4. Testing
+
+```bash
+# Run offline test suite (network-isolated, fast)
+python -m pytest -q -m "not live"
+
+# Run full test suite including live FMCSA SODA endpoint checks
+python -m pytest -q
+
+# Run by tier
+python -m pytest backend/tests/unit -q
+python -m pytest backend/tests/integration -q
+python -m pytest backend/tests/live -q
 ```
 
-For full system details, workflows, and operational manuals, see [`PROJECT_INFO.md`](file:///f:/GAURAV/GENLEAD/PROJECT_INFO.md).
+---
+
+## 5. Documentation Links
+
+- [System Architecture](docs/ARCHITECTURE.md)
+- [Project Information & Dictionary](docs/PROJECT_INFO.md)
+- [Operations Runbook](docs/RUNBOOK.md)
+- [Project Analysis Report](docs/reports/PROJECT_ANALYSIS_REPORT.md)

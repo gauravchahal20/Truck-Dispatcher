@@ -4,7 +4,7 @@ system:
   app_name: "TRUCKLEAD AUTOPILOT"
   version: "1.0.0"
   log_level: "INFO"
-  database_url: "sqlite+aiosqlite:///./trucklead.db"
+  database_url: "sqlite+aiosqlite:///./data/trucklead.db"
   environment: "development"
 
 # Default Target Ideal Customer Profile (ICP)

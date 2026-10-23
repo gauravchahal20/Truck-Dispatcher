@@ -4,7 +4,7 @@
 > **Last Updated**: October 22, 2026  
 > **Application Version**: 1.0.0 (Production Live Pipeline)  
 > **Status**: Active & Operational  
-> **System Architecture Doc**: [`ARCHITECTURE.md`](file:///f:/GAURAV/GENLEAD/ARCHITECTURE.md)  
+> **System Architecture Doc**: [`ARCHITECTURE.md`](../ARCHITECTURE.md)  
 
 ---
 
@@ -74,7 +74,7 @@ TRUCKLEAD AUTOPILOT provides an end-to-end autonomous pipeline that:
 - **Framework**: React 18
 - **Build Tool**: Vite 5
 - **Icons**: Lucide React
-- **Design System**: Vanilla CSS tokens in [`index.css`](file:///f:/GAURAV/GENLEAD/frontend/src/index.css) utilizing an editorial cream/terracotta/sage aesthetic
+- **Design System**: Vanilla CSS tokens in [`index.css`](../frontend/src/index.css) utilizing an editorial cream/terracotta/sage aesthetic
 - **Typography**: Google Fonts (*Outfit* for headings, *Inter* for body, *JetBrains Mono* for numbers & DOT codes)
 
 ---
@@ -341,17 +341,17 @@ The lead score is a weighted composite between **0.0 and 10.0**:
 ### 1. The 403 Forbidden Link Problem
 - **Root Cause**: `safer.fmcsa.dot.gov` uses Akamai WAF to block incoming external referrers and deep links with `HTTP 403 Forbidden`.
 - **Solution**: 
-  1. [`url_validator.py`](file:///f:/GAURAV/GENLEAD/backend/app/core/url_validator.py) prevents any URL containing `fmcsa.dot.gov` from being stored as a company website.
+  1. [`url_validator.py`](../backend/app/core/url_validator.py) prevents any URL containing `fmcsa.dot.gov` from being stored as a company website.
   2. Fallbacks use `https://usdotlookup.com/carrier/{usdot}`, which returns `HTTP 200 OK` in all browsers and displays the carrier's full census and safety record.
-  3. Frontend [`urlUtils.js`](file:///f:/GAURAV/GENLEAD/frontend/src/services/urlUtils.js) safely redirects any old or cached links dynamically.
+  3. Frontend [`urlUtils.js`](../frontend/src/services/urlUtils.js) safely redirects any old or cached links dynamically.
 
 ### 2. Aggregator Domain Deduplication Collision
 - **Root Cause**: Earlier versions used domain matching without excluding public directories. Multiple distinct carriers with `website = safer.fmcsa.dot.gov` were collapsed into a single entity.
-- **Solution**: [`normalizer.py`](file:///f:/GAURAV/GENLEAD/backend/app/services/normalizer.py) maintains a `GENERIC_DOMAINS` blacklist (`safer.fmcsa.dot.gov`, `google.com`, `usdotlookup.com`, `yellowpages.com`). The deduplicator ignores these domains for entity matching.
+- **Solution**: [`normalizer.py`](../backend/app/services/normalizer.py) maintains a `GENERIC_DOMAINS` blacklist (`safer.fmcsa.dot.gov`, `google.com`, `usdotlookup.com`, `yellowpages.com`). The deduplicator ignores these domains for entity matching.
 
 ### 3. SQLite Concurrency & Disk I/O Lockups
 - **Root Cause**: Running concurrent async pipeline tasks while writing to SQLite triggered `sqlite3.OperationalError: disk I/O error` or database locks.
-- **Solution**: Configured [`database.py`](file:///f:/GAURAV/GENLEAD/backend/app/core/database.py) with SQLite Write-Ahead Logging:
+- **Solution**: Configured [`database.py`](../backend/app/core/database.py) with SQLite Write-Ahead Logging:
   ```python
   cursor.execute("PRAGMA journal_mode=WAL")
   cursor.execute("PRAGMA busy_timeout=15000")
@@ -373,10 +373,10 @@ The backend contains a 16-test automated suite executed via `pytest`:
 ```
 
 ### Test Coverage Breakdown
-- [`test_autopilot.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_autopilot.py): Tests background continuous runner start/stop states, interval triggers, and error resilience.
-- [`test_integration.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_integration.py): End-to-end pipeline execution verifying multi-state discovery, deduplication, 10-point verification, lead scoring, and file exports against a clean temporary test database.
-- [`test_normalizer.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_normalizer.py): Validates company name cleaning, E.164 phone parsing, domain canonicalization, and aggregator domain exclusions.
-- [`test_services.py`](file:///f:/GAURAV/GENLEAD/backend/tests/test_services.py): Verifies decision-maker priority heuristics, intent signal classification, verification rule enforcement, and scoring calculations.
+- [`test_autopilot.py`](../backend/tests/test_autopilot.py): Tests background continuous runner start/stop states, interval triggers, and error resilience.
+- [`test_integration.py`](../backend/tests/test_integration.py): End-to-end pipeline execution verifying multi-state discovery, deduplication, 10-point verification, lead scoring, and file exports against a clean temporary test database.
+- [`test_normalizer.py`](../backend/tests/test_normalizer.py): Validates company name cleaning, E.164 phone parsing, domain canonicalization, and aggregator domain exclusions.
+- [`test_services.py`](../backend/tests/test_services.py): Verifies decision-maker priority heuristics, intent signal classification, verification rule enforcement, and scoring calculations.
 
 ---
 

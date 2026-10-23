@@ -11,7 +11,7 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 # Configure isolated test database
-test_db_path = backend_dir / "test_trucklead.db"
+test_db_path = backend_dir.parent / "data" / "test_trucklead.db"
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{test_db_path.as_posix()}"
 
 

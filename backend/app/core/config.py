@@ -165,7 +165,7 @@ class AppSettings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     secret_key: str = "trucklead_dev_secret_key"
-    database_url: str = "sqlite+aiosqlite:///./trucklead.db"
+    database_url: str = "sqlite+aiosqlite:///./data/trucklead.db"
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
 

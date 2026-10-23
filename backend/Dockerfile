@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY backend/app /app/app
 COPY config /app/config
+RUN mkdir -p /app/data /app/exports /app/logs
 
 ENV PYTHONPATH=/app
 EXPOSE 8000

@@ -103,6 +103,7 @@ async def test_fmcsa_official_discovery_maps_official_provenance():
             operating_status="AUTHORIZED FOR HIRE",
             safety_rating="S",
             docket_number="MC-1492011",
+            add_date="2099-12-31",
             synced_at=datetime.now(timezone.utc),
             source_url="https://data.transportation.gov/resource/az4n-8mr2?dot_number=3984102"
         )
@@ -118,7 +119,7 @@ async def test_fmcsa_official_discovery_maps_official_provenance():
     )
 
     assert len(candidates) >= 1
-    lead = candidates[0]
+    lead = next((c for c in candidates if c.usdot == "3984102"), candidates[0])
     assert lead.company_name == "LONE STAR FREIGHT SYSTEMS LLC"
     assert lead.usdot == "3984102"
     assert lead.city == "Dallas"

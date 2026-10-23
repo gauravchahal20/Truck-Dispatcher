@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
+FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
 
 
 @pytest.mark.live
