@@ -37,6 +37,27 @@ def test_loopback_socket_allowed():
         s.close()
 
 
+def test_external_udp_sendto_fails_in_offline_suite():
+    """Proves that any real external UDP sendto attempt fails immediately."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        with pytest.raises(SocketBlockedError, match="External UDP sendto blocked in offline test suite"):
+            s.sendto(b"ping", ("8.8.8.8", 53))
+    finally:
+        s.close()
+
+
+def test_external_dnspython_resolve_fails_in_offline_suite():
+    """Proves that any real external dnspython DNS resolve attempt fails immediately."""
+    try:
+        import dns.resolver
+        r = dns.resolver.Resolver()
+        with pytest.raises(SocketBlockedError, match="External dnspython DNS resolution blocked"):
+            r.resolve("example.com", "A")
+    except ImportError:
+        pytest.skip("dnspython not installed")
+
+
 @pytest.mark.live
 def test_live_marker_allows_socket_without_blocker():
     """Verifies that tests explicitly marked with @pytest.mark.live bypass the socket blocker."""
@@ -44,3 +65,4 @@ def test_live_marker_allows_socket_without_blocker():
     # We test getaddrinfo for localhost / loopback to confirm it is the original function
     res = socket.getaddrinfo("127.0.0.1", 80)
     assert len(res) > 0
+
