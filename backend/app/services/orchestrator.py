@@ -555,7 +555,17 @@ class LeadOrchestrator:
                         (c.is_decision_maker or (c.full_name and len(c.full_name) > 3 and not c.full_name.lower().startswith("company officer")))
                         for c in (candidate_company.contacts or [])
                     )
-                    has_verified_contact_for_named_person = (has_verified_phone or has_verified_email) and has_named_person
+                    has_reached_outcome = bool(
+                        candidate_company.outcomes and any(
+                            o.outcome in ["interested", "not_interested", "wrong_number", "do_not_contact", "voicemail"]
+                            for o in candidate_company.outcomes
+                        )
+                    ) if hasattr(candidate_company, "outcomes") else False
+
+                    has_verified_contact_for_named_person = (
+                        (has_verified_phone or has_verified_email) and has_named_person
+                    ) or has_reached_outcome
+
 
                     is_final_candidate = (
                         has_proven_active_authority and
@@ -582,17 +592,15 @@ class LeadOrchestrator:
                         candidate_company.rejection_reason = f"Hard gate failure: Carrier not authorized for-hire ({candidate_company.operating_status})"
                         run.rejected_count += 1
                     elif candidate_company.lead_score < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
+                        candidate_company.lead_status = "NEEDS_ENRICHMENT"
                         if is_carrier:
-                            candidate_company.lead_status = "REJECTED"
-                            candidate_company.priority = "REJECTED"
-                            candidate_company.rejection_reason = f"Score {candidate_company.lead_score:.1f} below minimum threshold {config.scoring.priority_thresholds.reject_below}"
-                            run.rejected_count += 1
+                            candidate_company.qualification_reason = f"Score {candidate_company.lead_score:.1f} below minimum threshold {config.scoring.priority_thresholds.reject_below}; queued for enrichment"
                         else:
-                            candidate_company.lead_status = "NEEDS_ENRICHMENT"
                             candidate_company.qualification_reason = "Shipper contacts pending Google Places / website enrichment"
                     elif is_carrier and not candidate_company.operating_status:
                         candidate_company.lead_status = "NEEDS_ENRICHMENT"
                         candidate_company.qualification_reason = "Operating authority pending FMCSA census/SAFER verification"
+
                     elif is_final_candidate and has_verified_contact_for_named_person:
                         # Full FINAL qualification: Active authority + score + verified contact for named person
                         candidate_company.lead_status = "FINAL"

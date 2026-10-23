@@ -5,7 +5,9 @@ from pathlib import Path
 # Add backend to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
 
+# pyrefly: ignore[missing-import]
 from app.api.routes_outcomes import compute_contact_confidence
+# pyrefly: ignore[missing-import]
 from app.services.email_verifier import EmailVerifier
 
 def run_f8_audit():
