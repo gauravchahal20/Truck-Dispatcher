@@ -698,5 +698,73 @@ async def test_pause_shipper_discovery_safeguard():
     config.pipeline.pause_shipper_discovery = True
 
 
+@pytest.mark.asyncio
+async def test_outcome_analytics_and_weekly_summary():
+    """Validates outcome analytics and weekly summary endpoints (G4 Feedback Loop starter)."""
+    import httpx
+    from app.main import app
+
+    # Create test company
+    async with AsyncSessionLocal() as session:
+        c1 = Company(
+            company_name="Apex Freight Lines LLC",
+            lead_type="CARRIER",
+            state="TX",
+            lead_score=8.5,
+            priority="A",
+            lead_source="fmcsa_official",
+            phone_e164="+12145550199",
+            email="dispatch@apexfreight.com",
+            operating_status="ACTIVE / FOR-HIRE",
+            lead_status="QUALIFIED"
+        )
+        session.add(c1)
+        await session.commit()
+        await session.refresh(c1)
+        c1_id = c1.id
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        # 1. Log two outcomes (one phone call 'interested', one email 'bounced')
+        res1 = await client.post(
+            "/api/leads/outcome",
+            json={"company_id": c1_id, "channel": "PHONE", "outcome": "interested", "notes": "Dispatcher agreed to pilot"}
+        )
+        assert res1.status_code == 200
+
+        res2 = await client.post(
+            "/api/leads/outcome",
+            json={"company_id": c1_id, "channel": "EMAIL", "outcome": "bounced", "notes": "Mailbox rejected"}
+        )
+        assert res2.status_code == 200
+
+        # 2. Test /api/leads/outcomes/analytics
+        analytics_res = await client.get("/api/leads/outcomes/analytics")
+        assert analytics_res.status_code == 200
+        analytics_data = analytics_res.json()
+        assert analytics_data["total_logged"] >= 2
+        assert analytics_data["channels"]["PHONE"] >= 1
+        assert analytics_data["channels"]["EMAIL"] >= 1
+        assert "interested" in analytics_data["outcomes"]
+        assert "bounced" in analytics_data["outcomes"]
+        assert "A" in analytics_data["by_priority_tier"]
+        assert "fmcsa_official" in analytics_data["by_source"]
+
+        # 3. Test /api/leads/outcomes/weekly-summary
+        weekly_res = await client.get("/api/leads/outcomes/weekly-summary?days=7")
+        assert weekly_res.status_code == 200
+        weekly_data = weekly_res.json()
+        assert weekly_data["period_days"] == 7
+        assert weekly_data["total_outreach_events"] >= 2
+        assert weekly_data["total_calls"] >= 1
+        assert weekly_data["total_emails"] >= 1
+        assert weekly_data["positive_responses"] >= 1
+        assert weekly_data["positive_response_rate_pct"] > 0
+        assert weekly_data["suppression_triggers"] >= 1
+        assert weekly_data["top_converting_priority"] == "A"
+        assert weekly_data["top_converting_source"] == "fmcsa_official"
+
+
+
+
 
 

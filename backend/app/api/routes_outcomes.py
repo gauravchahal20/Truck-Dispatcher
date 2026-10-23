@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -359,3 +359,121 @@ Opt-out: To unsubscribe or stop receiving dispatch inquiries, reply with 'UNSUBS
         "sender_email": sender_email,
         "status": "DRAFT_ONLY_OPERATOR_SENDS"
     }
+
+
+@router.get("/outcomes/analytics")
+async def get_outcomes_analytics(session: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
+    """
+    Returns granular outcome analytics: calls vs emails, outcomes by priority tier (A, B, C),
+    contact confidence tier (HIGH, MEDIUM, LOW), and lead source.
+    Forms the empirical baseline for the future weight-learning optimization job.
+    """
+    stmt = (
+        select(LeadOutcome, Company)
+        .join(Company, LeadOutcome.company_id == Company.id)
+    )
+    res = await session.execute(stmt)
+    records = res.all()
+
+    total_logged = len(records)
+    channels = {"PHONE": 0, "EMAIL": 0}
+    outcomes_breakdown: Dict[str, int] = {}
+    by_priority: Dict[str, Dict[str, int]] = {}
+    by_confidence: Dict[str, Dict[str, int]] = {}
+    by_source: Dict[str, Dict[str, int]] = {}
+
+    for outcome_row, company in records:
+        ch = outcome_row.channel.upper()
+        channels[ch] = channels.get(ch, 0) + 1
+
+        out = outcome_row.outcome.lower()
+        outcomes_breakdown[out] = outcomes_breakdown.get(out, 0) + 1
+
+        prio = company.priority or "B"
+        if prio not in by_priority:
+            by_priority[prio] = {}
+        by_priority[prio][out] = by_priority[prio].get(out, 0) + 1
+
+        # Calculate confidence tier for this lead
+        is_named = EmailVerifier.is_named_person_match(company.email, None)
+        conf = compute_contact_confidence(company.phone_verification_status, company.email_verification_status, is_named)
+        if conf not in by_confidence:
+            by_confidence[conf] = {}
+        by_confidence[conf][out] = by_confidence[conf].get(out, 0) + 1
+
+        src = company.lead_source or "unknown"
+        if src not in by_source:
+            by_source[src] = {}
+        by_source[src][out] = by_source[src].get(out, 0) + 1
+
+    return {
+        "total_logged": total_logged,
+        "channels": channels,
+        "outcomes": outcomes_breakdown,
+        "by_priority_tier": by_priority,
+        "by_confidence_tier": by_confidence,
+        "by_source": by_source
+    }
+
+
+@router.get("/outcomes/weekly-summary")
+async def get_outcomes_weekly_summary(
+    days: int = Query(7, ge=1, le=90),
+    session: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Returns weekly rolling summary of call and email engagement, positive response rate,
+    suppression triggers, and conversion leaders by priority and source.
+    """
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days)
+
+    stmt = (
+        select(LeadOutcome, Company)
+        .join(Company, LeadOutcome.company_id == Company.id)
+        .where(LeadOutcome.created_at >= cutoff)
+    )
+    res = await session.execute(stmt)
+    records = res.all()
+
+    total = len(records)
+    calls = sum(1 for o, _ in records if o.channel.upper() == "PHONE")
+    emails = sum(1 for o, _ in records if o.channel.upper() == "EMAIL")
+
+    outcomes_counts: Dict[str, int] = {}
+    priority_counts: Dict[str, int] = {}
+    source_counts: Dict[str, int] = {}
+
+    positive_count = 0
+    suppression_triggers = 0
+
+    for o, c in records:
+        out = o.outcome.lower()
+        outcomes_counts[out] = outcomes_counts.get(out, 0) + 1
+        if out == "interested":
+            positive_count += 1
+            prio = c.priority or "B"
+            priority_counts[prio] = priority_counts.get(prio, 0) + 1
+            src = c.lead_source or "unknown"
+            source_counts[src] = source_counts.get(src, 0) + 1
+        elif out in ["do_not_contact", "bounced"]:
+            suppression_triggers += 1
+
+    conv_rate = round((positive_count / total * 100), 2) if total > 0 else 0.0
+    top_prio = max(priority_counts.items(), key=lambda x: x[1])[0] if priority_counts else None
+    top_src = max(source_counts.items(), key=lambda x: x[1])[0] if source_counts else None
+
+    return {
+        "period_days": days,
+        "period_start": cutoff.isoformat(),
+        "total_outreach_events": total,
+        "total_calls": calls,
+        "total_emails": emails,
+        "outcomes": outcomes_counts,
+        "positive_responses": positive_count,
+        "positive_response_rate_pct": conv_rate,
+        "suppression_triggers": suppression_triggers,
+        "top_converting_priority": top_prio,
+        "top_converting_source": top_src
+    }
+
