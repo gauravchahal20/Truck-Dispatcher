@@ -56,6 +56,30 @@ def test_timezone_and_kolkata_call_window():
     assert "IST" in w_ist_ga
 
 
+def test_dst_transition_november_2026():
+    """
+    Validates dynamic IANA zoneinfo handling across the Nov 1, 2026 DST transition.
+    Proves that 9:00 AM local maps to different IST times before (CDT: 19:30 IST) vs after (CST: 20:30 IST).
+    """
+    # 1. Before DST transition (Oct 31, 2026 - Daylight Saving Time CDT, UTC-5)
+    dt_before = datetime(2026, 10, 31, 10, 0)
+    tz_b, loc_b, ist_b = Normalizer.get_timezone_and_windows("TX", "+12145550182", reference_date=dt_before)
+    assert tz_b == "America/Chicago"
+    assert "CDT" in loc_b
+    assert "19:30" in ist_b
+
+    # 2. After DST transition (Nov 2, 2026 - Standard Time CST, UTC-6)
+    dt_after = datetime(2026, 11, 2, 10, 0)
+    tz_a, loc_a, ist_a = Normalizer.get_timezone_and_windows("TX", "+12145550182", reference_date=dt_after)
+    assert tz_a == "America/Chicago"
+    assert "CST" in loc_a
+    assert "20:30" in ist_a
+
+    # Prove difference across DST transition
+    assert ist_b != ist_a
+    assert loc_b != loc_a
+
+
 @pytest.mark.asyncio
 async def test_phone_verifier_unknown_when_no_key():
     """Proves that without an API key, PhoneVerifier returns UNKNOWN (never VERIFIED)."""

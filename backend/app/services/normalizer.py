@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from urllib.parse import urlparse
 from typing import Optional, Tuple, Dict, Any, List
 
@@ -161,10 +162,15 @@ class Normalizer:
         return f"tel:{e164}" if e164 else None
 
     @classmethod
-    def get_timezone_and_windows(cls, state: Optional[str], phone: Optional[str] = None) -> Tuple[str, str, str]:
+    def get_timezone_and_windows(
+        cls,
+        state: Optional[str],
+        phone: Optional[str] = None,
+        reference_date: Optional[datetime] = None
+    ) -> Tuple[str, str, str]:
         """
         Calculates the company/carrier local timezone, local call window (09:00 - 17:00 local),
-        and the operator's equivalent in Asia/Kolkata (IST).
+        and the operator's equivalent in Asia/Kolkata (IST) dynamically using IANA zoneinfo across DST transitions.
         Returns: (tz_name, local_window_str, ist_window_str)
         """
         import zoneinfo
@@ -187,9 +193,9 @@ class Normalizer:
         try:
             local_tz = zoneinfo.ZoneInfo(tz_name)
             ist_tz = zoneinfo.ZoneInfo("Asia/Kolkata")
-            now = datetime.now()
-            dt_start = datetime(now.year, now.month, now.day, 9, 0, tzinfo=local_tz)
-            dt_end = datetime(now.year, now.month, now.day, 17, 0, tzinfo=local_tz)
+            ref = reference_date or datetime.now()
+            dt_start = datetime(ref.year, ref.month, ref.day, 9, 0, tzinfo=local_tz)
+            dt_end = datetime(ref.year, ref.month, ref.day, 17, 0, tzinfo=local_tz)
 
             ist_start = dt_start.astimezone(ist_tz)
             ist_end = dt_end.astimezone(ist_tz)

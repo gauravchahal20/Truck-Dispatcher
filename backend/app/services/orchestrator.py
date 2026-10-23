@@ -424,7 +424,11 @@ class LeadOrchestrator:
                         candidate_company.phone_e164 = None
                         candidate_company.phone_display = None
 
-                    tz_name, w_local, w_ist = Normalizer.get_timezone_and_windows(candidate_company.state, candidate_company.phone_e164)
+                    tz_name, w_local, w_ist = Normalizer.get_timezone_and_windows(
+                        candidate_company.state,
+                        candidate_company.phone_e164,
+                        reference_date=run.started_at
+                    )
                     candidate_company.local_timezone = tz_name
                     candidate_company.call_window_local = w_local
                     candidate_company.call_window_ist = w_ist
