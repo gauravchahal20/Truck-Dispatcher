@@ -248,3 +248,11 @@ contact_verification:
     cost_cap_per_lead: 0.05
     cost_cap_per_run: 5.00
 
+# Autopilot Safeguards & Limits
+autopilot:
+  per_cycle_leads_cap: 50
+  per_cycle_spend_cap: 2.00
+  max_requests_per_host_per_min: 30
+
+
+

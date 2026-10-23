@@ -464,3 +464,24 @@ class LeadOutcome(Base):
     company = relationship("Company", back_populates="outcomes")
     contact = relationship("Contact", back_populates="outcomes")
 
+
+class AutopilotRunLog(Base):
+    """Audit log of autonomous corridor runs, tracking spend, lead yield, caps, and kill status."""
+    __tablename__ = "autopilot_run_logs"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cycle_number = Column(Integer, nullable=False)
+    run_id = Column(String(36), ForeignKey("runs.id", ondelete="SET NULL"), nullable=True, index=True)
+    corridor_name = Column(String(100), nullable=False)
+    states = Column(JSON, default=list)
+    lead_type = Column(String(50), default="CARRIER")
+    leads_cap = Column(Integer, default=50)
+    spend_cap = Column(Float, default=2.00)
+    leads_found = Column(Integer, default=0)
+    provider_spend = Column(Float, default=0.0)
+    status = Column(String(50), default="RUNNING")  # RUNNING, COMPLETED, KILLED, FAILED, CAPPED
+    kill_reason = Column(String(255), nullable=True)
+    started_at = Column(DateTime, default=utc_now)
+    completed_at = Column(DateTime, nullable=True)
+
+

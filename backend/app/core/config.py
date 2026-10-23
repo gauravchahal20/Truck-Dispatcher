@@ -143,10 +143,17 @@ class ContactVerificationConfig(BaseModel):
     email: EmailVerificationSettings = Field(default_factory=EmailVerificationSettings)
 
 
+class AutopilotConfig(BaseModel):
+    per_cycle_leads_cap: int = 50
+    per_cycle_spend_cap: float = 2.00
+    max_requests_per_host_per_min: int = 30
+
+
 class SourceConfigItem(BaseModel):
     enabled: bool = True
     priority: int = 1
     timeout: int = 20
+
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -275,6 +282,10 @@ class SystemConfig:
 
         cv_data = self.raw_yaml.get("contact_verification", {})
         self.contact_verification = ContactVerificationConfig(**cv_data) if cv_data else ContactVerificationConfig()
+
+        autopilot_data = self.raw_yaml.get("autopilot", {})
+        self.autopilot = AutopilotConfig(**autopilot_data) if autopilot_data else AutopilotConfig()
+
 
 
     def reload(self, config_file: Optional[str] = None):
