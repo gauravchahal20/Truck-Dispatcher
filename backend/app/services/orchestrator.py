@@ -224,6 +224,29 @@ class LeadOrchestrator:
                         session.add(src_rec)
                         continue
 
+                    # Cross-run deduplication for carriers with USDOT
+                    if candidate_company.lead_type == "CARRIER" and candidate_company.usdot:
+                        existing_carrier = await session.execute(
+                            select(Company).where(
+                                Company.usdot == candidate_company.usdot,
+                                func.upper(Company.lead_type) == "CARRIER"
+                            )
+                        )
+                        existing_carrier = existing_carrier.scalars().first()
+                        if existing_carrier:
+                            logger.info(f"Cross-run carrier duplicate merged for USDOT {candidate_company.usdot} into existing Company {existing_carrier.id}")
+                            run.duplicate_count += 1
+                            Deduplicator.merge_records(existing_carrier, candidate_company)
+                            src_rec = SourceRecord(
+                                company_id=existing_carrier.id,
+                                source_name=raw.source_name,
+                                source_url=raw.source_url,
+                                raw_payload=raw.raw_payload,
+                                extraction_confidence=raw.extraction_confidence
+                            )
+                            session.add(src_rec)
+                            continue
+
                     # Register in-memory keys for fast deduplication of subsequent leads in this run
                     for k in c_keys:
                         run_companies_by_key[k] = candidate_company

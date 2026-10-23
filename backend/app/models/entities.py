@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy import (
-    Column, String, Integer, Float, Boolean, DateTime, Text, ForeignKey, JSON, Index
+    Column, String, Integer, Float, Boolean, DateTime, Text, ForeignKey, JSON, Index, text
 )
 from sqlalchemy.orm import relationship
 from ..core.database import Base
@@ -55,6 +55,14 @@ class Run(Base):
 
 class Company(Base):
     __tablename__ = "companies"
+    __table_args__ = (
+        Index(
+            "uq_companies_carrier_usdot",
+            "usdot",
+            unique=True,
+            sqlite_where=text("usdot IS NOT NULL AND TRIM(usdot) != '' AND UPPER(lead_type) = 'CARRIER'")
+        ),
+    )
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     run_id = Column(String(36), ForeignKey("runs.id", ondelete="SET NULL"), nullable=True, index=True)

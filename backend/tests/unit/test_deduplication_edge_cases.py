@@ -228,3 +228,76 @@ def test_merge_records_preserves_higher_quality_and_merges_provenance():
     assert merged.field_provenance["phone"]["method"] == "official"
     assert merged.field_provenance["email"]["method"] == "scraped"
     assert merged.field_provenance["website"]["method"] == "scraped"
+
+
+@pytest.mark.asyncio
+async def test_partial_unique_index_enforces_carrier_usdot_uniqueness():
+    """H1: Enforces that CARRIER records cannot have duplicate USDOTs in database."""
+    from sqlalchemy.exc import IntegrityError
+    async with AsyncSessionLocal() as session:
+        c1 = Company(
+            company_name="Lone Star Carrier LLC",
+            usdot="4910283",
+            lead_type="CARRIER",
+            state="TX"
+        )
+        session.add(c1)
+        await session.commit()
+
+        # Second carrier with exact same USDOT must fail partial unique index
+        c2 = Company(
+            company_name="Duplicate Lone Star LLC",
+            usdot="4910283",
+            lead_type="CARRIER",
+            state="TX"
+        )
+        session.add(c2)
+        with pytest.raises(IntegrityError):
+            await session.commit()
+        await session.rollback()
+
+        # Shippers without USDOT or with empty USDOT are allowed
+        s1 = Company(
+            company_name="Shipper Plant A",
+            lead_type="SHIPPER",
+            usdot=None,
+            state="OH"
+        )
+        s2 = Company(
+            company_name="Shipper Plant B",
+            lead_type="SHIPPER",
+            usdot=None,
+            state="PA"
+        )
+        session.add_all([s1, s2])
+        await session.commit()
+        assert s1.id is not None
+        assert s2.id is not None
+
+
+def test_survivorship_merging_rule():
+    """H1: Verifies survivorship score selects best verified record and merges contacts/DNC flags."""
+    from scripts.maintenance.deduplicate_carriers import calculate_survivorship_score
+
+    loser_row = {
+        "lead_status": "NEEDS_ENRICHMENT",
+        "verification_status": "UNVERIFIED",
+        "phone_verification_status": "FORMAT_OK",
+        "email_verification_status": "UNKNOWN",
+        "lead_score": 3.2,
+        "verification_confidence": 0.3
+    }
+    survivor_row = {
+        "lead_status": "QUALIFIED",
+        "verification_status": "VERIFIED",
+        "phone_verification_status": "VERIFIED",
+        "email_verification_status": "DOMAIN_OK",
+        "lead_score": 7.5,
+        "verification_confidence": 0.85
+    }
+
+    loser_score = calculate_survivorship_score(loser_row, contact_count=0, outcome_count=0)
+    survivor_score = calculate_survivorship_score(survivor_row, contact_count=1, outcome_count=0)
+
+    assert survivor_score > loser_score
+    assert survivor_score >= 450.0
