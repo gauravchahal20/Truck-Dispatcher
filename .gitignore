@@ -21,7 +21,9 @@ frontend/.vite/
 *.db
 *.db-shm
 *.db-wal
-*.db.bak*
+*.bak*
+backups/
+data/
 
 # Environment & Secrets
 .env
@@ -33,5 +35,7 @@ frontend/.vite/
 .DS_Store
 Thumbs.db
 
-# Exports
+# Exports & Logs
 exports/
+logs/
+
