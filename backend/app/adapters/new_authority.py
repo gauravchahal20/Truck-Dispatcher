@@ -116,13 +116,39 @@ class NewAuthorityAdapter(BaseSourceAdapter):
             if not (win_min <= age_days <= win_max):
                 continue
 
-            # Hard gate: safety rating cannot be Unsatisfactory
+            # Hard gate 1: Safety rating cannot be Unsatisfactory
             if rec.safety_rating == "U":
+                continue
+
+            # Hard gate 2: For-hire interstate operations only ('A' = Interstate For-Hire)
+            if rec.carrier_operation != "A":
+                continue
+
+            # Hard gate 3: MC Docket must be present as evidence of authority
+            if not rec.docket_number or not str(rec.docket_number).strip():
                 continue
 
             # Operating status check (must be active or authorized for hire)
             op_status = (rec.operating_status or "AUTHORIZED FOR HIRE").strip().upper()
             if "NOT AUTHORIZED" in op_status or "OUT-OF-SERVICE" in op_status or "REVOKED" in op_status:
+                continue
+
+            # Hard gate 4: ICP prefilter check (two-signal whole-word prefilter)
+            from ..models.entities import Company
+            from ..services.lead_scorer import LeadScorer
+
+            comp_check = Company(
+                company_name=rec.legal_name or rec.dba_name,
+                legal_name=rec.legal_name,
+                dba_name=rec.dba_name,
+                lead_type="CARRIER",
+                carrier_operation="Interstate",
+                fleet_size=rec.power_units,
+                notes=op_status,
+                equipment=equipment_types or ["dry_van", "reefer"]
+            )
+            is_ex, prefilter_reason = LeadScorer.evaluate_icp_prefilter(comp_check)
+            if is_ex:
                 continue
 
             canon_dot = Normalizer.normalize_usdot(rec.dot_number)
@@ -131,12 +157,7 @@ class NewAuthorityAdapter(BaseSourceAdapter):
             clean_email = Normalizer.normalize_email(rec.email)
 
             source_url = rec.source_url or f"https://data.transportation.gov/resource/az4n-8mr2?dot_number={canon_dot or rec.dot_number}"
-
-            op_label = "Interstate" if rec.carrier_operation == "A" else (
-                "Intrastate Hazmat" if rec.carrier_operation == "B" else (
-                    "Intrastate Non-Hazmat" if rec.carrier_operation == "C" else rec.carrier_operation
-                )
-            )
+            op_label = "Interstate"
 
             safety_label = None
             if rec.safety_rating == "S":
@@ -197,7 +218,7 @@ class NewAuthorityAdapter(BaseSourceAdapter):
                 source_name=self.name,
                 source_url=source_url,
                 field_provenance=prov,
-                notes=f"New operating authority granted {int(age_days)} days ago ({rec.add_date})",
+                notes=f"New USDOT census registration recorded {int(age_days)} days ago in MCMIS (add_date: {rec.add_date}, MC Docket: {canon_docket})",
                 needs_reverification=False
             )
             candidates.append(record)

@@ -13,6 +13,7 @@ from .b2b_enrichment import B2BEnrichmentAdapter
 from .industry_directories import IndustryDirectoriesAdapter
 from .procurement_news import ProcurementNewsAdapter
 from .specialized_verticals import SpecializedVerticalsAdapter
+# pyrefly: ignore[missing-import]
 from .new_authority import NewAuthorityAdapter
 
 __all__ = [

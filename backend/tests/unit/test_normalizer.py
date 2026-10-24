@@ -38,6 +38,10 @@ def test_normalize_docket():
     assert Normalizer.normalize_docket("MC-424836") == "424836"
     assert Normalizer.normalize_docket("MC066124") == "66124"
     assert Normalizer.normalize_docket("781620") == "781620"
+    assert Normalizer.normalize_docket("54783262") == "54783262"
+    assert Normalizer.normalize_docket("MC-54783262") == "54783262"
+    assert Normalizer.normalize_docket("93713497") == "93713497"
+    assert Normalizer.normalize_docket("MC-93713497") == "93713497"
     assert Normalizer.normalize_docket("") is None
     assert Normalizer.normalize_docket("MC-000123") == "123"
     assert Normalizer.normalize_docket(None) is None

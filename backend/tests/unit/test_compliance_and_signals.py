@@ -341,6 +341,7 @@ async def test_k4_signals_canonical_join_and_new_authority_discovery():
             phy_state="TX",
             phy_city="Dallas",
             power_units=4,
+            carrier_operation="A",
             operating_status="AUTHORIZED FOR HIRE",
             safety_rating="S",
             add_date=grant_60d_ago,
@@ -386,7 +387,7 @@ async def test_k4_signals_canonical_join_and_new_authority_discovery():
         assert lead.state == "TX"
         assert lead.usdot == "99887766"
         assert lead.mc_number == "554433"
-        assert "New operating authority granted" in lead.notes
+        assert "New USDOT census registration" in lead.notes
         assert lead.field_provenance["usdot"]["method"] == "official"
         assert "az4n-8mr2" in lead.field_provenance["usdot"]["url"]
 
