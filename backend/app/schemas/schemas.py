@@ -167,6 +167,7 @@ class RunCreateRequest(BaseModel):
     target_lead_count: int = 35
     score_threshold: float = 5.0
     active_sources: Optional[List[str]] = None
+    auto_enrich: bool = True
 
 
 class RunResponse(BaseModel):

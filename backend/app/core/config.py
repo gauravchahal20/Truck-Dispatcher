@@ -42,7 +42,9 @@ class ICPConfig(BaseModel):
     authorized_only: bool = True
     min_verification_confidence: float = 0.70
     score_threshold_for_final: float = 5.0
+    mcs150_min_date: str = "20230101"
     carrier_prefilter: CarrierPrefilterConfig = Field(default_factory=CarrierPrefilterConfig)
+
 
 
 class ScoringWeights(BaseModel):

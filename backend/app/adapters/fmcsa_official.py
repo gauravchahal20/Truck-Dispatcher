@@ -66,13 +66,17 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
         self,
         session: AsyncSession,
         state: str,
-        limit: int = 50,
-        fleet_min: int = 1,
-        fleet_max: int = 9999
+        limit: Optional[int] = 50,
+        fleet_min: int = 2,
+        fleet_max: int = 10,
+        mcs150_min_date: Optional[str] = None,
+        offset: int = 0,
+        page_size: int = 100
     ) -> List[FMCSACarrierCensus]:
         """
         Syncs authentic motor carrier census data from data.transportation.gov
-        into the local `fmcsa_carrier_census` table using incremental checksums.
+        into the local `fmcsa_carrier_census` table using incremental checksums,
+        fleet 2-10, active for-hire authorization, and recent MCS-150 date filtering with paging.
         """
         st_clean = state.strip().upper()
         if not st_clean or len(st_clean) != 2:
@@ -82,20 +86,18 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
             logger.warning(f"Circuit breaker OPEN for '{self.name}'. Skipping remote sync for {st_clean}.")
             return []
 
-        await self._rate_limit_wait()
+        from ..core.config import config
+        effective_mcs150_date = mcs150_min_date or getattr(getattr(config, "icp", None), "mcs150_min_date", "20230101")
 
-        # Build power unit list string for SoQL filter
-        min_p = max(1, fleet_min)
-        max_p = min(fleet_max, 50)
+        # Build power unit list string for SoQL filter (fleet 2-10)
+        min_p = max(2, fleet_min)
+        max_p = min(fleet_max, 10)
         pu_set = [f"'{p}'" for p in range(min_p, max_p + 1)]
-        pu_clause = f"power_units in({','.join(pu_set)})" if len(pu_set) <= 25 else "power_units is not null"
+        pu_clause = f"power_units in({','.join(pu_set)})"
 
-        where_clause = f"status_code='A' and phy_state='{st_clean}' and {pu_clause}"
-        params = {
-            "$limit": limit,
-            "$where": where_clause,
-            "$order": "add_date DESC"
-        }
+        # Active for-hire carriers with recent MCS-150 biennial update
+        date_clause = f" and mcs150_date >= '{effective_mcs150_date}'" if effective_mcs150_date else ""
+        where_clause = f"status_code='A' and classdef='AUTHORIZED FOR HIRE' and phy_state='{st_clean}' and {pu_clause}{date_clause}"
 
         headers = {
             "User-Agent": "Trucklead-Autopilot-Official/2.0 (contact: compliance@trucklead.internal)",
@@ -105,115 +107,175 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
         if app_token:
             headers["X-App-Token"] = app_token
 
-        start_time = time.time()
-        try:
-            async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
-                resp = await client.get(self.socrata_endpoint, params=params)
-                latency_ms = (time.time() - start_time) * 1000.0
-
-                if resp.status_code != 200:
-                    err_msg = f"HTTP {resp.status_code}: {resp.text[:200]}"
-                    circuit_breaker.record_failure(self.name, err_msg, latency_ms)
-                    await circuit_breaker.persist_metrics(self.name, latency_ms, err_msg)
-                    logger.error(f"Socrata FMCSA sync error: {err_msg}")
-                    return []
-
-                records = resp.json()
-                circuit_breaker.record_success(self.name, latency_ms)
-                await circuit_breaker.persist_metrics(self.name, latency_ms)
-
-        except Exception as e:
-            latency_ms = (time.time() - start_time) * 1000.0
-            err_msg = str(e)
-            circuit_breaker.record_failure(self.name, err_msg, latency_ms)
-            await circuit_breaker.persist_metrics(self.name, latency_ms, err_msg)
-            logger.debug(f"Official sync request exception for {st_clean}: {err_msg}")
-            return []
-
         synced_entities: List[FMCSACarrierCensus] = []
         now = datetime.now(timezone.utc)
+        current_offset = offset
 
-        for raw in records:
-            dot = raw.get("dot_number")
-            name = (raw.get("legal_name") or raw.get("dba_name") or "").strip()
-            if not dot or not name:
-                continue
+        while limit is None or len(synced_entities) < limit:
+            batch_limit = page_size if limit is None else min(page_size, limit - len(synced_entities))
+            params = {
+                "$limit": batch_limit,
+                "$offset": current_offset,
+                "$where": where_clause,
+                "$order": "add_date DESC"
+            }
 
-            checksum = self._compute_checksum(raw)
-            existing = await session.get(FMCSACarrierCensus, str(dot))
+            await self._rate_limit_wait()
+            start_time = time.time()
+            try:
+                async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
+                    resp = await client.get(self.socrata_endpoint, params=params)
+                    latency_ms = (time.time() - start_time) * 1000.0
 
-            pu_val = None
-            if raw.get("power_units") and str(raw.get("power_units")).isdigit():
-                pu_val = int(raw.get("power_units"))
+                    if resp.status_code != 200:
+                        err_msg = f"HTTP {resp.status_code}: {resp.text[:200]}"
+                        circuit_breaker.record_failure(self.name, err_msg, latency_ms)
+                        await circuit_breaker.persist_metrics(self.name, latency_ms, err_msg)
+                        logger.error(f"Socrata FMCSA sync error: {err_msg}")
+                        break
 
-            drivers_val = None
-            if raw.get("total_drivers") and str(raw.get("total_drivers")).isdigit():
-                drivers_val = int(raw.get("total_drivers"))
+                    records = resp.json()
+                    circuit_breaker.record_success(self.name, latency_ms)
+                    await circuit_breaker.persist_metrics(self.name, latency_ms)
 
-            op_status = raw.get("classdef") or "AUTHORIZED FOR HIRE"
-            source_url = f"https://data.transportation.gov/resource/az4n-8mr2?dot_number={dot}"
+            except Exception as e:
+                latency_ms = (time.time() - start_time) * 1000.0
+                err_msg = str(e)
+                circuit_breaker.record_failure(self.name, err_msg, latency_ms)
+                await circuit_breaker.persist_metrics(self.name, latency_ms, err_msg)
+                logger.debug(f"Official sync request exception for {st_clean}: {err_msg}")
+                break
 
-            if existing:
-                if existing.raw_checksum == checksum:
-                    # No changes detected, skip update
-                    synced_entities.append(existing)
+            if not records:
+                break
+
+            for raw in records:
+                dot = raw.get("dot_number")
+                name = (raw.get("legal_name") or raw.get("dba_name") or "").strip()
+                if not dot or not name:
                     continue
-                # Update existing record
-                existing.legal_name = name
-                existing.dba_name = raw.get("dba_name")
-                existing.phy_street = raw.get("phy_street")
-                existing.phy_city = raw.get("phy_city")
-                existing.phy_state = (raw.get("phy_state") or st_clean).upper()
-                existing.phy_zip = raw.get("phy_zip")
-                existing.phone = raw.get("phone")
-                existing.cell_phone = raw.get("cell_phone")
-                existing.email = raw.get("email_address")
-                existing.company_officer_1 = raw.get("company_officer_1")
-                existing.company_officer_2 = raw.get("company_officer_2")
-                existing.power_units = pu_val
-                existing.total_drivers = drivers_val
-                existing.carrier_operation = raw.get("carrier_operation")
-                existing.operating_status = op_status
-                existing.safety_rating = raw.get("safety_rating")
-                existing.docket_number = raw.get("docket1")
-                existing.add_date = raw.get("add_date")
-                existing.mcs150_date = raw.get("mcs150_date")
-                existing.raw_checksum = checksum
-                existing.synced_at = now
-                existing.source_url = source_url
-                synced_entities.append(existing)
-            else:
-                new_rec = FMCSACarrierCensus(
-                    dot_number=str(dot),
-                    legal_name=name,
-                    dba_name=raw.get("dba_name"),
-                    carrier_operation=raw.get("carrier_operation"),
-                    phy_street=raw.get("phy_street"),
-                    phy_city=raw.get("phy_city"),
-                    phy_state=(raw.get("phy_state") or st_clean).upper(),
-                    phy_zip=raw.get("phy_zip"),
-                    phone=raw.get("phone"),
-                    cell_phone=raw.get("cell_phone"),
-                    email=raw.get("email_address"),
-                    company_officer_1=raw.get("company_officer_1"),
-                    company_officer_2=raw.get("company_officer_2"),
-                    power_units=pu_val,
-                    total_drivers=drivers_val,
-                    operating_status=op_status,
-                    safety_rating=raw.get("safety_rating"),
-                    docket_number=raw.get("docket1"),
-                    add_date=raw.get("add_date"),
-                    mcs150_date=raw.get("mcs150_date"),
-                    raw_checksum=checksum,
-                    synced_at=now,
-                    source_url=source_url
-                )
-                session.add(new_rec)
-                synced_entities.append(new_rec)
+
+                checksum = self._compute_checksum(raw)
+                existing = await session.get(FMCSACarrierCensus, str(dot))
+
+                pu_val = None
+                if raw.get("power_units") and str(raw.get("power_units")).isdigit():
+                    pu_val = int(raw.get("power_units"))
+
+                drivers_val = None
+                if raw.get("total_drivers") and str(raw.get("total_drivers")).isdigit():
+                    drivers_val = int(raw.get("total_drivers"))
+
+                op_status = raw.get("classdef") or "AUTHORIZED FOR HIRE"
+                source_url = f"https://data.transportation.gov/resource/az4n-8mr2?dot_number={dot}"
+
+                if existing:
+                    if existing.raw_checksum == checksum:
+                        # No changes detected, skip update
+                        synced_entities.append(existing)
+                        continue
+                    # Update existing record
+                    existing.legal_name = name
+                    existing.dba_name = raw.get("dba_name")
+                    existing.phy_street = raw.get("phy_street")
+                    existing.phy_city = raw.get("phy_city")
+                    existing.phy_state = (raw.get("phy_state") or st_clean).upper()
+                    existing.phy_zip = raw.get("phy_zip")
+                    existing.phone = raw.get("phone")
+                    existing.cell_phone = raw.get("cell_phone")
+                    existing.email = raw.get("email_address")
+                    existing.company_officer_1 = raw.get("company_officer_1")
+                    existing.company_officer_2 = raw.get("company_officer_2")
+                    existing.power_units = pu_val
+                    existing.total_drivers = drivers_val
+                    existing.carrier_operation = raw.get("carrier_operation")
+                    existing.operating_status = op_status
+                    existing.safety_rating = raw.get("safety_rating")
+                    existing.docket_number = raw.get("docket1")
+                    existing.add_date = raw.get("add_date")
+                    existing.mcs150_date = raw.get("mcs150_date")
+                    existing.raw_checksum = checksum
+                    existing.synced_at = now
+                    existing.source_url = source_url
+                    synced_entities.append(existing)
+                else:
+                    new_rec = FMCSACarrierCensus(
+                        dot_number=str(dot),
+                        legal_name=name,
+                        dba_name=raw.get("dba_name"),
+                        carrier_operation=raw.get("carrier_operation"),
+                        phy_street=raw.get("phy_street"),
+                        phy_city=raw.get("phy_city"),
+                        phy_state=(raw.get("phy_state") or st_clean).upper(),
+                        phy_zip=raw.get("phy_zip"),
+                        phone=raw.get("phone"),
+                        cell_phone=raw.get("cell_phone"),
+                        email=raw.get("email_address"),
+                        company_officer_1=raw.get("company_officer_1"),
+                        company_officer_2=raw.get("company_officer_2"),
+                        power_units=pu_val,
+                        total_drivers=drivers_val,
+                        operating_status=op_status,
+                        safety_rating=raw.get("safety_rating"),
+                        docket_number=raw.get("docket1"),
+                        add_date=raw.get("add_date"),
+                        mcs150_date=raw.get("mcs150_date"),
+                        raw_checksum=checksum,
+                        synced_at=now,
+                        source_url=source_url
+                    )
+                    session.add(new_rec)
+                    synced_entities.append(new_rec)
+
+            current_offset += len(records)
+            if len(records) < batch_limit:
+                break
 
         await session.commit()
+
         logger.info(f"Synced {len(synced_entities)} official carrier records for {st_clean} into fmcsa_carrier_census.")
         return synced_entities
+
+    async def sync_census_all_states(
+        self,
+        session: AsyncSession,
+        states: Optional[List[str]] = None,
+        limit_per_state: Optional[int] = 50,
+        fleet_min: int = 2,
+        fleet_max: int = 10,
+        mcs150_min_date: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Synchronizes census records across multiple configured target states with pagination,
+        incremental checksumming, and timing metrics.
+        """
+        from ..core.config import config
+        target_states = states or getattr(config.icp, "target_states", ["TX", "CA", "GA", "IL", "OH", "PA", "FL", "NC", "IN", "MI"])
+        results = {}
+        total_synced = 0
+        t0 = time.time()
+        for st in target_states:
+            try:
+                synced = await self.sync_census_for_state(
+                    session=session,
+                    state=st,
+                    limit=limit_per_state,
+                    fleet_min=fleet_min,
+                    fleet_max=fleet_max,
+                    mcs150_min_date=mcs150_min_date
+                )
+                results[st] = len(synced)
+                total_synced += len(synced)
+            except Exception as e:
+                logger.error(f"Error syncing census for state {st}: {e}")
+                results[st] = f"ERROR: {e}"
+
+        runtime = round(time.time() - t0, 2)
+        return {
+            "states": results,
+            "total_synced": total_synced,
+            "runtime_seconds": runtime
+        }
 
     async def query_local_census(
         self,

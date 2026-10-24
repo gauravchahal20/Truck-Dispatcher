@@ -34,6 +34,12 @@ class LeadOrchestrator:
     @classmethod
     async def create_run(cls, session: AsyncSession, request: RunCreateRequest) -> Run:
         """Initializes a new batch run in the database."""
+        initial_meta = {}
+        if not request.auto_enrich:
+            initial_meta["_auto_enrich"] = False
+        if request.active_sources:
+            initial_meta["_active_sources"] = request.active_sources
+
         run = Run(
             name=request.name or f"Lead Gen Run - {datetime.now().strftime('%b %d, %Y %H:%M')}",
             status="PENDING",
@@ -44,7 +50,7 @@ class LeadOrchestrator:
             equipment_types=request.equipment_types,
             target_lead_count=request.target_lead_count,
             score_threshold=request.score_threshold,
-            source_counts={},
+            source_counts=initial_meta,
             raw_count=0,
             verified_count=0,
             qualified_count=0,
@@ -61,7 +67,12 @@ class LeadOrchestrator:
         return run
 
     @classmethod
-    async def run_pipeline_async(cls, run_id: str):
+    async def run_pipeline_async(
+        cls,
+        run_id: str,
+        requested_sources: Optional[List[str]] = None,
+        auto_enrich: Optional[bool] = None
+    ):
         """Asynchronous worker task executing the full pipeline across all 41+ discovery & enrichment channels."""
         async with AsyncSessionLocal() as session:
             try:
@@ -70,14 +81,22 @@ class LeadOrchestrator:
                     logger.error(f"Run {run_id} not found.")
                     return
 
+                if auto_enrich is None:
+                    auto_enrich = run.source_counts.get("_auto_enrich", True) if isinstance(run.source_counts, dict) else True
+                if requested_sources is None and isinstance(run.source_counts, dict) and "_active_sources" in run.source_counts:
+                    requested_sources = run.source_counts.get("_active_sources")
+
                 run.status = "RUNNING"
                 run.started_at = datetime.now(timezone.utc)
                 await session.commit()
 
-                logger.info(f"Starting Lead Gen Pipeline for Run {run.id} ('{run.name}', Lead Type: {run.lead_type})")
+                logger.info(f"Starting Lead Gen Pipeline for Run {run.id} ('{run.name}', Lead Type: {run.lead_type}, auto_enrich={auto_enrich})")
 
                 # Step 1: Multi-Source Discovery across 41+ Methodologies
-                discovery_adapters = registry.get_active_discovery_adapters(lead_type=run.lead_type or "ALL")
+                discovery_adapters = registry.get_active_discovery_adapters(
+                    requested_sources=requested_sources,
+                    lead_type=run.lead_type or "ALL"
+                )
                 discovered_leads = []
                 source_stats: Dict[str, int] = {}
 
@@ -337,7 +356,7 @@ class LeadOrchestrator:
                     candidate_company.lead_status = "RESEARCHING"
 
                     # Primary Web & Metadata Enrichment
-                    if website_adapter and website_adapter.enabled:
+                    if auto_enrich and website_adapter and website_adapter.enabled:
                         try:
                             enrichment = await website_adapter.enrich_company(
                                 company_name=candidate_company.company_name,
@@ -410,7 +429,7 @@ class LeadOrchestrator:
                             logger.warning(f"Web enrichment error on {candidate_company.company_name}: {e}")
 
                     # B2B Decision-Maker Enrichment (Apollo / Lusha) if contacts are sparse
-                    if b2b_adapter and len(candidate_company.contacts) == 0:
+                    if auto_enrich and b2b_adapter and len(candidate_company.contacts) == 0:
                         try:
                             b2b_res = await b2b_adapter.enrich_company(
                                 company_name=candidate_company.company_name,
@@ -456,7 +475,7 @@ class LeadOrchestrator:
                     candidate_company.call_window_local = w_local
                     candidate_company.call_window_ist = w_ist
 
-                    if candidate_company.phone_e164:
+                    if auto_enrich and candidate_company.phone_e164:
                         p_res = await phone_verifier.verify_phone(session, candidate_company.phone_e164)
                         candidate_company.phone_line_type = p_res.line_type
                         candidate_company.phone_carrier_name = p_res.carrier_name
@@ -475,7 +494,7 @@ class LeadOrchestrator:
                     candidate_company.dnc_status = "DNC not checked"
 
                     # 2. Company Website Crawler for Contacts (if contacts sparse)
-                    if candidate_company.website and not candidate_company.email:
+                    if auto_enrich and candidate_company.website and not candidate_company.email:
                         try:
                             crawl_data = await ContactCrawler.crawl_company_website(candidate_company.website, max_pages=3)
                             if crawl_data.get("emails") and not candidate_company.email:
@@ -487,7 +506,7 @@ class LeadOrchestrator:
                             logger.debug(f"Contact crawler error on {candidate_company.website}: {e}")
 
                     # 3. Company Email Verification
-                    if candidate_company.email:
+                    if auto_enrich and candidate_company.email:
                         em_res = await email_verifier.verify_email(candidate_company.email)
                         candidate_company.email_verification_status = em_res.email_verification_status
                         candidate_company.email_mx_valid = em_res.mx_valid
@@ -504,7 +523,7 @@ class LeadOrchestrator:
                             ct.phone_e164 = Normalizer.to_e164(ct.phone)
                             ct.phone_display = Normalizer.format_phone_display(ct.phone_e164)
 
-                        if ct.phone_e164 and ct.phone_verification_status == "UNKNOWN":
+                        if auto_enrich and ct.phone_e164 and ct.phone_verification_status == "UNKNOWN":
                             if ct.phone_e164 == candidate_company.phone_e164:
                                 ct.phone_line_type = candidate_company.phone_line_type
                                 ct.phone_carrier_name = candidate_company.phone_carrier_name
@@ -521,7 +540,7 @@ class LeadOrchestrator:
 
                         ct.dnc_status = "DNC not checked"
 
-                        if ct.email and ct.email_verification_status == "UNKNOWN":
+                        if auto_enrich and ct.email and ct.email_verification_status == "UNKNOWN":
                             if ct.email == candidate_company.email:
                                 ct.email_verification_status = candidate_company.email_verification_status
                                 ct.email_mx_valid = candidate_company.email_mx_valid
