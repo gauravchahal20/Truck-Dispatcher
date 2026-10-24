@@ -717,5 +717,104 @@ def test_k3_scoring_rules_priority_and_officer_corroboration():
     assert priority_low != "REJECTED"
 
 
+def test_l2g_unified_sql_histogram_and_tier_agreement():
+    """
+    L2g: Verifies restored thresholds (A >= 8.0, B 6.0-7.9, C 5.0-5.9, Reject < 5.0),
+    and validates that a single unified SQL query produces both the score histogram
+    and the priority tier distribution, proving 100% mathematical agreement.
+    """
+    import sqlite3
+    from pathlib import Path
+
+    # 1. Verify single config source of truth
+    th = config.scoring.priority_thresholds
+    assert th.priority_a_min == 8.0
+    assert th.priority_b_min == 6.0
+    assert th.priority_c_min == 5.0
+    assert th.reject_below == 5.0
+
+    # 2. Run Unified SQL Query on trucklead.db
+    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
+    if not db_path.is_file():
+        pytest.skip("trucklead.db not found")
+
+    con = sqlite3.connect(str(db_path))
+    cur = con.cursor()
+
+    unified_query = """
+    SELECT 
+        'HISTOGRAM' AS metric_type,
+        printf('%.1f - %.1f', CAST(lead_score AS INT) * 1.0, CAST(lead_score AS INT) + 0.9) AS bucket_label,
+        CAST(lead_score AS INT) AS sort_key,
+        COUNT(*) AS lead_count
+    FROM companies
+    WHERE lead_type = 'CARRIER'
+    GROUP BY CAST(lead_score AS INT)
+
+    UNION ALL
+
+    SELECT 
+        'TIER' AS metric_type,
+        CASE 
+            WHEN lead_score >= 8.0 THEN 'Tier A (>= 8.0)'
+            WHEN lead_score >= 6.0 THEN 'Tier B (6.0 - 7.9)'
+            WHEN lead_score >= 5.0 THEN 'Tier C (5.0 - 5.9)'
+            ELSE 'Tier NONE (< 5.0)'
+        END AS bucket_label,
+        CASE 
+            WHEN lead_score >= 8.0 THEN 100
+            WHEN lead_score >= 6.0 THEN 101
+            WHEN lead_score >= 5.0 THEN 102
+            ELSE 103
+        END AS sort_key,
+        COUNT(*) AS lead_count
+    FROM companies
+    WHERE lead_type = 'CARRIER'
+    GROUP BY 
+        CASE 
+            WHEN lead_score >= 8.0 THEN 'Tier A (>= 8.0)'
+            WHEN lead_score >= 6.0 THEN 'Tier B (6.0 - 7.9)'
+            WHEN lead_score >= 5.0 THEN 'Tier C (5.0 - 5.9)'
+            ELSE 'Tier NONE (< 5.0)'
+        END
+    ORDER BY metric_type, sort_key;
+    """
+
+    rows = cur.execute(unified_query).fetchall()
+
+    hist_rows = [r for r in rows if r[0] == "HISTOGRAM"]
+    tier_rows = [r for r in rows if r[0] == "TIER"]
+
+    hist_dict = {r[2]: r[3] for r in hist_rows}  # sort_key (int score bin) -> count
+    tier_dict = {r[1]: r[3] for r in tier_rows}  # label -> count
+
+    # 3. Assert histogram and tier tables agree with exact mathematical consistency
+    tier_a_from_hist = sum(cnt for b, cnt in hist_dict.items() if b >= 8)
+    tier_b_from_hist = sum(cnt for b, cnt in hist_dict.items() if 6 <= b < 8)
+    tier_c_from_hist = sum(cnt for b, cnt in hist_dict.items() if 5 <= b < 6)
+    tier_none_from_hist = sum(cnt for b, cnt in hist_dict.items() if b < 5)
+
+    assert tier_dict.get("Tier A (>= 8.0)", 0) == tier_a_from_hist
+    assert tier_dict.get("Tier B (6.0 - 7.9)", 0) == tier_b_from_hist
+    assert tier_dict.get("Tier C (5.0 - 5.9)", 0) == tier_c_from_hist
+    assert tier_dict.get("Tier NONE (< 5.0)", 0) == tier_none_from_hist
+
+    total_hist = sum(hist_dict.values())
+    total_tier = sum(tier_dict.values())
+    total_carriers = cur.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER'").fetchone()[0]
+
+    assert total_hist == total_tier == total_carriers == 119
+
+    # 4. Assert SQL tier assignments agree with stored priority column
+    stored_tiers = dict(cur.execute("SELECT priority, COUNT(*) FROM companies WHERE lead_type = 'CARRIER' GROUP BY priority").fetchall())
+    assert stored_tiers.get("A", 0) == tier_dict.get("Tier A (>= 8.0)", 0)
+    assert stored_tiers.get("B", 0) == tier_dict.get("Tier B (6.0 - 7.9)", 0)
+    assert stored_tiers.get("C", 0) == tier_dict.get("Tier C (5.0 - 5.9)", 0)
+    assert stored_tiers.get("NONE", 0) == tier_dict.get("Tier NONE (< 5.0)", 0)
+
+    con.close()
+
+
+
 
 
