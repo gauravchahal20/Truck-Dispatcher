@@ -287,6 +287,7 @@ export default function LeadsTable({
               <option value="RESEARCHING">RESEARCHING</option>
               <option value="NEEDS_REVIEW">NEEDS REVIEW</option>
               <option value="NOT_ICP">NOT ICP</option>
+              <option value="ARCHIVED_NO_CONTACT">ARCHIVED NO CONTACT</option>
               <option value="REJECTED">REJECTED</option>
             </select>
           </div>
@@ -546,10 +547,10 @@ export default function LeadsTable({
                             fontWeight: 800,
                             padding: '2px 7px',
                             borderRadius: '999px',
-                            backgroundColor: lead.priority === 'A' ? 'var(--sage)' : (lead.priority === 'B' ? 'var(--warm-cream)' : (lead.priority === 'C' ? 'var(--sand-light)' : '#fee2e2')),
-                            color: lead.priority === 'A' ? 'var(--sage-dark)' : (lead.priority === 'B' ? 'var(--terracotta-dark)' : (lead.priority === 'C' ? 'var(--text-secondary)' : '#991b1b'))
+                            backgroundColor: lead.lead_status === 'ARCHIVED_NO_CONTACT' ? '#f1f5f9' : (lead.priority === 'A' ? 'var(--sage)' : (lead.priority === 'B' ? 'var(--warm-cream)' : (lead.priority === 'C' ? 'var(--sand-light)' : '#fee2e2'))),
+                            color: lead.lead_status === 'ARCHIVED_NO_CONTACT' ? '#64748b' : (lead.priority === 'A' ? 'var(--sage-dark)' : (lead.priority === 'B' ? 'var(--terracotta-dark)' : (lead.priority === 'C' ? 'var(--text-secondary)' : '#991b1b')))
                           }}>
-                            {lead.priority === 'REJECTED' ? `Rejected (${lead.lead_score ?? 0})` : `Tier ${lead.priority || 'C'} (${lead.lead_score ?? 0})`}
+                            {lead.lead_status === 'ARCHIVED_NO_CONTACT' ? 'Archived (No Contact)' : (lead.priority === 'REJECTED' ? `Rejected (${lead.lead_score ?? 0})` : (lead.priority === 'NOT_ICP' ? 'NOT ICP' : `Tier ${lead.priority || 'C'} (${lead.lead_score ?? 0})`))}
                           </span>
 
                           <ChevronRight size={14} color="var(--text-muted)" />

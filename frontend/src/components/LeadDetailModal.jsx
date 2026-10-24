@@ -604,6 +604,7 @@ Best regards,
                   <option value="NEEDS_ENRICHMENT">NEEDS ENRICHMENT</option>
                   <option value="NEEDS_REVIEW">NEEDS REVIEW</option>
                   <option value="NOT_ICP">NOT ICP</option>
+                  <option value="ARCHIVED_NO_CONTACT">ARCHIVED NO CONTACT</option>
                   <option value="REJECTED">REJECTED</option>
                 </select>
 
