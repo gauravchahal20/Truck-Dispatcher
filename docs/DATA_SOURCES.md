@@ -16,6 +16,7 @@
 | `ypjt-5ydn` | **Insur - All With History** | `https://data.transportation.gov/resource/ypjt-5ydn.json` | **Insurance Policy Registry** (Comprehensive insurance filings with coverage limits). | Daily | 2026-10-22 | `PREFIX_DOCKET_NUMBER`, `INS_TYPE_CODE`, `INS_CLASS_CODE`, `MAX_COV_AMOUNT`, `UNDERL_LIM_AMOUNT`, `POLICY_NO`, `EFFECTIVE_DATE`, `INS_FORM_CODE`, `NAME_COMPANY` |
 | `6sqe-dvqs` | **InsHist - All With History** | `https://data.transportation.gov/resource/6sqe-dvqs.json` | **Historical Insurance Coverage Records** | Daily | 2026-10-22 | `DOT_NUMBER`, `DOCKET_NUMBER`, `POLICY_NO`, `EFFECTIVE_DATE`, `CANCEL_DATE`, `INSURANCE_NAME` |
 | `9mw4-x3tu` | **AuthHist - All With History** | `https://data.transportation.gov/resource/9mw4-x3tu.json` | **Operating Authority Grants & Dispositions** | Daily | 2026-10-22 | `DOT_NUMBER`, `DOCKET_NUMBER`, `ORIGINAL_ACTION_DESC`, `MOD_COL_1` |
+| `nakq-58th` | **Motus Carrier** | `https://data.transportation.gov/resource/nakq-58th.json` | **Carrier Operating Authority & Insurance Status** (Active/Inactive authority, BIPD liability insurance filing, and bond amounts). | Daily | 2026-10-25 | `DOCKET_NUMBER`, `USDOT_NUMBER`, `OP_AUTH_TYPE`, `OP_AUTH_STATUS`, `BIPD_FILE`, `CARGO_FILE`, `BOND_FILE`, `MIN_COV_AMOUNT` |
 | `wb4f-neki` | **Motus RevokeSuspend – All With History** | `https://data.transportation.gov/resource/wb4f-neki.json` | **Authority History, Revocations & Suspensions** (Tracks past revocations and administrative actions). | Daily | 2026-10-22 | `USDOT_NUMBER`, `DOCKET_NUMBER`, `OP_AUTH_TYPE`, `ORDER1_SERVE_DATE`, `ORDER1_TYPE_DESC`, `ORDER1_EFFECTIVE_DATE` |
 | `96tg-4mhf` | **Rejected - All With History** | `https://data.transportation.gov/resource/96tg-4mhf.json` | **Rejected Operating Authority Applications** (Early warning on compliance deficiencies). | Daily | 2026-10-22 | `DOT_NUMBER`, `DOCKET_NUMBER`, `INS_FORM_CODE`, `POLICY_NO`, `RECV_DATE`, `REJ_DATE`, `NAME_COMPANY`, `REJ_REASONS`, `MIN_COV_AMOUNT` |
 | `2emp-mxtb` | **BOC3 - All With History** | `https://data.transportation.gov/resource/2emp-mxtb.json` | **Process Agent Filings** (Designation of process agents in all 50 states). | Daily | 2026-10-22 | `DOT_NUMBER`, `DOCKET_NUMBER`, `PROCESS_AGENT_NAME`, `FILED_DATE` |
@@ -41,10 +42,15 @@
    - When extracted, they are mapped to `Contact` entities with title `"Company officer (per MCS-150)"`, `is_decision_maker=True`, and provenance `method="official"`.
    - Contact records remain `verification_status="UNVERIFIED"` until validated through email deliverability and compliance checks.
 
-4. **Operating Authority & Safety (`STATUS_CODE`, `CLASSDEF`, `wb4f-neki`, `p2mt-9ige`)**:
-   - `az4n-8mr2.status_code == 'A'` and `classdef == 'AUTHORIZED FOR HIRE'` confirms active interstate for-hire authority.
+4. **Operating Authority & Safety Proof (`STATUS_CODE`, `CLASSDEF` vs L&I Operating Authority)**:
+   - **Self-Declared Form MCS-150 Fields**: `az4n-8mr2` fields `classdef` ("AUTHORIZED FOR HIRE"), `carrier_operation` ('A'), and `status_code` ('A') are **self-declared checkboxes** submitted by the applicant on Form MCS-150.
+   - **Legal Operating Authority Under 49 U.S.C. 13902**: True interstate for-hire operating authority requires FMCSA Licensing and Insurance (L&I) registration:
+     1. An approved Operating Authority application (Docket MC/FF/MX).
+     2. Designation of Process Agents (Form BOC-3) in all 50 states (`2emp-mxtb`).
+     3. Direct underwriter proof of active financial responsibility / insurance on file (Form BMC-91/BMC-91X, minimum $750k BIPD public liability) (`qh9u-swkp` / `nakq-58th.bipd_file`).
+     4. Official FMCSA Order/Decision granting active operating authority (`9mw4-x3tu` / `nakq-58th.op_auth_status == 'Active'`).
+   - **Authority Gating & Scoring**: Census self-declaration alone yields `UNKNOWN` (0 authority points). The `+2.0` verified active authority score and passage through the `QUALIFIED` gate strictly require proven active L&I status plus an active insurance filing. Carriers lacking L&I proof route to `NEEDS_ENRICHMENT` (or `NEEDS_REVIEW`).
    - Shippers do not hold or require motor carrier operating authority (`operating_status = NULL`, verified as `N/A`).
-   - Cross-referenced against `wb4f-neki` (revocations) and `p2mt-9ige` (out-of-service orders) before issuing a `VERIFIED` authority score (+2.0).
 
 ---
 
@@ -217,3 +223,28 @@ The live schema below reflects the exact 147 columns exposed by the SODA API for
   - Rate-limited to max 5 requests/sec with exponential backoff on HTTP 429.
   - Socrata App Token supported via `SOCRATA_APP_TOKEN` in `.env`.
   - Resumable: queries local table first; only fetches missing state/fleet blocks from SODA.
+
+---
+
+## 5. Docket & Numbering Analysis: Census vs Operating Authority
+
+### 5.1 Verification Status of 8-Digit MC Dockets
+- **Statement Status**: **NOT VERIFIED**.
+- The prior statement claiming *"external verification confirms 8-digit MC dockets exist in MCMIS census exports"* was based on search engine summaries indexing commercial third-party aggregators (such as `otrucking.com`), rather than an authenticated query to the FMCSA Licensing & Insurance (L&I) database or an official FMCSA certificate API.
+- In SODA Socrata `az4n-8mr2`, raw records for newly registered carriers do return 8-digit numeric strings in the `docket1` column (e.g., MOREE HAUL LLC: `docket1prefix = 'MC'`, `docket1 = '54783262'`; KB PREMIER LOGISTICS LLC: `docket1 = '93474529'`; TITANIUM TRANSIT INC: `docket1 = '92024942'`).
+- The system normalizer preserves these exact digits without truncation (`54783262` -> `54783262`), but these 8-digit dockets remain **NOT VERIFIED** as legal operating authority grants until corroborated directly against FMCSA L&I (`nakq-58th` / `9mw4-x3tu`).
+
+### 5.2 Numbering Distributions & Non-Sequentiality
+An audit was conducted across stored carriers, census mirror records, and the 23 discovery candidates:
+
+| Cohort | Count | USDOT Range | MC Length Distribution | Spearman Rank Correlation ($\rho$: USDOT vs Registration Date) |
+|---|---|---|---|---|
+| **Stored Carriers** | 119 (104 with USDOT) | 2,252,252 – 9,993,866 | 5-digit: 4<br>6-digit: 2<br>7-digit: 10 | N/A (mixed historical cohort) |
+| **Census Mirror** | 365 records | 4,584,212 – 9,993,866 | 8-digit: 89 (100% of populated dockets) | $\rho = +0.1064$ ($p \approx 0.04$) |
+| **23 Discovery Candidates** | 23 candidates | 4,626,451 – 9,748,539 | 8-digit: 23 (100% 8 digits) | $\rho = -0.0395$ ($p \approx 0.86$) |
+
+### 5.3 Mathematical Findings & Implications
+1. **Historical USDOT Sequentiality**: Historically, USDOT numbers are sequential (USDOT ~1,000,000 in mid-2000s, ~3,000,000 in 2017, ~4,000,000 in 2023). Under strict sequential issuance, a carrier cohort's USDOT numbers should correlate monotonically with their registration dates ($\rho \to +1.0$).
+2. **`add_date` Non-Sequentiality**: The Spearman rank correlation between USDOT and `add_date` is essentially zero ($\rho = -0.0395$ on candidates, $\rho = +0.1064$ on census mirror). In the 23 candidates, USDOT 4,626,451 and USDOT 9,748,539 share near-identical `add_date` values in August/September 2026.
+3. **Implication**: MCMIS `add_date` in `az4n-8mr2` does **not** represent sequential initial carrier registration dates. Instead, it reflects system-level batch import, MCMIS database refresh, or synchronization events.
+4. **Docket Numbering Series**: Standard historical FMCSA MC dockets reached ~MC-1600000 (7 digits) by 2023–2024. The 8-digit numbers in `az4n-8mr2` (e.g., `54783262`) deviate from the standard ICC/MC sequence and represent internal MCMIS tracking hashes, application transaction numbers, or system-generated identifiers populated in the census mirror.
