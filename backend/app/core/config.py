@@ -185,8 +185,40 @@ class SignalSyncCapsConfig(BaseModel):
     sync_stored_carriers_first: bool = True
 
 
+class SignalHalfLifeConfig(BaseModel):
+    new_authority: float = 45.0
+    insurance_cancel_pending: float = 15.0
+    mcs150_recent_update: float = 60.0
+    power_units_growth: float = 90.0
+    generic_intent: float = 30.0
+
+
+class SignalWeightsConfig(BaseModel):
+    new_authority: float = 2.0
+    insurance_cancel_pending: float = 1.5
+    mcs150_recent_update: float = 1.0
+    power_units_growth: float = 1.5
+    generic_intent: float = 1.0
+
+
+class SignalWindowConfig(BaseModel):
+    min_days: int = 30
+    max_days: int = 120
+
+
+class SignalEngineConfig(BaseModel):
+    version: str = "2.0"
+    max_intent_points: float = 3.0
+    half_life_days: SignalHalfLifeConfig = Field(default_factory=SignalHalfLifeConfig)
+    weights: SignalWeightsConfig = Field(default_factory=SignalWeightsConfig)
+    new_authority_window: SignalWindowConfig = Field(default_factory=SignalWindowConfig)
+    mcs150_window_days: int = 60
+
+
 class SignalsConfig(BaseModel):
     sync_caps: SignalSyncCapsConfig = Field(default_factory=SignalSyncCapsConfig)
+    engine: SignalEngineConfig = Field(default_factory=SignalEngineConfig)
+
 
 
 

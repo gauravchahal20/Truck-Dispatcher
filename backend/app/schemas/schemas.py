@@ -60,6 +60,11 @@ class IntentSignalResponse(BaseModel):
     description: Optional[str] = None
     source_url: Optional[str] = None
     confidence: float
+    strength: Optional[float] = 1.0
+    observed_at: Optional[datetime] = None
+    half_life_days: Optional[float] = 60.0
+    evidence: Optional[Dict[str, Any]] = None
+    is_sensitive: Optional[bool] = False
     detected_date: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -68,7 +73,10 @@ class IntentSignalResponse(BaseModel):
 class LeadScoreResponse(BaseModel):
     id: str
     total_score: float
+    fit_score: Optional[float] = 0.0
+    intent_score: Optional[float] = 0.0
     priority: str
+    scoring_version: Optional[str] = "2.0"
     target_fleet_size_score: float
     verified_active_carrier_score: float
     decision_maker_score: float
@@ -80,6 +88,7 @@ class LeadScoreResponse(BaseModel):
     scored_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 
 class LeadStatusHistoryResponse(BaseModel):
@@ -137,7 +146,10 @@ class CompanyResponse(CompanyBase):
     qualification_reason: Optional[str] = None
     rejection_reason: Optional[str] = None
     lead_score: float
+    fit_score: Optional[float] = 0.0
+    intent_score: Optional[float] = 0.0
     priority: Optional[str] = None
+    scoring_version: Optional[str] = "2.0"
     verification_status: str
     verification_confidence: float
     verification_date: Optional[datetime] = None

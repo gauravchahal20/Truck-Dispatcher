@@ -2,15 +2,15 @@
 
 ## 0. Report Metadata & Execution Environment
 
-* **Generated At (UTC)**: `2026-10-24 18:35:19 UTC`
-* **Generated At (Asia/Kolkata)**: `2026-10-25 00:05:19 IST`
-* **Git Commit**: `7653d89bbf9df7ade00901654a8570116eeef479`
+* **Generated At (UTC)**: `2026-10-24 19:33:19 UTC`
+* **Generated At (Asia/Kolkata)**: `2026-10-25 01:03:19 IST`
+* **Git Commit**: `820ac140ede9fff876b4cfb3c563092d6ae77f7a`
 * **Git Branch**: `cleanup/restructure`
-* **Working Tree State**: `Dirty (4 modified/untracked files)`
+* **Working Tree State**: `Clean`
 * **Python Runtime**: `CPython 3.13.7`
 * **Node Runtime**: `v24.8.0`
 * **Host Operating System**: `Windows 11 (10.0.26200)`
-* **Database File**: `trucklead.db` (SQLite 3 WAL Mode, Size: `3492.0 KB`)
+* **Database File**: `trucklead.db` (SQLite 3 WAL Mode, Size: `3760.0 KB`)
 * **Report Regeneration Script**: `scripts/audit/generate_analysis_report.py`
 
 ---
@@ -48,19 +48,19 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 ### 2.1 Lines of Code (LOC) by Subsystem
 | Subsystem Path | Description | Files | Lines of Code |
 | :--- | :--- | :---: | :---: |
-| `backend/app` | Backend Core Application | 56 | 10,372 |
-| `backend/tests` | Pytest Offline & Live Test Suite | 19 | 3,968 |
-| `frontend/src` | React / Vite Frontend Client | 15 | 6,095 |
-| `scripts` | Verification & Analysis Scripts | 27 | 6,385 |
-| `config` | System Configuration YAML | 1 | 305 |
-| `docs` | Project Architecture & Data Dictionaries | 10 | 2,846 |
-| **Total Project Codebase** | *All active components* | **128** | **29,971** |
+| `backend/app` | Backend Core Application | 57 | 10,917 |
+| `backend/tests` | Pytest Offline & Live Test Suite | 21 | 4,350 |
+| `frontend/src` | React / Vite Frontend Client | 15 | 6,120 |
+| `scripts` | Verification & Analysis Scripts | 32 | 7,124 |
+| `config` | System Configuration YAML | 1 | 330 |
+| `docs` | Project Architecture & Data Dictionaries | 11 | 3,563 |
+| **Total Project Codebase** | *All active components* | **137** | **32,404** |
 
 ### 2.2 Core Service Files & Modification History
 | Core Service File | Last Git Commit Date | Author |
 | :--- | :---: | :--- |
-| `backend/app/services/orchestrator.py` | 2026-10-24 | Namish Kumar |
-| `backend/app/services/lead_scorer.py` | 2026-10-24 | Namish Kumar |
+| `backend/app/services/orchestrator.py` | 2026-10-25 | Namish Kumar |
+| `backend/app/services/lead_scorer.py` | 2026-10-25 | Namish Kumar |
 | `backend/app/services/fmcsa_service.py` |  |  |
 | `backend/app/services/phone_verifier.py` | 2026-10-24 | Namish Kumar |
 | `backend/app/services/email_verifier.py` | 2026-10-23 | Namish Kumar |
@@ -101,6 +101,12 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | **G4** | `f0537d1` | Outcome analytics & weekly summary feedback loop starter endpoints | `test_outcome_analytics_and_weekly_summary` |
 
 ### 3.2 Git Log (Last 50 Commits)
+- `820ac14 J6: Implement time-decayed signal engine v1 with fit-intent score separation and sensitive insurance cancellation flagging`
+- `a2f1c0f J5: Enforce mock provider import boundaries, verify clean git secret history, and tighten non-dev API key auth startup`
+- `8b1f219 J4: Expand signal sync caps and synchronize signal datasets for stored carrier USDOTs`
+- `763e0cb J3: Update MCS-150 recency filter default to 24 months and document pool funnel accounting`
+- `35af9f3 J2: Reconcile historical NOT_ICP exclusions and implement reviewable NEEDS_REVIEW_ICP status`
+- `848bce5 J1: Enforce priority thresholds consistency, unproven authority routing, and separate cross-tabs`
 - `7653d89 docs: Regenerate Project Analysis Report with latest census scaling, deduplication, and shipper archival metrics`
 - `6fd54be I5: Transition un-enrichable shippers to ARCHIVED_NO_CONTACT while Places API key is unconfigured`
 - `f9bf69d I4: Scale official FMCSA census sync with paging, fleet 2-10, and recent MCS-150 date filter`
@@ -156,9 +162,9 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | Dataset SODA ID | Dataset Formal Name | Local Mirror SQLite Table | Core Columns Ingested | Mirror Row Count | Checksum Differential Tracking |
 | :---: | :--- | :--- | :--- | :---: | :---: |
 | **`az4n-8mr2`** | FMCSA Company Census Data | `fmcsa_carrier_census` | `dot_number`, `legal_name`, `dba_name`, `phy_state`, `total_power_units`, `total_drivers`, `carrier_operation` | **365** | SHA-256 row-level checksum |
-| **`qh9u-swkp`** | Active & Pending Insurance Filings | `fmcsa_insurance_active_pending` | `dot_number`, `docket_number`, `policy_no`, `underl_lim_amount`, `effective_date` | **50** | SHA-256 row-level checksum |
-| **`wb4f-neki`** | Authority Dispositions & Revocations | `fmcsa_authority_history` | `dot_number`, `op_auth_type`, `order_type_desc`, `serve_date`, `effective_date` | **50** | SHA-256 row-level checksum |
-| **`96tg-4mhf`** | Operating Authority Applications | `fmcsa_new_applications` | `dot_number`, `name_company`, `recv_date`, `rej_date`, `rej_reasons` | **50** | SHA-256 row-level checksum |
+| **`qh9u-swkp`** | Active & Pending Insurance Filings | `fmcsa_insurance_active_pending` | `dot_number`, `docket_number`, `policy_no`, `underl_lim_amount`, `effective_date` | **489** | SHA-256 row-level checksum |
+| **`wb4f-neki`** | Authority Dispositions & Revocations | `fmcsa_authority_history` | `dot_number`, `op_auth_type`, `order_type_desc`, `serve_date`, `effective_date` | **382** | SHA-256 row-level checksum |
+| **`96tg-4mhf`** | Operating Authority Applications | `fmcsa_new_applications` | `dot_number`, `name_company`, `recv_date`, `rej_date`, `rej_reasons` | **499** | SHA-256 row-level checksum |
 
 ---
 
@@ -172,18 +178,18 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | `companies` | 209 |
 | `contacts` | 105 |
 | `errors` | 0 |
-| `fmcsa_authority_history` | 50 |
+| `fmcsa_authority_history` | 382 |
 | `fmcsa_carrier_census` | 365 |
-| `fmcsa_insurance_active_pending` | 50 |
-| `fmcsa_new_applications` | 50 |
-| `intent_signals` | 0 |
+| `fmcsa_insurance_active_pending` | 489 |
+| `fmcsa_new_applications` | 499 |
+| `intent_signals` | 9 |
 | `lead_outcomes` | 0 |
 | `lead_scores` | 209 |
 | `lead_status_history` | 726 |
 | `phone_verification_cache` | 0 |
-| `runs` | 21 |
+| `runs` | 22 |
 | `source_health_metrics` | 2 |
-| `sources` | 416 |
+| `sources` | 466 |
 | `suppression_list` | 0 |
 | `verification_records` | 3,180 |
 
@@ -273,15 +279,16 @@ SELECT
 | Lead Status | Carriers (N=119) | Shippers (N=90) | Total (N=209) |
 | :--- | :---: | :---: | :---: |
 | `ARCHIVED_NO_CONTACT` | **0** | **90** | **90** |
-| `QUALIFIED` | **63** | **0** | **63** |
+| `QUALIFIED` | **62** | **0** | **62** |
 | `REJECTED` | **27** | **0** | **27** |
-| `NEEDS_ENRICHMENT` | **26** | **0** | **26** |
+| `NEEDS_ENRICHMENT` | **25** | **0** | **25** |
 | `NOT_ICP` | **3** | **0** | **3** |
+| `NEEDS_REVIEW_ICP` | **2** | **0** | **2** |
 | **TOTAL RECONCILED** | **119** | **90** | **209** |
-* **Population Sum Check**: `209 / 209` $ightarrow$ **`PASS`**
+* **Population Sum Check**: `209 / 209` -> **`PASS`**
 
 #### 6.1.2 Cross-Tabulation: Status × Score Band
-* **Score Band Thresholds**: Tier A ($\ge 8.0$), Tier B ($6.0–7.9$), Tier C ($5.0–5.9$), Below ICP Threshold ($< 5.0$)
+* **Score Band Thresholds**: Tier A (>= 8.0), Tier B (6.0 - 7.9), Tier C (5.0 - 5.9), Below ICP Threshold (< 5.0)
 * **SQL Query Executed**:
 ```sql
 SELECT 
@@ -298,12 +305,13 @@ SELECT
 | Lead Status | Tier A (>=8.0) | Tier B (6.0-7.9) | Tier C (5.0-5.9) | Below 5.0 (<5.0) | Total Population |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | `ARCHIVED_NO_CONTACT` | **0** | **0** | **0** | **90** | **90** |
-| `QUALIFIED` | **14** | **25** | **24** | **0** | **63** |
-| `REJECTED` | **5** | **7** | **10** | **5** | **27** |
-| `NEEDS_ENRICHMENT` | **0** | **0** | **3** | **23** | **26** |
+| `QUALIFIED` | **22** | **17** | **23** | **0** | **62** |
+| `REJECTED` | **7** | **10** | **7** | **3** | **27** |
+| `NEEDS_ENRICHMENT` | **0** | **0** | **3** | **22** | **25** |
 | `NOT_ICP` | **0** | **0** | **0** | **3** | **3** |
-| **TOTAL RECONCILED** | **19** | **32** | **37** | **121** | **209** |
-* **Population Sum Check**: `209 / 209` $ightarrow$ **`PASS`**
+| `NEEDS_REVIEW_ICP` | **1** | **0** | **1** | **0** | **2** |
+| **TOTAL RECONCILED** | **30** | **27** | **34** | **118** | **209** |
+* **Population Sum Check**: `209 / 209` -> **`PASS`**
 
 ### 6.2 Mutually Exclusive Phone Verification Statuses
 * **SQL Query Executed**:
@@ -315,8 +323,8 @@ SELECT lead_type, COALESCE(phone_verification_status, 'UNKNOWN'), COUNT(*) FROM 
 | CARRIER | `FORMAT_OK` | 82 |
 | CARRIER | `UNKNOWN` | 37 |
 | SHIPPER | `UNKNOWN` | 90 |
-* **Carrier Phone Sum Check**: `119 / 119` $ightarrow$ **`PASS`**
-* **Shipper Phone Sum Check**: `90 / 90` $ightarrow$ **`PASS`**
+* **Carrier Phone Sum Check**: `119 / 119` -> **`PASS`**
+* **Shipper Phone Sum Check**: `90 / 90` -> **`PASS`**
 
 ### 6.3 Mutually Exclusive Email Verification Statuses
 * **SQL Query Executed**:
@@ -329,8 +337,8 @@ SELECT lead_type, COALESCE(email_verification_status, 'UNKNOWN'), COUNT(*) FROM 
 | CARRIER | `RISKY` | 3 |
 | CARRIER | `UNKNOWN` | 100 |
 | SHIPPER | `UNKNOWN` | 90 |
-* **Carrier Email Sum Check**: `119 / 119` $ightarrow$ **`PASS`**
-* **Shipper Email Sum Check**: `90 / 90` $ightarrow$ **`PASS`**
+* **Carrier Email Sum Check**: `119 / 119` -> **`PASS`**
+* **Shipper Email Sum Check**: `90 / 90` -> **`PASS`**
 
 ### 6.4 Contact Confidence Tiers & Named-Person Matching
 | Population | HIGH Confidence | MEDIUM Confidence | LOW Confidence | Population Total | Audit Status |
@@ -452,25 +460,23 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 
 ### 10.1 Pytest Execution Summary
 * **Command Executed**: `pytest backend/tests/ --durations=10`
-* **Test Outcome**: `===================== 109 passed, 12 deselected in 22.34s =====================`
+* **Test Outcome**: `===================== 119 passed, 12 deselected in 12.89s =====================`
 * **External Network Blocker**: 100% active via `backend/tests/conftest.py`. Non-loopback TCP, UDP, and DNS lookups trigger `SocketBlockedError`.
 
 ### 10.2 Slowest 10 Test Durations
 ```text
-............                       [100%]
-
-============================ slowest 10 durations =============================
-5.56s call     backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
-4.61s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
-2.77s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
-0.95s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
+=================== slowest 10 durations =============================
+1.62s call     backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
+1.39s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
+1.00s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
 0.87s call     backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
-0.67s call     backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
-0.27s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip
-0.21s setup    backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_adapter_init
-0.15s setup    backend/tests/unit/test_compliance_and_signals.py::test_screen_and_apply_sets_dnc_flags
-0.14s setup    backend/tests/unit/test_callable_mailable.py::test_outcome_analytics_and_weekly_summary
-===================== 109 passed, 12 deselected in 22.34s =====================
+0.82s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
+0.58s call     backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+0.28s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip
+0.20s setup    backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+0.17s setup    backend/tests/unit/test_compliance_and_signals.py::test_suppressed_leads_never_appear_in_final_export
+0.12s setup    backend/tests/unit/test_callable_mailable.py::test_draft_email_requires_can_spam_postal_address_and_sender_identity
+===================== 119 passed, 12 deselected in 12.89s =====================
 ```
 
 * **Coverage Status**: Coverage module not installed in environment; pip offline prevented package download. Verified zero test failures across 92 active unit and regression tests.
@@ -509,8 +515,8 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 
 ## 13. System Performance Profile
 
-* **Database File Size**: **3492.0 KB** (`data/trucklead.db`, SQLite 3 WAL Mode).
-* **Live SQLite Query Latency (Measured)**: **0.12 ms** average read latency across 50 consecutive queries for `/api/leads/callable-mailable`.
+* **Database File Size**: **3760.0 KB** (`data/trucklead.db`, SQLite 3 WAL Mode).
+* **Live SQLite Query Latency (Measured)**: **0.10 ms** average read latency across 50 consecutive queries for `/api/leads/callable-mailable`.
 * **Uvicorn Backend Process Memory**: NOT VERIFIED (Uvicorn service is not currently running as an active background process; baseline RSS ~68 MB when active).
 * **End-to-End Live Corridor Benchmark Duration**: NOT VERIFIED (Corridor benchmark requires active external discovery network requests).
 
@@ -639,7 +645,7 @@ The following 10 representative leads illustrate real data shapes across statuse
     "state": "OH",
     "lead_type": "CARRIER",
     "lead_status": "REJECTED",
-    "lead_score": 0.0,
+    "lead_score": 6.0,
     "priority": "REJECTED",
     "phone_masked": "+1 (937) XXX-XX46",
     "email_masked": "1***@GMAIL.COM",
@@ -653,7 +659,7 @@ The following 10 representative leads illustrate real data shapes across statuse
     "state": "GA",
     "lead_type": "CARRIER",
     "lead_status": "REJECTED",
-    "lead_score": 5.8,
+    "lead_score": 6.0,
     "priority": "REJECTED",
     "phone_masked": "+1 (516) XXX-XX16",
     "email_masked": "F***@YAHOO.COM",

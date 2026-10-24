@@ -104,7 +104,10 @@ class LeadScorer:
             lead_score_entity = LeadScore(
                 company_id=company.id,
                 total_score=0.0,
+                fit_score=0.0,
+                intent_score=0.0,
                 priority="NOT_ICP",
+                scoring_version="2.0",
                 target_fleet_size_score=0.0,
                 verified_active_carrier_score=0.0,
                 decision_maker_score=0.0,
@@ -230,52 +233,49 @@ class LeadScorer:
             breakdown["contactability"] = f"+{contact_score} (Single verified contact channel: Phone)"
         else:
             breakdown["contactability"] = "+0 (No contact details verified)"
-        total += contact_score
+        # J6 Fit Score: Preserve existing fit weights (fleet, active carrier, DM, equipment, contact)
+        fit_score = round(fleet_score + active_score + dm_score + eq_score + contact_score, 2)
+        breakdown["fit_score"] = fit_score
 
-        # 6. Intent Signal Present (+1.0)
-        intent_score = 0.0
-        if company.intent_signals and len(company.intent_signals) > 0:
-            intent_score = weights.intent_signal_present
-            signal_titles = [s.title for s in company.intent_signals[:2] if s.title]
-            breakdown["intent_signals"] = f"+{intent_score} (Detected: {'; '.join(signal_titles)})"
+        # J6 Intent Score: Calculate time-decayed intent score via SignalEngine
+        # Strict rule: no signal => no intent points (0.0)
+        from .signal_engine import SignalEngine
+        intent_points, intent_breakdown = SignalEngine.calculate_intent_score(company.intent_signals or [])
+        if intent_points > 0:
+            breakdown["intent_signals"] = f"+{intent_points} ({len(intent_breakdown)} decayed intent signal(s) active)"
+            breakdown["intent_details"] = intent_breakdown
         else:
             breakdown["intent_signals"] = "+0 (No active intent signals detected)"
-        total += intent_score
 
-        # 7. Tech / Business Event Signal (+1.0)
-        tech_score = 0.0
-        tech_signals = [s for s in (company.intent_signals or []) if s.signal_type in ("TECH_ADOPTION", "AWARDS_CONTRACTS")]
-        if tech_signals:
-            tech_score = weights.tech_or_business_event
-            breakdown["tech_business_events"] = f"+{tech_score} (Tech/Contract signal: {tech_signals[0].title})"
-        else:
-            breakdown["tech_business_events"] = "+0 (No tech/award signals)"
-        total += tech_score
+        # J6 Combined Score & Priority: a hot signal can lift a mid-fit lead; stale signals decay toward zero
+        combined_total = round(min(10.0, fit_score + intent_points), 1)
 
-        total_rounded = round(min(10.0, total), 1)
-
-        # Determine Priority Tier from config
-        if total_rounded >= thresholds.priority_a_min:
+        # Determine Priority Tier from config thresholds
+        if combined_total >= thresholds.priority_a_min:
             priority = "A"
-        elif total_rounded >= thresholds.priority_b_min:
+        elif combined_total >= thresholds.priority_b_min:
             priority = "B"
-        elif total_rounded >= thresholds.priority_c_min:
+        elif combined_total >= thresholds.priority_c_min:
             priority = "C"
         else:
             priority = "REJECTED"
 
         lead_score_entity = LeadScore(
             company_id=company.id,
-            total_score=total_rounded,
+            total_score=combined_total,
+            fit_score=fit_score,
+            intent_score=intent_points,
             priority=priority,
+            scoring_version="2.0",
             target_fleet_size_score=fleet_score,
             verified_active_carrier_score=active_score,
             decision_maker_score=dm_score,
             equipment_verified_score=eq_score,
             usable_contact_score=contact_score,
-            intent_signal_score=intent_score,
-            tech_business_event_score=tech_score,
+            intent_signal_score=intent_points,
+            tech_business_event_score=0.0,
             score_breakdown=breakdown
         )
 
         return lead_score_entity, priority
+

@@ -36,6 +36,11 @@ RUN_REPORT_HEADERS = [
     "Duplicates", "A Leads", "B Leads", "Source Counts", "Errors"
 ]
 
+SENSITIVE_QUALIFICATION_HEADERS = [
+    "Company", "USDOT", "State", "Signal Type", "Observed Date", "Details", "Sensitive Flag", "Compliance Notice"
+]
+
+
 class GoogleSheetsService:
     """Synchronizes verified lead batches to Google Sheets and generates local XLSX/CSV backups."""
 
@@ -89,6 +94,7 @@ class GoogleSheetsService:
         queue_rows = []
         rejected_rows = []
         source_rows = []
+        sensitive_rows = []
 
         for c in companies:
             # Compliance hard gate: Any company marked DNC or suppressed is strictly barred from outreach exports
@@ -113,10 +119,26 @@ class GoogleSheetsService:
             dm_phone = dm_contact.phone if dm_contact and dm_contact.phone else (c.phone or "UNKNOWN")
             dm_linkedin = dm_contact.linkedin_url if dm_contact and dm_contact.linkedin_url else "UNKNOWN"
 
-            # 2. Intent signal
-            primary_intent = c.intent_signals[0] if c.intent_signals else None
-            intent_sig_text = primary_intent.title if primary_intent else "None"
+            # 2. Intent signals: Separate sensitive cancellation signals from marketing outreach
+            non_sensitive_sigs = [s for s in (c.intent_signals or []) if not getattr(s, "is_sensitive", False) and "INSURANCE_CANCEL" not in (s.signal_type or "")]
+            sens_sigs = [s for s in (c.intent_signals or []) if getattr(s, "is_sensitive", False) or "INSURANCE_CANCEL" in (s.signal_type or "")]
+
+            primary_intent = non_sensitive_sigs[0] if non_sensitive_sigs else None
+            intent_sig_text = primary_intent.title if primary_intent else ("Internal Qualification Signal" if sens_sigs else "None")
             intent_sig_url = primary_intent.source_url if primary_intent else ""
+
+            for s_sig in sens_sigs:
+                obs_d = s_sig.observed_at.strftime("%Y-%m-%d") if getattr(s_sig, "observed_at", None) else ""
+                sensitive_rows.append([
+                    c.company_name or "",
+                    c.usdot or "N/A",
+                    c.state or "N/A",
+                    s_sig.signal_type,
+                    obs_d,
+                    s_sig.description or "",
+                    "SENSITIVE",
+                    "For carrier pre-qualification only. Strictly prohibited from manipulative outreach messaging."
+                ])
 
             # Equipment formatted string
             equipment_str = ", ".join(c.equipment) if c.equipment else "Unknown"
@@ -124,6 +146,7 @@ class GoogleSheetsService:
             # Format Dates
             v_date = c.verification_date.strftime("%Y-%m-%d") if c.verification_date else ""
             c_date = c.created_at.strftime("%Y-%m-%d %H:%M") if c.created_at else ""
+
 
             # 1. FINAL LEADS
             if c.lead_status == "FINAL":
@@ -258,6 +281,7 @@ class GoogleSheetsService:
         xlsx_path = self.backup_dir / f"run_{run.id[:8]}_{timestamp}.xlsx"
         csv_path = self.backup_dir / f"final_leads_{run.id[:8]}_{timestamp}.csv"
         csv_cm_path = self.backup_dir / f"callable_mailable_{run.id[:8]}_{timestamp}.csv"
+        csv_sens_path = self.backup_dir / f"sensitive_qualification_{run.id[:8]}_{timestamp}.csv"
 
         try:
             with pd.ExcelWriter(xlsx_path, engine="openpyxl") as writer:
@@ -266,17 +290,21 @@ class GoogleSheetsService:
                 pd.DataFrame(queue_rows, columns=["Company", "USDOT", "State", "Status", "Source", "Date", "Notes"]).to_excel(writer, sheet_name=config.sheets.tabs["research_queue"], index=False)
                 pd.DataFrame(rejected_rows, columns=["Company", "USDOT", "State", "Fleet Size", "Reason", "Score", "Date"]).to_excel(writer, sheet_name=config.sheets.tabs["rejected"], index=False)
                 pd.DataFrame(source_rows, columns=["Run ID", "Company", "Source", "URL", "Date", "Confidence"]).to_excel(writer, sheet_name=config.sheets.tabs["source_log"], index=False)
+                pd.DataFrame(sensitive_rows, columns=SENSITIVE_QUALIFICATION_HEADERS).to_excel(writer, sheet_name="SENSITIVE_QUALIFICATION", index=False)
                 pd.DataFrame([report_row], columns=RUN_REPORT_HEADERS).to_excel(writer, sheet_name=config.sheets.tabs["run_report"], index=False)
 
-            # Export standalone CSV of final leads and callable/mailable leads
+            # Export standalone CSV of final leads, callable/mailable leads, and sensitive qualification signals
             pd.DataFrame(final_rows, columns=FINAL_LEADS_HEADERS).to_csv(csv_path, index=False)
             pd.DataFrame(callable_mailable_rows, columns=CALLABLE_MAILABLE_HEADERS).to_csv(csv_cm_path, index=False)
+            if sensitive_rows:
+                pd.DataFrame(sensitive_rows, columns=SENSITIVE_QUALIFICATION_HEADERS).to_csv(csv_sens_path, index=False)
 
             run.export_xlsx_path = str(xlsx_path)
             run.export_csv_path = str(csv_path)
-            logger.info(f"Local lead reports exported to: {xlsx_path}, {csv_path}, and {csv_cm_path}")
+            logger.info(f"Local lead reports exported to: {xlsx_path}, {csv_path}, {csv_cm_path}, and {csv_sens_path}")
         except Exception as e:
             logger.error(f"Failed to generate local Excel/CSV backup: {e}")
+
 
         # Sync to Google Sheets if client and sheet ID available
         sheet_sync_status = "LOCAL_ONLY"
@@ -311,6 +339,11 @@ class GoogleSheetsService:
                 ws_src = self._get_or_create_worksheet(sh, config.sheets.tabs["source_log"], ["Run ID", "Company", "Source", "URL", "Date", "Confidence"])
                 if source_rows:
                     ws_src.append_rows(source_rows)
+
+                # Tab: SENSITIVE_QUALIFICATION (Dedicated tab for internal qualification only)
+                if sensitive_rows:
+                    ws_sens = self._get_or_create_worksheet(sh, "SENSITIVE_QUALIFICATION", SENSITIVE_QUALIFICATION_HEADERS)
+                    ws_sens.append_rows(sensitive_rows)
 
                 # Tab 5: RUN_REPORT
                 ws_rep = self._get_or_create_worksheet(sh, config.sheets.tabs["run_report"], RUN_REPORT_HEADERS)

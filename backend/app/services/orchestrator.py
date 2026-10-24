@@ -668,6 +668,9 @@ class LeadOrchestrator:
                     # Lead Scoring according to Master SOP Rules
                     score_entity, priority = LeadScorer.calculate_score(candidate_company)
                     candidate_company.lead_score = score_entity.total_score
+                    candidate_company.fit_score = score_entity.fit_score
+                    candidate_company.intent_score = score_entity.intent_score
+                    candidate_company.scoring_version = score_entity.scoring_version
                     candidate_company.priority = priority
                     score_entity.company_id = candidate_company.id
                     candidate_company.lead_score_detail = score_entity

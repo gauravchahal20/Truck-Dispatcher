@@ -93,6 +93,9 @@ async def init_db():
                 ("email_role_tier", "VARCHAR(50)"),
                 ("email_verified_at", "DATETIME"),
                 ("email_verification_provider", "VARCHAR(50)"),
+                ("fit_score", "FLOAT DEFAULT 0.0"),
+                ("intent_score", "FLOAT DEFAULT 0.0"),
+                ("scoring_version", "VARCHAR(20) DEFAULT '2.0'"),
             ]
             contact_new_cols = [
                 ("phone_e164", "VARCHAR(50)"),
@@ -112,6 +115,18 @@ async def init_db():
                 ("email_verified_at", "DATETIME"),
                 ("email_verification_provider", "VARCHAR(50)"),
             ]
+            lead_score_new_cols = [
+                ("fit_score", "FLOAT DEFAULT 0.0"),
+                ("intent_score", "FLOAT DEFAULT 0.0"),
+                ("scoring_version", "VARCHAR(20) DEFAULT '2.0'"),
+            ]
+            intent_signal_new_cols = [
+                ("strength", "FLOAT DEFAULT 1.0"),
+                ("observed_at", "DATETIME"),
+                ("half_life_days", "FLOAT DEFAULT 60.0"),
+                ("evidence", "JSON"),
+                ("is_sensitive", "BOOLEAN DEFAULT 0"),
+            ]
             try:
                 res_comp = sync_conn.execute(text("PRAGMA table_info(companies)")).fetchall()
                 existing_comp = {row[1] for row in res_comp}
@@ -124,9 +139,22 @@ async def init_db():
                 for col_name, col_type in contact_new_cols:
                     if col_name not in existing_cont:
                         sync_conn.execute(text(f"ALTER TABLE contacts ADD COLUMN {col_name} {col_type}"))
+
+                res_ls = sync_conn.execute(text("PRAGMA table_info(lead_scores)")).fetchall()
+                existing_ls = {row[1] for row in res_ls}
+                for col_name, col_type in lead_score_new_cols:
+                    if col_name not in existing_ls:
+                        sync_conn.execute(text(f"ALTER TABLE lead_scores ADD COLUMN {col_name} {col_type}"))
+
+                res_sig = sync_conn.execute(text("PRAGMA table_info(intent_signals)")).fetchall()
+                existing_sig = {row[1] for row in res_sig}
+                for col_name, col_type in intent_signal_new_cols:
+                    if col_name not in existing_sig:
+                        sync_conn.execute(text(f"ALTER TABLE intent_signals ADD COLUMN {col_name} {col_type}"))
             except Exception as e:
                 print(f"Warning: SQLite migration error: {e}")
 
         await conn.run_sync(_migrate_sqlite_columns)
+
 
 

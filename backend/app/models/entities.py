@@ -131,7 +131,10 @@ class Company(Base):
     qualification_reason = Column(Text, nullable=True)
     rejection_reason = Column(Text, nullable=True)
     lead_score = Column(Float, default=0.0)
+    fit_score = Column(Float, default=0.0)
+    intent_score = Column(Float, default=0.0)
     priority = Column(String(10), nullable=True)  # A, B, C
+    scoring_version = Column(String(20), default="2.0")
 
     # Verification Metadata
     verification_status = Column(String(50), default="UNVERIFIED")  # VERIFIED, UNVERIFIED, FAILED, NEEDS_REVIEW
@@ -262,11 +265,16 @@ class IntentSignal(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     company_id = Column(String(36), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    signal_type = Column(String(100), nullable=False)  # HIRING_DISPATCH, HIRING_FLEET_MGR, FLEET_EXPANSION, CONTRACT_AWARD, DISPATCH_HELP_REQUEST
+    signal_type = Column(String(100), nullable=False)  # NEW_AUTHORITY, INSURANCE_CANCEL_PENDING, MCS150_RECENT_UPDATE, POWER_UNITS_GROWTH, HIRING_DISPATCH, etc.
     title = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
     source_url = Column(String(1000), nullable=True)
     confidence = Column(Float, default=0.7)
+    strength = Column(Float, default=1.0)
+    observed_at = Column(DateTime, default=utc_now)
+    half_life_days = Column(Float, default=60.0)
+    evidence = Column(JSON, default=dict)
+    is_sensitive = Column(Boolean, default=False, index=True)
     detected_date = Column(DateTime, default=utc_now)
 
     company = relationship("Company", back_populates="intent_signals")
@@ -279,7 +287,10 @@ class LeadScore(Base):
     company_id = Column(String(36), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
 
     total_score = Column(Float, default=0.0)
+    fit_score = Column(Float, default=0.0)
+    intent_score = Column(Float, default=0.0)
     priority = Column(String(10), default="C")
+    scoring_version = Column(String(20), default="2.0")
 
     target_fleet_size_score = Column(Float, default=0.0)
     verified_active_carrier_score = Column(Float, default=0.0)
@@ -293,6 +304,7 @@ class LeadScore(Base):
     scored_at = Column(DateTime, default=utc_now)
 
     company = relationship("Company", back_populates="lead_score_detail")
+
 
 
 class LeadStatusHistory(Base):

@@ -308,3 +308,23 @@ signals:
     authority_history_limit: 500
     new_applications_limit: 500
     sync_stored_carriers_first: true
+  engine:
+    version: "2.0"
+    max_intent_points: 3.0
+    half_life_days:
+      new_authority: 45
+      insurance_cancel_pending: 15
+      mcs150_recent_update: 60
+      power_units_growth: 90
+      generic_intent: 30
+    weights:
+      new_authority: 2.0
+      insurance_cancel_pending: 1.5
+      mcs150_recent_update: 1.0
+      power_units_growth: 1.5
+      generic_intent: 1.0
+    new_authority_window:
+      min_days: 30
+      max_days: 120
+    mcs150_window_days: 60
+

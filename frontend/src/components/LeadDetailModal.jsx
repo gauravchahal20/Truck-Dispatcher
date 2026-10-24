@@ -440,30 +440,53 @@ Best regards,
                       <p className="text-xs">No public hiring or fleet expansion signals detected.</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {lead.intent_signals.map((sig) => (
-                          <div
-                            key={sig.id}
-                            style={{
-                              padding: '12px 14px',
-                              borderRadius: 'var(--radius-md)',
-                              backgroundColor: 'var(--peach-light)',
-                              border: '1px solid var(--peach)',
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              gap: '10px'
-                            }}
-                          >
-                            <Flame size={16} color="var(--peach-dark)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                            <div>
-                              <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: 'var(--peach-dark)' }}>
-                                {sig.title}
+                        {lead.intent_signals.map((sig) => {
+                          const isSensitive = sig.is_sensitive || (sig.signal_type && sig.signal_type.includes("INSURANCE_CANCEL"));
+                          return (
+                            <div
+                              key={sig.id}
+                              style={{
+                                padding: '12px 14px',
+                                borderRadius: 'var(--radius-md)',
+                                backgroundColor: isSensitive ? '#fef2f2' : 'var(--peach-light)',
+                                border: isSensitive ? '1px solid #f87171' : '1px solid var(--peach)',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '10px'
+                              }}
+                            >
+                              <Flame size={16} color={isSensitive ? "#dc2626" : "var(--peach-dark)"} style={{ marginTop: '2px', flexShrink: 0 }} />
+                              <div style={{ flex: 1 }}>
+                                {isSensitive && (
+                                  <div style={{
+                                    display: 'inline-block',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    backgroundColor: '#dc2626',
+                                    color: '#ffffff',
+                                    fontSize: '0.6875rem',
+                                    fontWeight: 800,
+                                    letterSpacing: '0.04em',
+                                    marginBottom: '4px'
+                                  }}>
+                                    SENSITIVE - QUALIFICATION ONLY (DO NOT USE IN OUTREACH)
+                                  </div>
+                                )}
+                                <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: isSensitive ? "#991b1b" : "var(--peach-dark)" }}>
+                                  {sig.title}
+                                  {sig.strength !== undefined && sig.strength !== null && (
+                                    <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#6b7280', marginLeft: '6px' }}>
+                                      (Strength: {sig.strength})
+                                    </span>
+                                  )}
+                                </div>
+                                <p style={{ fontSize: '0.775rem', color: isSensitive ? "#7f1d1d" : "var(--peach-dark)", opacity: 0.9, marginTop: '2px' }}>
+                                  "{sig.description}"
+                                </p>
                               </div>
-                              <p style={{ fontSize: '0.775rem', color: 'var(--peach-dark)', opacity: 0.9, marginTop: '2px' }}>
-                                "{sig.description}"
-                              </p>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

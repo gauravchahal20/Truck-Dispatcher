@@ -27,13 +27,14 @@ def test_scorer_all_criteria_maximum_score():
     score_obj, priority = LeadScorer.calculate_score(company)
     assert score_obj.total_score == 10.0
     assert priority == "A"
+    assert score_obj.fit_score == 8.0
+    assert score_obj.intent_score == 2.0
     assert score_obj.target_fleet_size_score == 2.0
     assert score_obj.verified_active_carrier_score == 2.0
     assert score_obj.decision_maker_score == 2.0
     assert score_obj.equipment_verified_score == 1.0
     assert score_obj.usable_contact_score == 1.0
-    assert score_obj.intent_signal_score == 1.0
-    assert score_obj.tech_business_event_score == 1.0
+    assert score_obj.intent_signal_score == 2.0
 
 
 def test_scorer_none_and_unknown_safety():
