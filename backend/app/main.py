@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from .core.config import settings, config
 from .core.logging import setup_logger
 from .core.database import init_db
+from .core.auth import validate_api_key_startup
 from .api import api_router
 from .services.continuous_runner import continuous_autopilot
 
@@ -19,6 +20,8 @@ async def lifespan(app: FastAPI):
     logger.info("==================================================")
     logger.info("   TRUCKLEAD AUTOPILOT - Backend Engine v1.0.0    ")
     logger.info("==================================================")
+    # Refuse startup without configured key in non-dev mode
+    validate_api_key_startup()
     logger.info("Initializing relational database schema...")
     await init_db()
     logger.info("Database schema successfully initialized.")
