@@ -47,11 +47,12 @@ class RawLeadRecord(BaseModel):
     def build_provenance(self, method: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
         """Builds field-level provenance dict for non-null/non-empty fields."""
         if not method:
+            url_lower = (self.source_url or "").lower()
             src = (self.source_name or "").lower()
-            if "fmcsa" in src or "official" in src or "census" in src:
-                method = "official"
-            elif any(k in src for k in ["scraped", "search", "directory", "indeed", "news", "maps", "verticals", "shippers"]):
+            if "usdotlookup.com" in url_lower or src in ("fmcsa_safer", "fmcsa_li"):
                 method = "scraped"
+            elif ("fmcsa_official" in src or "data.transportation.gov" in url_lower or "fmcsa.dot.gov" in url_lower):
+                method = "official"
             else:
                 method = "scraped"
 

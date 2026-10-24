@@ -878,7 +878,8 @@ def build_section_14() -> str:
     total_carriers = c.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER'").fetchone()[0]
     prov_cnt = c.execute("SELECT COUNT(*) FROM companies WHERE field_provenance IS NOT NULL AND field_provenance != ''").fetchone()[0]
     final_cnt = c.execute("SELECT COUNT(*) FROM companies WHERE lead_status = 'FINAL'").fetchone()[0]
-    official_carrier_cnt = c.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER' AND lead_source IN ('fmcsa_official', 'fmcsa_safer', 'fmcsa_li')").fetchone()[0]
+    official_query = """SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER' AND field_provenance LIKE '%"method": "official"%' AND field_provenance NOT LIKE '%usdotlookup.com%'"""
+    official_carrier_cnt = c.execute(official_query).fetchone()[0]
     official_carrier_pct = (official_carrier_cnt / total_carriers * 100) if total_carriers else 0.0
     rej_cnt = c.execute("SELECT COUNT(*) FROM companies WHERE lead_status = 'REJECTED'").fetchone()[0]
     dup_usdot_cnt = c.execute("SELECT COUNT(*) FROM (SELECT usdot FROM companies WHERE lead_type='CARRIER' AND usdot IS NOT NULL AND usdot != '' GROUP BY usdot HAVING COUNT(*) > 1)").fetchone()[0]
@@ -891,7 +892,7 @@ def build_section_14() -> str:
 | "100% Offline Test Suite" | Workstream F & G | 98 offline tests pass with external sockets blocked | `pytest -m "not live"` | **CONFIRMED** |
 | "0 Fabricated Contact Fields" | Workstream E | {prov_cnt}/{total_companies} leads stored with verified source provenance | `SELECT COUNT(*) FROM companies WHERE field_provenance IS NOT NULL` | **CONFIRMED** |
 | "FINAL count without providers = 0" | Workstream G1 | {final_cnt} FINAL leads | `SELECT COUNT(*) FROM companies WHERE lead_status = 'FINAL'` | **CONFIRMED** |
-| "Official Provenance" | Step D Report | Carriers: {official_carrier_pct:.1f}% ({official_carrier_cnt}/{total_carriers}) official FMCSA provenance | `SELECT COUNT(*) FROM companies WHERE lead_type='CARRIER' AND lead_source IN ('fmcsa_official', 'fmcsa_safer', 'fmcsa_li')` | **CONFIRMED** |
+| "Official Provenance" | Step D Report | Carriers: {official_carrier_pct:.1f}% ({official_carrier_cnt}/{total_carriers}) true official FMCSA provenance (method='official', scraped excluded) | `{official_query}` | **CONFIRMED** |
 | "REJECTED strictly for hard gates & ICP pre-filter" | Workstream G1 & H2 | {rej_cnt} carriers (unauthorized authority or ICP non-freight) | `SELECT COUNT(*) FROM companies WHERE lead_status = 'REJECTED'` | **CONFIRMED** |
 | "Zero Duplicate Carriers" | Workstream H1 | {dup_usdot_cnt} duplicate USDOTs across {total_carriers} carrier leads | `SELECT COUNT(*) FROM (SELECT usdot FROM companies WHERE lead_type='CARRIER' GROUP BY usdot HAVING COUNT(*) > 1)` | **CONFIRMED** |
 

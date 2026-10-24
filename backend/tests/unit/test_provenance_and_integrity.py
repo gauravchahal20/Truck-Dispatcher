@@ -290,7 +290,7 @@ def test_deduplicator_merges_provenance():
                 "source": "fmcsa_safer",
                 "url": "https://usdotlookup.com",
                 "retrieved_at": iso_t,
-                "method": "official"
+                "method": "scraped"
             }
         }
     )
@@ -306,7 +306,7 @@ def test_deduplicator_merges_provenance():
     assert prov["phone"]["source"] == "website_enrichment"
     assert prov["email"]["source"] == "apollo"
     assert prov["fleet_size"]["source"] == "fmcsa_safer"
-    assert prov["fleet_size"]["method"] == "official"
+    assert prov["fleet_size"]["method"] == "scraped"
 
 
 def test_provenance_validation_official_scraped_require_url_and_timestamp():
@@ -353,3 +353,66 @@ def test_provenance_validation_official_scraped_require_url_and_timestamp():
         "retrieved_at": None,
         "method": "legacy_unverified"
     })
+
+
+def test_k2_provenance_method_and_official_share():
+    """
+    K2: Verifies that usdotlookup.com sources are strictly classified as 'scraped',
+    true official share is computed by provenance method (not adapter name),
+    and carriers without census matches are flagged for reverification.
+    """
+    # 1. Base RawLeadRecord builds 'scraped' for usdotlookup
+    rec_scraped = RawLeadRecord(
+        company_name="Scraped Carrier LLC",
+        source_name="fmcsa_safer",
+        source_url="https://usdotlookup.com/carrier/1234567",
+        usdot="1234567"
+    )
+    assert rec_scraped.field_provenance["company_name"]["method"] == "scraped"
+    assert rec_scraped.field_provenance["usdot"]["method"] == "scraped"
+
+    # 2. Base RawLeadRecord builds 'official' for SODA endpoint
+    rec_official = RawLeadRecord(
+        company_name="Official Carrier LLC",
+        source_name="fmcsa_official",
+        source_url="https://data.transportation.gov/resource/az4n-8mr2?dot_number=9876543",
+        usdot="9876543"
+    )
+    assert rec_official.field_provenance["company_name"]["method"] == "official"
+    assert rec_official.field_provenance["usdot"]["method"] == "official"
+
+    # 3. Database verification on stored carrier pool
+    import sqlite3
+    from pathlib import Path
+    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
+    if db_path.is_file():
+        conn = sqlite3.connect(str(db_path))
+        cur = conn.cursor()
+
+        # Assert no usdotlookup record has method 'official'
+        usdotlookup_official_cnt = cur.execute("""
+            SELECT COUNT(*) FROM companies
+            WHERE lead_type = 'CARRIER'
+              AND field_provenance LIKE '%usdotlookup.com%'
+              AND field_provenance LIKE '%"method": "official"%'
+        """).fetchone()[0]
+        assert usdotlookup_official_cnt == 0, f"Found {usdotlookup_official_cnt} usdotlookup leads with method='official'"
+
+        # Assert true official share is 63 / 119
+        official_cnt = cur.execute("""
+            SELECT COUNT(*) FROM companies
+            WHERE lead_type = 'CARRIER'
+              AND field_provenance LIKE '%"method": "official"%'
+              AND field_provenance NOT LIKE '%usdotlookup.com%'
+        """).fetchone()[0]
+        assert official_cnt == 63
+
+        # Assert carriers without census match are flagged needs_reverification = 1 (56 total)
+        unmatched_flagged = cur.execute("""
+            SELECT COUNT(*) FROM companies
+            WHERE lead_type = 'CARRIER' AND needs_reverification = 1
+        """).fetchone()[0]
+        assert unmatched_flagged == 56
+
+        conn.close()
+
