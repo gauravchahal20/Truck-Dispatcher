@@ -122,6 +122,9 @@ class CompanyBase(BaseModel):
     equipment: List[str] = Field(default_factory=list)
     carrier_operation: Optional[str] = None
     operating_status: Optional[str] = None
+    authority_status: Optional[str] = "UNKNOWN"
+    authority_status_source: Optional[str] = None
+    insurance_filing_status: Optional[str] = "UNKNOWN"
     safety_rating: Optional[str] = None
     mcs_150_date: Optional[str] = None
     field_provenance: Optional[Dict[str, Any]] = Field(default_factory=dict)

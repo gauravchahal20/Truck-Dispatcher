@@ -123,6 +123,7 @@ class Company(Base):
     carrier_operation = Column(String(100), nullable=True)
     operating_status = Column(String(100), nullable=True)  # AUTHORIZED, ACTIVE, NOT AUTHORIZED, INACTIVE (Form MCS-150 census self-declaration)
     authority_status = Column(String(50), default="UNKNOWN", index=True)  # ACTIVE, INACTIVE, REVOKED, UNKNOWN (L&I Operating Authority)
+    authority_status_source = Column(String(50), nullable=True, index=True)  # li_dataset, census_docket, manual_operator
     insurance_filing_status = Column(String(50), default="UNKNOWN", index=True)  # ACTIVE, CANCEL_PENDING, EXPIRED, UNKNOWN (L&I Insurance Filing)
     safety_rating = Column(String(100), nullable=True)
     mcs_150_date = Column(String(50), nullable=True)

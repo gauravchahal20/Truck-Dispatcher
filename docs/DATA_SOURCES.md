@@ -247,4 +247,18 @@ An audit was conducted across stored carriers, census mirror records, and the 23
 1. **Historical USDOT Sequentiality**: Historically, USDOT numbers are sequential (USDOT ~1,000,000 in mid-2000s, ~3,000,000 in 2017, ~4,000,000 in 2023). Under strict sequential issuance, a carrier cohort's USDOT numbers should correlate monotonically with their registration dates ($\rho \to +1.0$).
 2. **`add_date` Non-Sequentiality**: The Spearman rank correlation between USDOT and `add_date` is essentially zero ($\rho = -0.0395$ on candidates, $\rho = +0.1064$ on census mirror). In the 23 candidates, USDOT 4,626,451 and USDOT 9,748,539 share near-identical `add_date` values in August/September 2026.
 3. **Implication**: MCMIS `add_date` in `az4n-8mr2` does **not** represent sequential initial carrier registration dates. Instead, it reflects system-level batch import, MCMIS database refresh, or synchronization events.
-4. **Docket Numbering Series**: Standard historical FMCSA MC dockets reached ~MC-1600000 (7 digits) by 2023–2024. The 8-digit numbers in `az4n-8mr2` (e.g., `54783262`) deviate from the standard ICC/MC sequence and represent internal MCMIS tracking hashes, application transaction numbers, or system-generated identifiers populated in the census mirror.
+4. **Docket Numbering Series**: Standard historical FMCSA MC dockets reached ~MC-1600000 (7 digits) by 2023–2024. In the modernized FMCSA Motus system (`nakq-58th`), 8-digit dockets represent unique per-OA docket identifiers assigned by Motus.
+
+### 5.4 Official Settlement of 8-Digit Dockets & Authority Evidence (`nakq-58th`)
+1. **8-Digit Dockets Settled with Official Government Proof**:
+   - In FMCSA's official Licensing & Insurance dataset `nakq-58th` (*Motus Carrier*), **724 out of 990 dockets (73.1%) are 8-digit dockets prefixed with `MC`** (e.g., `MC87002554`, `MC75191074`, `MC82079206`, `MC63200380`, `MC84856419`, `MC52279690`, `MC75540560`, `MC70601776`, `MC92727365`, `MC77870097`).
+   - SODA metadata for `nakq-58th` explicitly defines `docket_number`: *"Unique FMCSA alpha-numeric identifying for-hire motor carriers (MC0000000000, FF0000000000, MX0000000000)"*.
+   - Motus dataset description explains: *"the legacy registration system allowed multiple OAs per docket number, while Motus will assign a unique docket number to each OA and allows multiple OAs per USDOT number."*
+2. **`docket1_status_code` Meaning & Derivation**:
+   - In `az4n-8mr2`, `docket1_status_code` is **derived** from the FMCSA Licensing & Insurance (L&I) database upon batch synchronization. The MCS-150 form contains no status field.
+   - **Agreement Rate**: In a comparison across 50 USDOTs appearing in both `az4n-8mr2` and `nakq-58th`, **docket number agreement was 88.0% (44/50)**, but **status agreement was only 44.0% (22/50)**.
+   - **HYPOTHESIS**: The status disagreement occurs because census `docket1_status_code` reflects historical grant status or monthly batch synchronization lag, whereas `nakq-58th` reflects real-time operating authority status following revocations or insurance cancellations.
+3. **Authority Gate Enforcement (L&I ACTIVE + Active Insurance)**:
+   - Re-running the strict authority gate across stored carriers drops `QUALIFIED` from 62 to 0, routing 85 carriers to `NEEDS_ENRICHMENT` awaiting L&I/insurance synchronization or manual operator verification.
+   - Provenance records `authority_status_source` as `li_dataset`, `census_docket`, or `manual_operator`.
+
