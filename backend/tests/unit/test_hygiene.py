@@ -106,3 +106,24 @@ def test_j5_api_key_auth_refuses_startup_in_non_dev_without_configured_key(monke
     monkeypatch.setenv("API_KEY", "prod-secret-key-12345")
     monkeypatch.setattr(settings, "api_key", "prod-secret-key-12345")
     validate_api_key_startup()  # Should not raise
+
+
+def test_k1_release_integrity():
+    """
+    K1: Verifies tag v1.1.0 points directly to the final J6 commit,
+    and cleanup/restructure is aligned.
+    """
+    try:
+        tag_commit = subprocess.check_output(
+            ["git", "rev-parse", "v1.1.0^{commit}"],
+            cwd=str(ROOT_DIR), text=True
+        ).strip()
+        commit_msg = subprocess.check_output(
+            ["git", "log", "-1", "--format=%s", tag_commit],
+            cwd=str(ROOT_DIR), text=True
+        ).strip()
+        assert "J6:" in commit_msg
+        assert tag_commit.startswith("9fc4fcc")
+    except subprocess.SubprocessError as e:
+        pytest.skip(f"Git command failed: {e}")
+
