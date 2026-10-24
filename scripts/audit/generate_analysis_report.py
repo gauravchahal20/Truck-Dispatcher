@@ -412,8 +412,8 @@ def build_section_5() -> str:
 | :--- | :---: |
 {table_counts_str}
 
-* **Alembic Migration Revision**: `{alembic_rev}` (Head: `4756b857e0d9`)
-* **Migration Chain**: `<base> -> a895eaa340aa (provenance) -> 4756b857e0d9 (fmcsa mirrors)`
+* **Alembic Migration Revision**: `{alembic_rev}` (Head: `b1a2c3d4e5f6`)
+* **Migration Chain**: `<base> (000000000000) -> a895eaa340aa (provenance) -> 4756b857e0d9 (fmcsa mirrors) -> b1a2c3d4e5f6 (carrier USDOT unique index)`
 
 ### 5.2 Database Indexes
 | Index Identifier | Target Table |

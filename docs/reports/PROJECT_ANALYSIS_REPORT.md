@@ -2,11 +2,11 @@
 
 ## 0. Report Metadata & Execution Environment
 
-* **Generated At (UTC)**: `2026-10-24 17:16:28 UTC`
-* **Generated At (Asia/Kolkata)**: `2026-10-24 22:46:28 IST`
-* **Git Commit**: `d2c3f6118e5d3249189c13d2e4bb18d4f169b912`
+* **Generated At (UTC)**: `2026-10-24 18:11:46 UTC`
+* **Generated At (Asia/Kolkata)**: `2026-10-24 23:41:46 IST`
+* **Git Commit**: `6fd54bed61d392a284501c0426ba1f9c7e592b11`
 * **Git Branch**: `cleanup/restructure`
-* **Working Tree State**: `Dirty (1 modified/untracked files)`
+* **Working Tree State**: `Dirty (3 modified/untracked files)`
 * **Python Runtime**: `CPython 3.13.7`
 * **Node Runtime**: `v24.8.0`
 * **Host Operating System**: `Windows 11 (10.0.26200)`
@@ -48,13 +48,13 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 ### 2.1 Lines of Code (LOC) by Subsystem
 | Subsystem Path | Description | Files | Lines of Code |
 | :--- | :--- | :---: | :---: |
-| `backend/app` | Backend Core Application | 55 | 9,917 |
-| `backend/tests` | Pytest Offline & Live Test Suite | 17 | 3,559 |
-| `frontend/src` | React / Vite Frontend Client | 15 | 6,060 |
-| `scripts` | Verification & Analysis Scripts | 23 | 5,831 |
-| `config` | System Configuration YAML | 1 | 300 |
-| `docs` | Project Architecture & Data Dictionaries | 9 | 2,174 |
-| **Total Project Codebase** | *All active components* | **120** | **27,841** |
+| `backend/app` | Backend Core Application | 56 | 10,337 |
+| `backend/tests` | Pytest Offline & Live Test Suite | 19 | 3,875 |
+| `frontend/src` | React / Vite Frontend Client | 15 | 6,085 |
+| `scripts` | Verification & Analysis Scripts | 27 | 6,350 |
+| `config` | System Configuration YAML | 1 | 305 |
+| `docs` | Project Architecture & Data Dictionaries | 10 | 2,846 |
+| **Total Project Codebase** | *All active components* | **128** | **29,798** |
 
 ### 2.2 Core Service Files & Modification History
 | Core Service File | Last Git Commit Date | Author |
@@ -67,7 +67,7 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | `backend/app/services/compliance.py` | 2026-10-23 | Namish Kumar |
 | `backend/app/services/continuous_runner.py` | 2026-10-23 | Namish Kumar |
 | `backend/app/services/normalizer.py` | 2026-10-23 | Namish Kumar |
-| `backend/app/api/routes_outcomes.py` | 2026-10-23 | Namish Kumar |
+| `backend/app/api/routes_outcomes.py` | 2026-10-24 | Namish Kumar |
 | `backend/app/core/live_search.py` | 2026-10-22 | Namish Kumar |
 
 ### 2.3 Dead, Unused, or Duplicate Files Audit
@@ -101,6 +101,14 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | **G4** | `f0537d1` | Outcome analytics & weekly summary feedback loop starter endpoints | `test_outcome_analytics_and_weekly_summary` |
 
 ### 3.2 Git Log (Last 50 Commits)
+- `6fd54be I5: Transition un-enrichable shippers to ARCHIVED_NO_CONTACT while Places API key is unconfigured`
+- `f9bf69d I4: Scale official FMCSA census sync with paging, fleet 2-10, and recent MCS-150 date filter`
+- `8006bf1 I3: Mark live database validation tests with live marker to achieve 0 skipped in offline suite`
+- `a5e8ddd I2: Verify carrier USDOT partial unique index migration and deduplication integrity`
+- `bc387ee I1: Implement refined whole-word two-signal ICP prefilter with reviewable NOT_ICP status`
+- `8c170d0 H7: Enforce API key authentication on write endpoints with 401 and 403 test coverage`
+- `c255638 H6: Implement capped sync methods for insurance, authority history, and new applications with live run and tests`
+- `5638478 H5: Update report generator with pure Python scans, NOT VERIFIED handling, query-driven claims, reconciled adapter shares, and dated report generation`
 - `d2c3f61 H4: Remove Carrier411 and mock providers from runtime services, isolate mock fixtures in tests/fixtures`
 - `9ffbd0e H3: Enforce ICP fleet range (2-10), partial credit (1-20), zero for shippers and outside, and re-score leads`
 - `8618124 Audit: Regenerate PROJECT_ANALYSIS_REPORT.md reflecting post-H1/H2 reconciled populations and zero duplicates`
@@ -135,21 +143,21 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 ### 4.1 Ingestion Adapters & Provenance Matrix
 | Adapter Name | Implementation File | Source Classification | ToS & Robots Stance | Enabled Flag | API Key Needed | Current Key Status | Leads Contributed | Share of Leads (%) | Fields Provided | Fields Never Provided | Known Failure Modes |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- | :--- | :--- |
-| **FMCSA SODA Official** | [`fmcsa_official.py`](../../backend/app/adapters/fmcsa_official.py) | Federal Public Domain (data.transportation.gov) | Public API (No robots prohibition) | **YES** | Optional (App Token) | `<NOT SET>` | **41** | **21.9%** | USDOT, Legal Name, DBA, Address, Power Units, Drivers, MCS-150 Date, Declared Phone/Email, Cargo | Personal mobile, verified email status | HTTP 429 if unauthenticated over 1,000 req/hr |
-| **FMCSA SAFER Crawler** | [`fmcsa_safer.py`](../../backend/app/adapters/fmcsa_safer.py) | Federal Web Registry (safer.fmcsa.dot.gov) | Public lookup (Respects delay, no auth) | **YES** | No | `N/A` | **33** | **17.6%** | Operating status, For-Hire active authority, Safety rating, Inspections, Out-of-service % | Named contacts, direct email | Cloudflare / Akamai challenge if request rate > 10/min |
-| **FMCSA Licensing & Insurance** | [`fmcsa_li.py`](../../backend/app/adapters/fmcsa_li.py) | Federal Licensing & Insurance Public Registry | Public lookup (Respects delay, no auth) | **YES** | No | `N/A` | **8** | **4.3%** | Active insurance policies, bond status, authority history | Direct email, owner mobile | Session timeout under rapid requests |
-| **Direct Shippers** | [`direct_shippers.py`](../../backend/app/adapters/direct_shippers.py) | Curated Freight Hubs & Google Places | Subject to Google Places ToS | **PAUSED** | Yes (GOOGLE_PLACES_API_KEY) | `<NOT SET>` | **90** | **48.1%** | Business name, website, facility address, industrial classification | USDOT, fleet size, driver counts | Paused via pipeline.pause_shipper_discovery = true |
-| **Google Maps / Local** | [`google_maps.py`](../../backend/app/adapters/google_maps.py) | Public Web Search & Maps Directory | Subject to search ToS | **STANDBY** | Optional | `<NOT SET>` | **12** | **6.4%** | Physical terminal address, corroborating phone | Direct executive email | Rate limit if unauthenticated |
-| **Google Search** | [`google_search.py`](../../backend/app/adapters/google_search.py) | Google Custom Search JSON API | Official Google API Terms | **STANDBY** | Yes | `<NOT SET>` | **3** | **1.6%** | Official corporate website URL, domain | Direct executive contact | Quota exhausted (100 req/day free tier) |
-| **TOTAL RECONCILED** | *All Ingestion Channels* | All Integrated Data Sources | Reconciled Pipeline Totals | **ACTIVE** | — | — | **187** | **100.0%** | Complete Lead Attribute Matrix | Zero Fabricated Attributes | Monitored & Tested |
+| **FMCSA SODA Official** | [`fmcsa_official.py`](../../backend/app/adapters/fmcsa_official.py) | Federal Public Domain (data.transportation.gov) | Public API (No robots prohibition) | **YES** | Optional (App Token) | `<NOT SET>` | **63** | **30.1%** | USDOT, Legal Name, DBA, Address, Power Units, Drivers, MCS-150 Date, Declared Phone/Email, Cargo | Personal mobile, verified email status | HTTP 429 if unauthenticated over 1,000 req/hr |
+| **FMCSA SAFER Crawler** | [`fmcsa_safer.py`](../../backend/app/adapters/fmcsa_safer.py) | Federal Web Registry (safer.fmcsa.dot.gov) | Public lookup (Respects delay, no auth) | **YES** | No | `N/A` | **33** | **15.8%** | Operating status, For-Hire active authority, Safety rating, Inspections, Out-of-service % | Named contacts, direct email | Cloudflare / Akamai challenge if request rate > 10/min |
+| **FMCSA Licensing & Insurance** | [`fmcsa_li.py`](../../backend/app/adapters/fmcsa_li.py) | Federal Licensing & Insurance Public Registry | Public lookup (Respects delay, no auth) | **YES** | No | `N/A` | **8** | **3.8%** | Active insurance policies, bond status, authority history | Direct email, owner mobile | Session timeout under rapid requests |
+| **Direct Shippers** | [`direct_shippers.py`](../../backend/app/adapters/direct_shippers.py) | Curated Freight Hubs & Google Places | Subject to Google Places ToS | **PAUSED** | Yes (GOOGLE_PLACES_API_KEY) | `<NOT SET>` | **90** | **43.1%** | Business name, website, facility address, industrial classification | USDOT, fleet size, driver counts | Paused via pipeline.pause_shipper_discovery = true |
+| **Google Maps / Local** | [`google_maps.py`](../../backend/app/adapters/google_maps.py) | Public Web Search & Maps Directory | Subject to search ToS | **STANDBY** | Optional | `<NOT SET>` | **12** | **5.7%** | Physical terminal address, corroborating phone | Direct executive email | Rate limit if unauthenticated |
+| **Google Search** | [`google_search.py`](../../backend/app/adapters/google_search.py) | Google Custom Search JSON API | Official Google API Terms | **STANDBY** | Yes | `<NOT SET>` | **3** | **1.4%** | Official corporate website URL, domain | Direct executive contact | Quota exhausted (100 req/day free tier) |
+| **TOTAL RECONCILED** | *All Ingestion Channels* | All Integrated Data Sources | Reconciled Pipeline Totals | **ACTIVE** | — | — | **209** | **100.0%** | Complete Lead Attribute Matrix | Zero Fabricated Attributes | Monitored & Tested |
 
 ### 4.2 Official SODA Public Datasets Mirror
 | Dataset SODA ID | Dataset Formal Name | Local Mirror SQLite Table | Core Columns Ingested | Mirror Row Count | Checksum Differential Tracking |
 | :---: | :--- | :--- | :--- | :---: | :---: |
-| **`az4n-8mr2`** | FMCSA Company Census Data | `fmcsa_carrier_census` | `dot_number`, `legal_name`, `dba_name`, `phy_state`, `total_power_units`, `total_drivers`, `carrier_operation` | **117** | SHA-256 row-level checksum |
-| **`qh9u-swkp`** | Active & Pending Insurance Filings | `fmcsa_insurance_active_pending` | `dot_number`, `docket_number`, `policy_no`, `underl_lim_amount`, `effective_date` | **0** | SHA-256 row-level checksum |
-| **`wb4f-neki`** | Authority Dispositions & Revocations | `fmcsa_authority_history` | `dot_number`, `op_auth_type`, `order_type_desc`, `serve_date`, `effective_date` | **0** | SHA-256 row-level checksum |
-| **`96tg-4mhf`** | Operating Authority Applications | `fmcsa_new_applications` | `dot_number`, `name_company`, `recv_date`, `rej_date`, `rej_reasons` | **0** | SHA-256 row-level checksum |
+| **`az4n-8mr2`** | FMCSA Company Census Data | `fmcsa_carrier_census` | `dot_number`, `legal_name`, `dba_name`, `phy_state`, `total_power_units`, `total_drivers`, `carrier_operation` | **365** | SHA-256 row-level checksum |
+| **`qh9u-swkp`** | Active & Pending Insurance Filings | `fmcsa_insurance_active_pending` | `dot_number`, `docket_number`, `policy_no`, `underl_lim_amount`, `effective_date` | **50** | SHA-256 row-level checksum |
+| **`wb4f-neki`** | Authority Dispositions & Revocations | `fmcsa_authority_history` | `dot_number`, `op_auth_type`, `order_type_desc`, `serve_date`, `effective_date` | **50** | SHA-256 row-level checksum |
+| **`96tg-4mhf`** | Operating Authority Applications | `fmcsa_new_applications` | `dot_number`, `name_company`, `recv_date`, `rej_date`, `rej_reasons` | **50** | SHA-256 row-level checksum |
 
 ---
 
@@ -160,26 +168,26 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | :--- | :---: |
 | `alembic_version` | 1 |
 | `autopilot_run_logs` | 0 |
-| `companies` | 187 |
-| `contacts` | 93 |
+| `companies` | 209 |
+| `contacts` | 105 |
 | `errors` | 0 |
-| `fmcsa_authority_history` | 0 |
-| `fmcsa_carrier_census` | 117 |
-| `fmcsa_insurance_active_pending` | 0 |
-| `fmcsa_new_applications` | 0 |
+| `fmcsa_authority_history` | 50 |
+| `fmcsa_carrier_census` | 365 |
+| `fmcsa_insurance_active_pending` | 50 |
+| `fmcsa_new_applications` | 50 |
 | `intent_signals` | 0 |
 | `lead_outcomes` | 0 |
-| `lead_scores` | 187 |
-| `lead_status_history` | 592 |
+| `lead_scores` | 209 |
+| `lead_status_history` | 726 |
 | `phone_verification_cache` | 0 |
-| `runs` | 20 |
+| `runs` | 21 |
 | `source_health_metrics` | 2 |
-| `sources` | 366 |
+| `sources` | 416 |
 | `suppression_list` | 0 |
-| `verification_records` | 2,960 |
+| `verification_records` | 3,180 |
 
-* **Alembic Migration Revision**: `4756b857e0d9` (Head: `4756b857e0d9`)
-* **Migration Chain**: `<base> -> a895eaa340aa (provenance) -> 4756b857e0d9 (fmcsa mirrors)`
+* **Alembic Migration Revision**: `b1a2c3d4e5f6` (Head: `b1a2c3d4e5f6`)
+* **Migration Chain**: `<base> (000000000000) -> a895eaa340aa (provenance) -> 4756b857e0d9 (fmcsa mirrors) -> b1a2c3d4e5f6 (carrier USDOT unique index)`
 
 ### 5.2 Database Indexes
 | Index Identifier | Target Table |
@@ -227,15 +235,15 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | `ix_verification_records_company_id` | `verification_records` |
 
 ### 5.3 Data Quality & Null Rate Profiling
-| Field Column | Field Description | Carrier Null Rate (N=97) | Shipper Null Rate (N=90) |
+| Field Column | Field Description | Carrier Null Rate (N=119) | Shipper Null Rate (N=90) |
 | :--- | :--- | :---: | :---: |
-| `usdot` | USDOT Number | 15/97 (15.5%) | 90/90 (100.0%) |
-| `mc_number` | MC Number | 56/97 (57.7%) | 90/90 (100.0%) |
-| `phone_e164` | E.164 Phone | 15/97 (15.5%) | 90/90 (100.0%) |
-| `email` | Email Address | 78/97 (80.4%) | 90/90 (100.0%) |
-| `website` | Website URL | 41/97 (42.3%) | 0/90 (0.0%) |
-| `operating_status` | Operating Status | 23/97 (23.7%) | 90/90 (100.0%) |
-| `fleet_size` | Fleet Size (Power Units) | 19/97 (19.6%) | 0/90 (0.0%) |
+| `usdot` | USDOT Number | 15/119 (12.6%) | 90/90 (100.0%) |
+| `mc_number` | MC Number | 78/119 (65.5%) | 90/90 (100.0%) |
+| `phone_e164` | E.164 Phone | 15/119 (12.6%) | 90/90 (100.0%) |
+| `email` | Email Address | 72/119 (60.5%) | 90/90 (100.0%) |
+| `website` | Website URL | 63/119 (52.9%) | 0/90 (0.0%) |
+| `operating_status` | Operating Status | 23/119 (19.3%) | 90/90 (100.0%) |
+| `fleet_size` | Fleet Size (Power Units) | 19/119 (16.0%) | 0/90 (0.0%) |
 
 ### 5.4 Data Integrity Assertions
 * **Duplicate USDOTs**: `0` duplicates detected.
@@ -268,19 +276,20 @@ SELECT
 ```
 | Lead Type | Lead Status | Score Bucket | Priority | Lead Count |
 | :--- | :--- | :---: | :---: | :---: |
-| CARRIER | `NEEDS_ENRICHMENT` | 3.0-4.9 | REJECTED | 8 |
+| CARRIER | `NEEDS_ENRICHMENT` | 3.0-4.9 | REJECTED | 9 |
 | CARRIER | `NEEDS_ENRICHMENT` | 5.0-6.9 | C | 3 |
 | CARRIER | `NEEDS_ENRICHMENT` | <3.0 | REJECTED | 14 |
-| CARRIER | `QUALIFIED` | 5.0-6.9 | C | 16 |
+| CARRIER | `NOT_ICP` | <3.0 | NOT_ICP | 3 |
+| CARRIER | `QUALIFIED` | 5.0-6.9 | C | 24 |
 | CARRIER | `QUALIFIED` | 7.0-7.9 | B | 25 |
-| CARRIER | `QUALIFIED` | >=8.0 | A | 6 |
-| CARRIER | `REJECTED` | 3.0-4.9 | REJECTED | 1 |
-| CARRIER | `REJECTED` | 5.0-6.9 | REJECTED | 12 |
+| CARRIER | `QUALIFIED` | >=8.0 | A | 14 |
+| CARRIER | `REJECTED` | 3.0-4.9 | REJECTED | 3 |
+| CARRIER | `REJECTED` | 5.0-6.9 | REJECTED | 15 |
 | CARRIER | `REJECTED` | 7.0-7.9 | REJECTED | 2 |
-| CARRIER | `REJECTED` | <3.0 | REJECTED | 6 |
-| CARRIER | `REJECTED` | >=8.0 | REJECTED | 4 |
-| SHIPPER | `NEEDS_ENRICHMENT` | <3.0 | REJECTED | 90 |
-* **Population Sum Check**: `187 / 187` $ightarrow$ **`PASS`**
+| CARRIER | `REJECTED` | <3.0 | REJECTED | 2 |
+| CARRIER | `REJECTED` | >=8.0 | REJECTED | 5 |
+| SHIPPER | `ARCHIVED_NO_CONTACT` | <3.0 | REJECTED | 90 |
+* **Population Sum Check**: `209 / 209` $ightarrow$ **`PASS`**
 
 ### 6.2 Mutually Exclusive Phone Verification Statuses
 * **SQL Query Executed**:
@@ -290,9 +299,9 @@ SELECT lead_type, COALESCE(phone_verification_status, 'UNKNOWN'), COUNT(*) FROM 
 | Lead Type | Phone Status | Count |
 | :--- | :--- | :---: |
 | CARRIER | `FORMAT_OK` | 82 |
-| CARRIER | `UNKNOWN` | 15 |
+| CARRIER | `UNKNOWN` | 37 |
 | SHIPPER | `UNKNOWN` | 90 |
-* **Carrier Phone Sum Check**: `97 / 97` $ightarrow$ **`PASS`**
+* **Carrier Phone Sum Check**: `119 / 119` $ightarrow$ **`PASS`**
 * **Shipper Phone Sum Check**: `90 / 90` $ightarrow$ **`PASS`**
 
 ### 6.3 Mutually Exclusive Email Verification Statuses
@@ -304,20 +313,20 @@ SELECT lead_type, COALESCE(email_verification_status, 'UNKNOWN'), COUNT(*) FROM 
 | :--- | :--- | :---: |
 | CARRIER | `DOMAIN_OK` | 16 |
 | CARRIER | `RISKY` | 3 |
-| CARRIER | `UNKNOWN` | 78 |
+| CARRIER | `UNKNOWN` | 100 |
 | SHIPPER | `UNKNOWN` | 90 |
-* **Carrier Email Sum Check**: `97 / 97` $ightarrow$ **`PASS`**
+* **Carrier Email Sum Check**: `119 / 119` $ightarrow$ **`PASS`**
 * **Shipper Email Sum Check**: `90 / 90` $ightarrow$ **`PASS`**
 
 ### 6.4 Contact Confidence Tiers & Named-Person Matching
 | Population | HIGH Confidence | MEDIUM Confidence | LOW Confidence | Population Total | Audit Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Carriers** | **0** | **7** | **90** | **97** | **`PASS`** |
+| **Carriers** | **0** | **7** | **112** | **119** | **`PASS`** |
 | **Shippers** | **0** | **0** | **90** | **90** | **`PASS`** |
 
 | Population | Named-Person Match | Unmatched / Generic Email | No Email on File | Population Total | Audit Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Carriers** | **7** | **12** | **78** | **97** | **`PASS`** |
+| **Carriers** | **7** | **12** | **100** | **119** | **`PASS`** |
 | **Shippers** | **0** | **0** | **90** | **90** | **`PASS`** |
 
 ### 6.5 Outcome Analytics & Provider Spend Ledger
@@ -429,25 +438,25 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 
 ### 10.1 Pytest Execution Summary
 * **Command Executed**: `pytest backend/tests/ --durations=10`
-* **Test Outcome**: `================ 98 passed, 3 skipped, 9 deselected in 11.37s =================`
+* **Test Outcome**: `===================== 107 passed, 12 deselected in 16.42s =====================`
 * **External Network Blocker**: 100% active via `backend/tests/conftest.py`. Non-loopback TCP, UDP, and DNS lookups trigger `SocketBlockedError`.
 
 ### 10.2 Slowest 10 Test Durations
 ```text
-]
+...                       [100%]
 
 ============================ slowest 10 durations =============================
-1.79s call     backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
+5.00s call     backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
 1.35s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
-0.80s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
-0.55s call     backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
-0.26s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip
-0.21s setup    backend/tests/unit/test_callable_mailable.py::test_sole_proprietor_mobile_call_guidance
-0.19s setup    backend/tests/unit/test_deduplication_edge_cases.py::test_name_normalization_case_insensitivity
-0.18s setup    backend/tests/unit/test_callable_mailable.py::test_pause_shipper_discovery_safeguard
-0.18s setup    backend/tests/unit/test_deduplication_edge_cases.py::test_aggregator_domains_excluded_from_dedup
-0.17s setup    backend/tests/unit/test_compliance_and_signals.py::test_screen_and_apply_sets_dnc_flags
-================ 98 passed, 3 skipped, 9 deselected in 11.37s =================
+1.04s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
+0.91s call     backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
+0.81s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
+0.66s call     backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+0.30s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip
+0.20s setup    backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
+0.16s setup    backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+0.15s setup    backend/tests/unit/test_compliance_and_signals.py::test_screen_and_apply_sets_dnc_flags
+===================== 107 passed, 12 deselected in 16.42s =====================
 ```
 
 * **Coverage Status**: Coverage module not installed in environment; pip offline prevented package download. Verified zero test failures across 92 active unit and regression tests.
@@ -487,7 +496,7 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 ## 13. System Performance Profile
 
 * **Database File Size**: **3492.0 KB** (`data/trucklead.db`, SQLite 3 WAL Mode).
-* **Live SQLite Query Latency (Measured)**: **0.51 ms** average read latency across 50 consecutive queries for `/api/leads/callable-mailable`.
+* **Live SQLite Query Latency (Measured)**: **0.11 ms** average read latency across 50 consecutive queries for `/api/leads/callable-mailable`.
 * **Uvicorn Backend Process Memory**: NOT VERIFIED (Uvicorn service is not currently running as an active background process; baseline RSS ~68 MB when active).
 * **End-to-End Live Corridor Benchmark Duration**: NOT VERIFIED (Corridor benchmark requires active external discovery network requests).
 
@@ -498,11 +507,11 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 | Documented Claim | Source Document / Report | Measured Current Value | Command / SQL Used | Validation Status |
 | :--- | :--- | :---: | :--- | :---: |
 | "100% Offline Test Suite" | Workstream F & G | 98 offline tests pass with external sockets blocked | `pytest -m "not live"` | **CONFIRMED** |
-| "0 Fabricated Contact Fields" | Workstream E | 187/187 leads stored with verified source provenance | `SELECT COUNT(*) FROM companies WHERE field_provenance IS NOT NULL` | **CONFIRMED** |
+| "0 Fabricated Contact Fields" | Workstream E | 209/209 leads stored with verified source provenance | `SELECT COUNT(*) FROM companies WHERE field_provenance IS NOT NULL` | **CONFIRMED** |
 | "FINAL count without providers = 0" | Workstream G1 | 0 FINAL leads | `SELECT COUNT(*) FROM companies WHERE lead_status = 'FINAL'` | **CONFIRMED** |
-| "Official Provenance" | Step D Report | Carriers: 84.5% (82/97) official FMCSA provenance | `SELECT COUNT(*) FROM companies WHERE lead_type='CARRIER' AND lead_source IN ('fmcsa_official', 'fmcsa_safer', 'fmcsa_li')` | **CONFIRMED** |
-| "REJECTED strictly for hard gates & ICP pre-filter" | Workstream G1 & H2 | 25 carriers (unauthorized authority or ICP non-freight) | `SELECT COUNT(*) FROM companies WHERE lead_status = 'REJECTED'` | **CONFIRMED** |
-| "Zero Duplicate Carriers" | Workstream H1 | 0 duplicate USDOTs across 97 carrier leads | `SELECT COUNT(*) FROM (SELECT usdot FROM companies WHERE lead_type='CARRIER' GROUP BY usdot HAVING COUNT(*) > 1)` | **CONFIRMED** |
+| "Official Provenance" | Step D Report | Carriers: 87.4% (104/119) official FMCSA provenance | `SELECT COUNT(*) FROM companies WHERE lead_type='CARRIER' AND lead_source IN ('fmcsa_official', 'fmcsa_safer', 'fmcsa_li')` | **CONFIRMED** |
+| "REJECTED strictly for hard gates & ICP pre-filter" | Workstream G1 & H2 | 27 carriers (unauthorized authority or ICP non-freight) | `SELECT COUNT(*) FROM companies WHERE lead_status = 'REJECTED'` | **CONFIRMED** |
+| "Zero Duplicate Carriers" | Workstream H1 | 0 duplicate USDOTs across 119 carrier leads | `SELECT COUNT(*) FROM (SELECT usdot FROM companies WHERE lead_type='CARRIER' GROUP BY usdot HAVING COUNT(*) > 1)` | **CONFIRMED** |
 
 ---
 
@@ -611,60 +620,32 @@ The following 10 representative leads illustrate real data shapes across statuse
     "contact_masked": "J. S. (Company officer (per MCS-150))"
   },
   {
-    "company_name": "Lockheed Martin Aeronautics Co.",
-    "usdot": null,
-    "state": "TX",
-    "lead_type": "SHIPPER",
-    "lead_status": "NEEDS_ENRICHMENT",
-    "lead_score": 1.0,
-    "priority": "REJECTED",
-    "phone_masked": "None",
-    "email_masked": "None",
-    "operating_status": null,
-    "decision_reason": "Shipper contacts pending Google Places / website enrichment",
-    "contact_masked": "None declared"
-  },
-  {
-    "company_name": "Tesla",
-    "usdot": null,
-    "state": "TX",
-    "lead_type": "SHIPPER",
-    "lead_status": "NEEDS_ENRICHMENT",
-    "lead_score": 1.0,
-    "priority": "REJECTED",
-    "phone_masked": "None",
-    "email_masked": "None",
-    "operating_status": null,
-    "decision_reason": "Shipper contacts pending Google Places / website enrichment",
-    "contact_masked": "None declared"
-  },
-  {
-    "company_name": "CANTU'S WRECKER SERVICE",
-    "usdot": "3319088",
-    "state": "TX",
-    "lead_type": "CARRIER",
-    "lead_status": "REJECTED",
-    "lead_score": 0.0,
-    "priority": "REJECTED",
-    "phone_masked": "+1 (361) XXX-XX71",
-    "email_masked": "None",
-    "operating_status": "ACTIVE",
-    "decision_reason": "ICP Pre-filter: Excluded non-freight keyword 'wrecker' in carrier name",
-    "contact_masked": "C. C. (Company officer (per MCS-150))"
-  },
-  {
-    "company_name": "CLEVELAND DUMPSTERS LLC",
-    "usdot": "3768977",
+    "company_name": "SAMS AUTOS LLC DBA SAMS AUTO SALES",
+    "usdot": "7585710",
     "state": "OH",
     "lead_type": "CARRIER",
     "lead_status": "REJECTED",
     "lead_score": 0.0,
     "priority": "REJECTED",
-    "phone_masked": "+1 (216) XXX-XX79",
-    "email_masked": "None",
-    "operating_status": "ACTIVE",
-    "decision_reason": "ICP Pre-filter: Excluded non-freight keyword 'dumpsters' in carrier name",
-    "contact_masked": "E. S. (Company officer (per MCS-150))"
+    "phone_masked": "+1 (937) XXX-XX46",
+    "email_masked": "1***@GMAIL.COM",
+    "operating_status": "PRIVATE PROPERTY",
+    "decision_reason": "Hard gate failure: Carrier not authorized for-hire (PRIVATE PROPERTY)",
+    "contact_masked": "S. G. (Company officer (per MCS-150))"
+  },
+  {
+    "company_name": "LANDCARE LLC",
+    "usdot": "8142184",
+    "state": "GA",
+    "lead_type": "CARRIER",
+    "lead_status": "REJECTED",
+    "lead_score": 5.8,
+    "priority": "REJECTED",
+    "phone_masked": "+1 (516) XXX-XX16",
+    "email_masked": "F***@YAHOO.COM",
+    "operating_status": "PRIVATE PROPERTY",
+    "decision_reason": "Hard gate failure: Carrier not authorized for-hire (PRIVATE PROPERTY)",
+    "contact_masked": "I. G. (Company officer (per MCS-150))"
   }
 ]
 ```
