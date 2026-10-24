@@ -14,6 +14,8 @@ from ..models.entities import Company, Contact, LeadOutcome, SuppressionEntry
 from ..services.normalizer import Normalizer
 from ..services.compliance import ComplianceService
 from ..services.email_verifier import EmailVerifier
+from ..services.lead_scorer import LeadScorer
+from ..services.orchestrator import LeadOrchestrator
 
 logger = logging.getLogger("trucklead.api.outcomes")
 router = APIRouter(prefix="/api/leads", tags=["Callable & Mailable Leads"])
@@ -131,25 +133,44 @@ async def log_lead_outcome(request: LogOutcomeRequest, session: AsyncSession = D
     }
 
 
+class ManualAuthorityVerificationRequest(BaseModel):
+    verification_date: Optional[str] = Field(None, description="Verification date (YYYY-MM-DD or ISO)")
+    mc_number: Optional[str] = Field(None, description="MC docket number observed on SAFER/L&I")
+    authority_status: str = Field(..., description="Operating authority status e.g. ACTIVE, INACTIVE, REVOKED")
+    insurance_on_file: bool = Field(..., description="Whether active BIPD insurance filing is on file")
+    insurance_amount: Optional[int] = Field(None, description="BIPD insurance coverage amount e.g. 750000 or 1000000")
+    notes: Optional[str] = Field(None, description="Operator notes during manual verification")
+
+
 @router.get("/callable-mailable")
 async def list_callable_mailable_leads(
-    filter_mode: str = Query("all", description="all, callable, mailable, both"),
+    filter_mode: str = Query("all", description="all, callable, mailable, both, unproven_authority"),
     limit: int = Query(100, ge=1, le=500),
     session: AsyncSession = Depends(get_db)
 ):
     """
     Retrieves leads ready for operator contact with complete phone E.164, line type,
     timezone windows, email deliverability, and click-to-call / mailto links.
+    Supports filtering by unproven authority ('unproven_authority' / 'Authority unproven - verify manually')
+    to allow manual verification against SAFER / L&I.
     Excludes suppressed or DNC entities.
     """
+    is_unproven_filter = filter_mode.lower() in [
+        "unproven_authority",
+        "authority unproven - verify manually",
+        "unproven"
+    ]
+
+    conditions = [Company.dnc_flag == False]
+    if is_unproven_filter:
+        conditions.append(Company.lead_status == "NEEDS_ENRICHMENT")
+        conditions.append(Company.lead_type != "SHIPPER")
+    else:
+        conditions.append(Company.lead_status.in_(["FINAL", "QUALIFIED"]))
+
     stmt = (
         select(Company)
-        .where(
-            and_(
-                Company.dnc_flag == False,
-                Company.lead_status.in_(["FINAL", "QUALIFIED"])
-            )
-        )
+        .where(and_(*conditions))
         .options(
             selectinload(Company.contacts),
             selectinload(Company.intent_signals)
@@ -160,6 +181,15 @@ async def list_callable_mailable_leads(
 
     res = await session.execute(stmt)
     companies = res.scalars().all()
+
+    checklist_items = [
+        "1. Search USDOT or MC on SAFER Company Snapshot (https://safer.fmcsa.dot.gov/CompanySnapshot.aspx)",
+        "2. Verify Entity Type is CARRIER and Operating Status is 'AUTHORIZED FOR HIRE'",
+        "3. Click Licensing & Insurance link to confirm Active Common or Contract Authority",
+        "4. Check BIPD Insurance on File meets requirements ($750k+ minimum for general freight)",
+        "5. Confirm contact person and phone number match business operations"
+    ]
+    safer_url = "https://safer.fmcsa.dot.gov/CompanySnapshot.aspx"
 
     leads = []
     for c in companies:
@@ -208,6 +238,8 @@ async def list_callable_mailable_leads(
             continue
         if filter_mode == "both" and not (is_callable and is_mailable):
             continue
+        if is_unproven_filter and not (is_callable or is_mailable):
+            continue
 
         eq_str = ", ".join(c.equipment) if c.equipment else "General Freight"
 
@@ -233,6 +265,12 @@ async def list_callable_mailable_leads(
             "call_window_ist": w_ist,
             "usdot": c.usdot,
             "mc_number": c.mc_number,
+            "authority_status": getattr(c, "authority_status", None) or "UNKNOWN",
+            "authority_status_source": getattr(c, "authority_status_source", None) or "census_docket",
+            "insurance_filing_status": getattr(c, "insurance_filing_status", None) or "UNKNOWN",
+            "fleet_inconsistent": bool(getattr(c, "fleet_inconsistent", False)),
+            "hazmat_carrier": bool(getattr(c, "hazmat_carrier", False)),
+            "phone_region_mismatch": bool(getattr(c, "phone_region_mismatch", False)),
             "state": c.state,
             "fleet_size": c.fleet_size,
             "equipment": eq_str,
@@ -244,13 +282,131 @@ async def list_callable_mailable_leads(
             "lead_status": c.lead_status,
             "suppression_status": "Active" if not c.dnc_flag else "Suppressed",
             "is_callable": is_callable,
-            "is_mailable": is_mailable
+            "is_mailable": is_mailable,
+            "safer_search_url": safer_url,
+            "verification_checklist": checklist_items
         })
 
     return {
         "count": len(leads),
         "filter": filter_mode,
+        "safer_search_url": safer_url,
+        "verification_checklist": checklist_items,
         "leads": leads
+    }
+
+
+@router.post("/{company_id}/verify-authority-manual", dependencies=[Depends(require_api_key)])
+async def verify_authority_manual(
+    company_id: str,
+    request: ManualAuthorityVerificationRequest,
+    session: AsyncSession = Depends(get_db)
+):
+    """
+    Operator manual verification endpoint for carrier operating authority and insurance.
+    Saves verification with provenance method='manual_operator', re-scores, and re-evaluates lifecycle status.
+    Links SAFER search page and provides verification checklist.
+    """
+    company = await session.get(
+        Company,
+        company_id,
+        options=[selectinload(Company.contacts), selectinload(Company.intent_signals)]
+    )
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    auth_status = request.authority_status.strip().upper()
+    now = datetime.now(timezone.utc)
+    v_date = now
+    if request.verification_date:
+        try:
+            v_date = datetime.fromisoformat(request.verification_date.replace("Z", "+00:00"))
+        except Exception:
+            v_date = now
+
+    company.authority_status = auth_status
+    company.authority_status_source = "manual_operator"
+    company.insurance_filing_status = "ACTIVE" if request.insurance_on_file else "INACTIVE"
+    company.verification_date = v_date
+
+    if request.mc_number:
+        company.mc_number = Normalizer.normalize_docket(request.mc_number)
+
+    # Provenance record
+    prov = dict(company.field_provenance or {})
+    prov["authority_status"] = {
+        "method": "manual_operator",
+        "type": "human_verified",
+        "timestamp": now.isoformat(),
+        "source": "https://safer.fmcsa.dot.gov/CompanySnapshot.aspx",
+        "notes": request.notes
+    }
+    prov["authority_status_source"] = {
+        "method": "manual_operator",
+        "type": "human_verified",
+        "timestamp": now.isoformat()
+    }
+    prov["insurance_filing_status"] = {
+        "method": "manual_operator",
+        "type": "human_verified",
+        "timestamp": now.isoformat(),
+        "insurance_amount": request.insurance_amount
+    }
+    if request.mc_number:
+        prov["mc_number"] = {
+            "method": "manual_operator",
+            "type": "human_verified",
+            "timestamp": now.isoformat()
+        }
+    company.field_provenance = prov
+
+    # Re-evaluate sanity flags
+    LeadOrchestrator.evaluate_sanity_flags(company)
+
+    # Re-score
+    lead_score_obj, new_tier = LeadScorer.calculate_score(company)
+    company.lead_score = lead_score_obj.total_score
+    company.priority = new_tier
+
+    # Re-status
+    new_status, q_reason, r_reason = LeadOrchestrator.resolve_lead_status(
+        company,
+        v_status="VERIFIED",
+        priority=new_tier
+    )
+    company.lead_status = new_status
+    company.qualification_reason = q_reason
+    company.rejection_reason = r_reason
+
+    await session.commit()
+    await session.refresh(company)
+
+    checklist_items = [
+        "1. Search USDOT or MC on SAFER Company Snapshot (https://safer.fmcsa.dot.gov/CompanySnapshot.aspx)",
+        "2. Verify Entity Type is CARRIER and Operating Status is 'AUTHORIZED FOR HIRE'",
+        "3. Click Licensing & Insurance link to confirm Active Common or Contract Authority",
+        "4. Check BIPD Insurance on File meets requirements ($750k+ minimum for general freight)",
+        "5. Confirm contact person and phone number match business operations"
+    ]
+
+    return {
+        "status": "success",
+        "company_id": company.id,
+        "company_name": company.company_name,
+        "mc_number": company.mc_number,
+        "authority_status": company.authority_status,
+        "authority_status_source": company.authority_status_source,
+        "insurance_filing_status": company.insurance_filing_status,
+        "lead_status": company.lead_status,
+        "lead_score": company.lead_score,
+        "priority": company.priority,
+        "qualification_reason": company.qualification_reason,
+        "rejection_reason": company.rejection_reason,
+        "fleet_inconsistent": bool(company.fleet_inconsistent),
+        "hazmat_carrier": bool(company.hazmat_carrier),
+        "phone_region_mismatch": bool(company.phone_region_mismatch),
+        "safer_search_url": "https://safer.fmcsa.dot.gov/CompanySnapshot.aspx",
+        "verification_checklist": checklist_items
     }
 
 

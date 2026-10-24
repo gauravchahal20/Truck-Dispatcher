@@ -42,6 +42,58 @@ export default function ReadyToContact({ onViewLead }) {
   const [loadingDraft, setLoadingDraft] = useState(false);
   const [copiedDraft, setCopiedDraft] = useState(false);
 
+  // Manual Authority Verification Modal States (L2i)
+  const [selectedLeadForVerify, setSelectedLeadForVerify] = useState(null);
+  const [verifyDate, setVerifyDate] = useState(new Date().toISOString().split('T')[0]);
+  const [verifyMc, setVerifyMc] = useState('');
+  const [verifyStatus, setVerifyStatus] = useState('ACTIVE');
+  const [verifyInsurance, setVerifyInsurance] = useState(true);
+  const [verifyAmount, setVerifyAmount] = useState(750000);
+  const [verifyNotes, setVerifyNotes] = useState('');
+  const [isSubmittingVerify, setIsSubmittingVerify] = useState(false);
+  const [verifyError, setVerifyError] = useState(null);
+  const [verifySuccess, setVerifySuccess] = useState(null);
+
+  const handleOpenVerify = (lead) => {
+    setSelectedLeadForVerify(lead);
+    setVerifyDate(new Date().toISOString().split('T')[0]);
+    setVerifyMc(lead.mc_number || '');
+    setVerifyStatus('ACTIVE');
+    setVerifyInsurance(true);
+    setVerifyAmount(750000);
+    setVerifyNotes(`Verified active common carrier authority and $750k+ BIPD insurance on SAFER for USDOT ${lead.usdot || ''}`);
+    setVerifyError(null);
+    setVerifySuccess(null);
+  };
+
+  const handleSubmitVerify = async (e) => {
+    e.preventDefault();
+    if (!selectedLeadForVerify) return;
+    setIsSubmittingVerify(true);
+    setVerifyError(null);
+    setVerifySuccess(null);
+    try {
+      const res = await api.verifyAuthorityManual(selectedLeadForVerify.id, {
+        verification_date: verifyDate,
+        mc_number: verifyMc || null,
+        authority_status: verifyStatus,
+        insurance_on_file: verifyInsurance,
+        insurance_amount: Number(verifyAmount) || 750000,
+        notes: verifyNotes
+      });
+      setVerifySuccess(`Verified authority for ${selectedLeadForVerify.company}! New Status: ${res.lead_status} (Score ${res.lead_score?.toFixed(1)})`);
+      setTimeout(() => {
+        setSelectedLeadForVerify(null);
+        fetchLeads();
+      }, 1500);
+    } catch (err) {
+      console.error('Manual verification failed:', err);
+      setVerifyError(err.message || 'Failed to submit manual verification');
+    } finally {
+      setIsSubmittingVerify(false);
+    }
+  };
+
   const fetchLeads = async () => {
     setLoading(true);
     try {
@@ -245,12 +297,13 @@ export default function ReadyToContact({ onViewLead }) {
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--border-subtle)'
       }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { id: 'all', label: 'All Leads' },
             { id: 'callable', label: 'Callable (+1)' },
             { id: 'mailable', label: 'Mailable (Deliverable)' },
-            { id: 'both', label: 'Both Channels' }
+            { id: 'both', label: 'Both Channels' },
+            { id: 'unproven_authority', label: 'Authority unproven - verify manually' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -305,6 +358,45 @@ export default function ReadyToContact({ onViewLead }) {
         </div>
       </div>
 
+      {/* Guidance Banner for Unproven Authority (L2i) */}
+      {filterMode === 'unproven_authority' && (
+        <div style={{
+          backgroundColor: '#EFF6FF',
+          border: '1px solid #BFDBFE',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px',
+          marginBottom: '16px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={18} color="#1D4ED8" />
+              <strong style={{ color: '#1E40AF', fontSize: '0.9rem' }}>
+                Authority Verification Queue (SAFER & L&I Manual Check)
+              </strong>
+            </div>
+            <a
+              href="https://safer.fmcsa.dot.gov/CompanySnapshot.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              Open SAFER Company Snapshot <ExternalLink size={12} />
+            </a>
+          </div>
+          <p style={{ fontSize: '0.78rem', color: '#1E3A8A', margin: '0 0 8px 0' }}>
+            These carriers have valid outreach contact info, but their operating authority or insurance filings are unproven in local datasets. Verify them against official SAFER records to admit them to QUALIFIED status.
+          </p>
+          <div style={{ fontSize: '0.72rem', color: '#1E40AF', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '6px' }}>
+            <div>1. Search USDOT/MC on SAFER Company Snapshot</div>
+            <div>2. Confirm Operating Status is "AUTHORIZED FOR HIRE"</div>
+            <div>3. Click Licensing & Insurance link to check Active Authority status</div>
+            <div>4. Check BIPD Insurance on file ($750k+ minimum for general freight)</div>
+            <div>5. Click "Verify Authority" on row to update lead and re-score</div>
+          </div>
+        </div>
+      )}
+
       {/* Main Table */}
       <div style={{ 
         backgroundColor: '#FFFFFF', 
@@ -352,9 +444,33 @@ export default function ReadyToContact({ onViewLead }) {
                       <div style={{ fontWeight: 700, color: 'var(--text-dark)', cursor: 'pointer' }} onClick={() => onViewLead && onViewLead(lead)}>
                         {lead.company}
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '6px', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '6px', marginTop: '2px', flexWrap: 'wrap' }}>
                         <span>USDOT #{lead.usdot || 'N/A'}</span>
+                        {lead.mc_number && <span>&bull; MC #{lead.mc_number}</span>}
                         {lead.state && <span>&bull; {lead.state}</span>}
+                      </div>
+                      {/* Sanity & Quality Flags (L2i) */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                        {lead.fleet_inconsistent && (
+                          <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#FEE2E2', color: '#991B1B', fontWeight: 700 }} title="Power units, trucks, and drivers diverge significantly">
+                            ⚠️ Fleet Inconsistent
+                          </span>
+                        )}
+                        {lead.hazmat_carrier && (
+                          <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#FEF3C7', color: '#92400E', fontWeight: 700 }} title="Carrier hauls hazardous materials">
+                            ☣️ Hazmat
+                          </span>
+                        )}
+                        {lead.phone_region_mismatch && (
+                          <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#EDE9FE', color: '#5B21B6', fontWeight: 700 }} title="Phone area code geocoded state does not match company physical address state">
+                            📍 Phone Mismatch
+                          </span>
+                        )}
+                        {lead.authority_status && lead.authority_status !== 'ACTIVE' && (
+                          <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#F3F4F6', color: '#4B5563', fontWeight: 600 }}>
+                            Auth: {lead.authority_status}
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -547,6 +663,26 @@ export default function ReadyToContact({ onViewLead }) {
                         >
                           Log Email
                         </button>
+
+                        {(lead.authority_status !== 'ACTIVE' || lead.lead_status === 'NEEDS_ENRICHMENT') && (
+                          <button
+                            onClick={() => handleOpenVerify(lead)}
+                            className="btn btn-secondary"
+                            style={{
+                              fontSize: '0.7rem',
+                              padding: '4px 8px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              backgroundColor: '#EFF6FF',
+                              color: '#1D4ED8',
+                              borderColor: '#BFDBFE'
+                            }}
+                            title="Verify Operating Authority against SAFER"
+                          >
+                            <ShieldCheck size={12} /> Verify
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -835,6 +971,267 @@ export default function ReadyToContact({ onViewLead }) {
                 </div>
               </div>
             ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: Manual Authority Verification Modal (L2i) */}
+      {selectedLeadForVerify && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '16px'
+        }}>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 'var(--radius-lg)',
+            width: '100%',
+            maxWidth: '540px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '24px',
+            boxShadow: 'var(--shadow-lg)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={20} color="var(--ocean-dark)" />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-dark)' }}>
+                  Manual Authority Verification
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedLeadForVerify(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Target Carrier Summary Banner */}
+            <div style={{
+              backgroundColor: 'var(--warm-cream)',
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '16px',
+              border: '1px solid var(--border-subtle)'
+            }}>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                {selectedLeadForVerify.company}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
+                <span><strong>USDOT:</strong> #{selectedLeadForVerify.usdot || 'N/A'}</span>
+                <span><strong>State:</strong> {selectedLeadForVerify.state || 'N/A'}</span>
+                <span><strong>Phone:</strong> {selectedLeadForVerify.phone_display || selectedLeadForVerify.phone_e164 || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* SAFER Reference Box */}
+            <div style={{
+              backgroundColor: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              borderRadius: 'var(--radius-sm)',
+              padding: '10px 14px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1E40AF' }}>
+                  Verify on Official FMCSA SAFER
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#3B82F6' }}>
+                  Search by USDOT #{selectedLeadForVerify.usdot || ''} to inspect authority & filings
+                </div>
+              </div>
+              <a
+                href="https://safer.fmcsa.dot.gov/CompanySnapshot.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+                style={{ fontSize: '0.72rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                Open SAFER <ExternalLink size={12} />
+              </a>
+            </div>
+
+            {verifyError && (
+              <div style={{
+                backgroundColor: '#FEE2E2',
+                border: '1px solid #FCA5A5',
+                color: '#991B1B',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.75rem',
+                marginBottom: '14px'
+              }}>
+                {verifyError}
+              </div>
+            )}
+
+            {verifySuccess && (
+              <div style={{
+                backgroundColor: '#DCFCE7',
+                border: '1px solid #86EFAC',
+                color: '#166534',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.75rem',
+                marginBottom: '14px'
+              }}>
+                {verifySuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitVerify}>
+              {/* Verification Date */}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                  VERIFICATION DATE
+                </label>
+                <input
+                  type="date"
+                  value={verifyDate}
+                  onChange={(e) => setVerifyDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: '0.82rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-subtle)'
+                  }}
+                  required
+                />
+              </div>
+
+              {/* MC Number */}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                  MC DOCKET NUMBER (IF OBSERVED ON SAFER / L&I)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. MC-123456 or 123456"
+                  value={verifyMc}
+                  onChange={(e) => setVerifyMc(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: '0.82rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-subtle)'
+                  }}
+                />
+              </div>
+
+              {/* Authority Status & Insurance on File */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                    OPERATING AUTHORITY STATUS
+                  </label>
+                  <select
+                    value={verifyStatus}
+                    onChange={(e) => setVerifyStatus(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '0.82rem',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                      backgroundColor: '#FFFFFF'
+                    }}
+                  >
+                    <option value="ACTIVE">ACTIVE (Authorized For Hire)</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                    <option value="REVOKED">REVOKED</option>
+                    <option value="DISMISSED">DISMISSED</option>
+                    <option value="PENDING">PENDING</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                    INSURANCE AMOUNT ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={verifyAmount}
+                    onChange={(e) => setVerifyAmount(e.target.value)}
+                    placeholder="750000"
+                    step="50000"
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: '0.82rem',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Insurance on file checkbox */}
+              <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="insuranceCheck"
+                  checked={verifyInsurance}
+                  onChange={(e) => setVerifyInsurance(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <label htmlFor="insuranceCheck" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-dark)', cursor: 'pointer' }}>
+                  Confirmed active BIPD / Cargo Insurance filing on file in L&I database
+                </label>
+              </div>
+
+              {/* Operator Notes */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                  OPERATOR VERIFICATION NOTES
+                </label>
+                <textarea
+                  rows={2}
+                  value={verifyNotes}
+                  onChange={(e) => setVerifyNotes(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: '0.8rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-subtle)'
+                  }}
+                  placeholder="Notes from SAFER / L&I lookup..."
+                />
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedLeadForVerify(null)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+                  disabled={isSubmittingVerify}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.8rem', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  disabled={isSubmittingVerify}
+                >
+                  {isSubmittingVerify ? <RefreshCw size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                  {isSubmittingVerify ? 'Saving & Re-scoring...' : 'Save & Re-score Lead'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

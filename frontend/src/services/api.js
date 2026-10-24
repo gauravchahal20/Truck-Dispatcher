@@ -99,4 +99,9 @@ export const api = {
     }),
   getDraftEmail: (companyId) =>
     request(`/api/leads/companies/${companyId}/draft-email`),
+  verifyAuthorityManual: (companyId, data) =>
+    request(`/api/leads/${companyId}/verify-authority-manual`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };

@@ -23,9 +23,24 @@ for db_path in ["data/trucklead.db", "data/test_trucklead.db"]:
         cur.execute("ALTER TABLE companies ADD COLUMN authority_status_source VARCHAR(50)")
         print(f"[{db_path}] Added column authority_status_source")
 
+    if "fleet_inconsistent" not in existing_cols:
+        cur.execute("ALTER TABLE companies ADD COLUMN fleet_inconsistent BOOLEAN DEFAULT 0")
+        print(f"[{db_path}] Added column fleet_inconsistent")
+
+    if "hazmat_carrier" not in existing_cols:
+        cur.execute("ALTER TABLE companies ADD COLUMN hazmat_carrier BOOLEAN DEFAULT 0")
+        print(f"[{db_path}] Added column hazmat_carrier")
+
+    if "phone_region_mismatch" not in existing_cols:
+        cur.execute("ALTER TABLE companies ADD COLUMN phone_region_mismatch BOOLEAN DEFAULT 0")
+        print(f"[{db_path}] Added column phone_region_mismatch")
+
     cur.execute("CREATE INDEX IF NOT EXISTS ix_companies_authority_status ON companies (authority_status)")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_companies_authority_status_source ON companies (authority_status_source)")
     cur.execute("CREATE INDEX IF NOT EXISTS ix_companies_insurance_filing_status ON companies (insurance_filing_status)")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_companies_fleet_inconsistent ON companies (fleet_inconsistent)")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_companies_hazmat_carrier ON companies (hazmat_carrier)")
+    cur.execute("CREATE INDEX IF NOT EXISTS ix_companies_phone_region_mismatch ON companies (phone_region_mismatch)")
 
     con.commit()
     con.close()

@@ -261,6 +261,32 @@ class Normalizer:
                 return code
         return state.strip().upper() if len(state.strip()) == 2 else None
 
+    @classmethod
+    def get_state_for_phone(cls, phone: Optional[str]) -> Optional[str]:
+        """Resolves the US 2-letter state postal abbreviation from a phone number using NANP geocoding or area code tables."""
+        if not phone:
+            return None
+        try:
+            import phonenumbers
+            from phonenumbers import geocoder
+            digits = re.sub(r"\D", "", str(phone))
+            if len(digits) == 10:
+                e164 = f"+1{digits}"
+            elif len(digits) == 11 and digits.startswith("1"):
+                e164 = f"+{digits}"
+            else:
+                return None
+            parsed = phonenumbers.parse(e164)
+            desc = geocoder.description_for_number(parsed, "en")
+            if desc:
+                desc_lower = desc.lower().strip()
+                for s_name, s_code in US_STATE_ABBRS.items():
+                    if s_name == desc_lower or desc.endswith(f", {s_code}") or f", {s_code}" in desc or s_name in desc_lower:
+                        return s_code
+        except Exception:
+            pass
+        return None
+
     GENERIC_INBOX_PREFIXES = {
         "info", "support", "contact", "admin", "billing", "help",
         "careers", "jobs", "team", "office", "general", "inquiries"

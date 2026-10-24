@@ -128,6 +128,9 @@ class CompanyBase(BaseModel):
     safety_rating: Optional[str] = None
     mcs_150_date: Optional[str] = None
     field_provenance: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    fleet_inconsistent: Optional[bool] = False
+    hazmat_carrier: Optional[bool] = False
+    phone_region_mismatch: Optional[bool] = False
     needs_reverification: Optional[bool] = False
     dnc_flag: Optional[bool] = False
     suppression_reason: Optional[str] = None

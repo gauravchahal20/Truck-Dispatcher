@@ -1,4 +1,5 @@
 import asyncio
+import re
 import logging
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional, Tuple
@@ -32,6 +33,70 @@ class LeadOrchestrator:
     """Core autonomous pipeline coordinator executing end-to-end lead discovery & qualification across 41+ methods."""
 
     @classmethod
+    def evaluate_sanity_flags(
+        cls,
+        company: Company,
+        power_units: Optional[int] = None,
+        truck_units: Optional[int] = None,
+        drivers: Optional[int] = None,
+        hm_ind: Optional[str] = None
+    ) -> Dict[str, bool]:
+        """
+        Evaluates data sanity flags (L2i):
+        - fleet_inconsistent: power_units vs truck_units vs drivers divergence
+        - hazmat_carrier: hm_ind == 'Y' or 'HAZMAT'/'HAZARDOUS' in carrier_operation/equipment
+        - phone_region_mismatch: phone area code geocoded US state != normalized company physical state
+        """
+        pu = power_units if power_units is not None else company.fleet_size
+        dr = drivers if drivers is not None else company.driver_count
+        tu = truck_units
+
+        fleet_inconsistent = False
+        if pu is not None and tu is not None and pu > 0 and tu > 0:
+            if abs(pu - tu) > max(pu, tu) * 0.5:
+                fleet_inconsistent = True
+
+        if pu is not None and dr is not None:
+            if pu >= 5 and dr == 0:
+                fleet_inconsistent = True
+            elif dr >= 5 and pu == 0:
+                fleet_inconsistent = True
+            elif pu > 0 and dr > 0:
+                ratio = max(pu, dr) / min(pu, dr)
+                if ratio > 3.0:
+                    fleet_inconsistent = True
+
+        hm_upper = (hm_ind or "").strip().upper()
+        op_upper = (company.carrier_operation or "").upper()
+        eq_str = " ".join(company.equipment or []).upper()
+
+        op_clean = re.sub(r"\bNON[-\s]?HAZMAT\b", "", op_upper)
+        eq_clean = re.sub(r"\bNON[-\s]?HAZMAT\b", "", eq_str)
+
+        hazmat_carrier = (
+            hm_upper == "Y" or
+            "HAZMAT" in op_clean or "HAZARDOUS" in op_clean or
+            "HAZMAT" in eq_clean or "HAZARDOUS" in eq_clean
+        )
+
+        p = company.phone_e164 or company.phone
+        phone_state = Normalizer.get_state_for_phone(p)
+        comp_state = Normalizer.normalize_state(company.state)
+        phone_region_mismatch = bool(
+            phone_state and comp_state and phone_state != comp_state
+        )
+
+        company.fleet_inconsistent = fleet_inconsistent
+        company.hazmat_carrier = hazmat_carrier
+        company.phone_region_mismatch = phone_region_mismatch
+
+        return {
+            "fleet_inconsistent": fleet_inconsistent,
+            "hazmat_carrier": hazmat_carrier,
+            "phone_region_mismatch": phone_region_mismatch
+        }
+
+    @classmethod
     def resolve_lead_status(
         cls,
         company: Company,
@@ -45,6 +110,9 @@ class LeadOrchestrator:
         Determines canonical lead_status, qualification_reason, and rejection_reason.
         Returns: (lead_status, qualification_reason, rejection_reason)
         """
+        # 0. Evaluate data sanity flags (L2i)
+        cls.evaluate_sanity_flags(company)
+
         # 1. Operating Status and Carrier Flags
         is_carrier = company.lead_type != "SHIPPER"
         op_status = (company.operating_status or "").upper()

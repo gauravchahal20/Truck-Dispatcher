@@ -128,6 +128,11 @@ class Company(Base):
     safety_rating = Column(String(100), nullable=True)
     mcs_150_date = Column(String(50), nullable=True)
 
+    # Data Sanity Flags (L2i)
+    fleet_inconsistent = Column(Boolean, default=False, index=True)
+    hazmat_carrier = Column(Boolean, default=False, index=True)
+    phone_region_mismatch = Column(Boolean, default=False, index=True)
+
     # Lead Lifecycle Status
     lead_status = Column(String(50), nullable=False, default="RAW", index=True)
     # Statuses: RAW, RESEARCHING, VERIFIED, ENRICHED, QUALIFIED, FINAL, REJECTED, NEEDS_REVIEW

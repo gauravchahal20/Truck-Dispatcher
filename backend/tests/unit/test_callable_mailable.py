@@ -772,6 +772,177 @@ async def test_outcome_analytics_and_weekly_summary():
         assert weekly_data["top_converting_source"] == "fmcsa_official"
 
 
+@pytest.mark.asyncio
+async def test_l2i_unproven_authority_filter_and_checklist():
+    """Validates L2i Ready-to-contact filter 'Authority unproven - verify manually' and SAFER checklist."""
+    import httpx
+    from app.main import app
+
+    async with AsyncSessionLocal() as session:
+        # Carrier with unproven authority -> NEEDS_ENRICHMENT
+        c = Company(
+            company_name="Lone Star Hauling LLC",
+            lead_type="CARRIER",
+            usdot="3891002",
+            state="TX",
+            lead_score=7.5,
+            priority="B",
+            lead_source="fmcsa_safer",
+            phone_e164="+12145550188",
+            operating_status="ACTIVE / FOR-HIRE",
+            authority_status="UNKNOWN",
+            authority_status_source="census_docket",
+            insurance_filing_status="UNKNOWN",
+            lead_status="NEEDS_ENRICHMENT"
+        )
+        session.add(c)
+        await session.commit()
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        # Query unproven filter
+        res = await client.get("/api/leads/callable-mailable?filter_mode=unproven_authority")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["filter"] == "unproven_authority"
+        assert "safer_search_url" in data
+        assert "https://safer.fmcsa.dot.gov/CompanySnapshot.aspx" in data["safer_search_url"]
+        assert len(data["verification_checklist"]) >= 5
+
+        # Check returned lead
+        lead = next((l for l in data["leads"] if l["usdot"] == "3891002"), None)
+        assert lead is not None
+        assert lead["company"] == "Lone Star Hauling LLC"
+        assert lead["lead_status"] == "NEEDS_ENRICHMENT"
+        assert lead["authority_status"] == "UNKNOWN"
+        assert "safer_search_url" in lead
+        assert len(lead["verification_checklist"]) >= 5
+
+
+@pytest.mark.asyncio
+async def test_l2i_manual_authority_verification_endpoint():
+    """Validates L2i manual authority verification form/endpoint, provenance tracking, and re-scoring."""
+    import httpx
+    from app.main import app
+
+    async with AsyncSessionLocal() as session:
+        c = Company(
+            company_name="Blue Ridge Transport Co",
+            lead_type="CARRIER",
+            usdot="2991823",
+            state="GA",
+            lead_score=6.0,
+            priority="B",
+            lead_source="fmcsa_official",
+            phone="+14045550199",
+            phone_e164="+14045550199",
+            phone_verification_status="FORMAT_OK",
+            email="john.smith@blueridge.com",
+            fleet_size=5,
+            equipment=["Dry Van"],
+            operating_status="ACTIVE / FOR-HIRE",
+            authority_status="UNKNOWN",
+            authority_status_source="census_docket",
+            insurance_filing_status="UNKNOWN",
+            lead_status="NEEDS_ENRICHMENT"
+        )
+        session.add(c)
+        await session.commit()
+        await session.refresh(c)
+        comp_id = c.id
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        # Submit manual verification
+        verify_payload = {
+            "verification_date": "2026-10-25",
+            "mc_number": "MC-881923",
+            "authority_status": "ACTIVE",
+            "insurance_on_file": True,
+            "insurance_amount": 1000000,
+            "notes": "Verified active common carrier authority and $1M BIPD insurance filing on SAFER."
+        }
+        res = await client.post(f"/api/leads/{comp_id}/verify-authority-manual", json=verify_payload)
+        assert res.status_code == 200
+        data = res.json()
+        assert data["status"] == "success"
+        assert data["authority_status"] == "ACTIVE"
+        assert data["authority_status_source"] == "manual_operator"
+        assert data["insurance_filing_status"] == "ACTIVE"
+        assert data["mc_number"] == "881923"
+        # Since active authority & active insurance are proven and score >= 6.0, status transitions to QUALIFIED
+        assert data["lead_status"] in ["QUALIFIED", "FINAL"]
+        assert "safer_search_url" in data
+
+    # Verify database persistence & provenance
+    async with AsyncSessionLocal() as session:
+        updated = await session.get(Company, comp_id)
+        assert updated.authority_status == "ACTIVE"
+        assert updated.authority_status_source == "manual_operator"
+        assert updated.insurance_filing_status == "ACTIVE"
+        assert updated.mc_number == "881923"
+        assert updated.field_provenance is not None
+        assert updated.field_provenance["authority_status"]["method"] == "manual_operator"
+        assert updated.field_provenance["authority_status"]["type"] == "human_verified"
+
+
+def test_l2i_data_sanity_flags_evaluation():
+    """Validates LeadOrchestrator.evaluate_sanity_flags logic for fleet, hazmat, and phone region mismatch."""
+    from app.services.orchestrator import LeadOrchestrator
+
+    # 1. Fleet Inconsistency: 10 power units, 0 drivers
+    c1 = Company(
+        company_name="Ghost Fleet LLC",
+        lead_type="CARRIER",
+        fleet_size=10,
+        driver_count=0,
+        phone_e164="+12145550188",
+        state="TX"
+    )
+    flags1 = LeadOrchestrator.evaluate_sanity_flags(c1)
+    assert flags1["fleet_inconsistent"] is True
+
+    # 2. Hazmat Carrier: Operation includes Hazmat
+    c2 = Company(
+        company_name="Hazardous Chem Transport",
+        lead_type="CARRIER",
+        fleet_size=3,
+        driver_count=3,
+        carrier_operation="Interstate Hazmat Carrier",
+        phone_e164="+12145550188",
+        state="TX"
+    )
+    flags2 = LeadOrchestrator.evaluate_sanity_flags(c2)
+    assert flags2["hazmat_carrier"] is True
+
+    # 3. Phone Region Mismatch: Phone 516 (NY) but Company State GA
+    c3 = Company(
+        company_name="Landcare LLC",
+        lead_type="CARRIER",
+        fleet_size=2,
+        driver_count=2,
+        carrier_operation="Interstate",
+        phone_e164="+15163607916",
+        state="GA"
+    )
+    flags3 = LeadOrchestrator.evaluate_sanity_flags(c3)
+    assert flags3["phone_region_mismatch"] is True
+
+    # 4. Consistent carrier: Phone 404 (GA), State GA, 4 trucks, 4 drivers, Non-hazmat
+    c4 = Company(
+        company_name="Peach State Freight",
+        lead_type="CARRIER",
+        fleet_size=4,
+        driver_count=4,
+        carrier_operation="Interstate (Non-Hazmat)",
+        phone_e164="+14045550199",
+        state="GA"
+    )
+    flags4 = LeadOrchestrator.evaluate_sanity_flags(c4)
+    assert flags4["fleet_inconsistent"] is False
+    assert flags4["hazmat_carrier"] is False
+    assert flags4["phone_region_mismatch"] is False
+
+
+
 
 
 
