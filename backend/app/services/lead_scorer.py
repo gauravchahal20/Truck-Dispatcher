@@ -86,22 +86,29 @@ class LeadScorer:
         is_shipper = company.lead_type == "SHIPPER" or (company.fleet_size == 0 and "Shipper" in (company.carrier_operation or ""))
         
         if is_shipper:
-            fleet_score = weights.target_fleet_size
-            vol_desc = company.freight_volume or "Active Direct Outbound Freight"
-            breakdown["fleet_size"] = f"+{fleet_score} (Direct Shipper Demand: {vol_desc})"
-        elif company.fleet_size is not None and company.fleet_size >= 1:
-            fleet_score = weights.target_fleet_size
-            fleet_tier = "Solo Owner-Operator (1 truck)" if company.fleet_size == 1 else (
-                f"Small Fleet ({company.fleet_size} trucks)" if company.fleet_size <= 10 else (
-                    f"Mid-Size Fleet ({company.fleet_size} trucks)" if company.fleet_size <= 50 else f"Large Fleet ({company.fleet_size} trucks)"
-                )
-            )
-            breakdown["fleet_size"] = f"+{fleet_score} (Verified Carrier Capacity: {fleet_tier})"
-        elif company.operating_status and "ACTIVE" in company.operating_status.upper():
-            fleet_score = weights.target_fleet_size * 0.75
-            breakdown["fleet_size"] = f"+{fleet_score} (Active Carrier, fleet size estimated 1+)"
+            # H3: Shippers receive no automatic fleet points
+            fleet_score = 0.0
+            breakdown["fleet_size"] = "+0 (Shippers receive no automatic fleet points)"
+        elif company.fleet_size is not None and company.fleet_size > 0:
+            fleet_cfg = getattr(icp, "fleet_size", None)
+            min_fleet = getattr(fleet_cfg, "min", 2)
+            max_fleet = getattr(fleet_cfg, "max", 10)
+            partial_min = getattr(fleet_cfg, "partial_min", 1)
+            partial_max = getattr(fleet_cfg, "partial_max", 20)
+            partial_mult = getattr(fleet_cfg, "partial_multiplier", 0.5)
+
+            fs = company.fleet_size
+            if min_fleet <= fs <= max_fleet:
+                fleet_score = weights.target_fleet_size
+                breakdown["fleet_size"] = f"+{fleet_score} (Verified Carrier Capacity: {fs} trucks inside ICP range {min_fleet}-{max_fleet})"
+            elif (partial_min <= fs < min_fleet) or (max_fleet < fs <= partial_max):
+                fleet_score = round(weights.target_fleet_size * partial_mult, 2)
+                breakdown["fleet_size"] = f"+{fleet_score} (Verified Carrier Capacity: {fs} trucks in partial credit range {partial_min}-{partial_max})"
+            else:
+                fleet_score = 0.0
+                breakdown["fleet_size"] = f"+0 (Carrier Capacity: {fs} trucks far outside ICP range)"
         else:
-            breakdown["fleet_size"] = "+0 (Fleet size unknown)"
+            breakdown["fleet_size"] = "+0 (Fleet size unknown or 0)"
         total += fleet_score
 
         # 2. Verified Active / Authorized Carrier (+2.0)

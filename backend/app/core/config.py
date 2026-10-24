@@ -7,10 +7,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class FleetSizeConfig(BaseModel):
-    min: int = 1
-    max: int = 9999
-    preferred_min: int = 1
-    preferred_max: int = 9999
+    min: int = 2
+    max: int = 10
+    partial_min: int = 1
+    partial_max: int = 20
+    partial_multiplier: float = 0.5
+    preferred_min: int = 2
+    preferred_max: int = 10
 
 
 class CarrierPrefilterConfig(BaseModel):

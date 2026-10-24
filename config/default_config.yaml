@@ -22,10 +22,13 @@ icp:
     - "IN"
     - "MI"
   fleet_size:
-    min: 1
-    max: 9999
-    preferred_min: 1
-    preferred_max: 9999
+    min: 2
+    max: 10
+    partial_min: 1
+    partial_max: 20
+    partial_multiplier: 0.5
+    preferred_min: 2
+    preferred_max: 10
   equipment_types:
     - "dry_van"
     - "reefer"

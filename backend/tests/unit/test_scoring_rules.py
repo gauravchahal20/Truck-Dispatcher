@@ -177,8 +177,8 @@ def test_scorer_direct_shipper_scoring():
         ]
     )
     score_obj, priority = LeadScorer.calculate_score(shipper)
-    assert score_obj.target_fleet_size_score == 2.0
-    assert "Direct Shipper Demand" in score_obj.score_breakdown["fleet_size"]
+    assert score_obj.target_fleet_size_score == 0.0
+    assert "no automatic fleet points" in score_obj.score_breakdown["fleet_size"]
     assert score_obj.decision_maker_score == 2.0
     assert score_obj.usable_contact_score == 1.0
 
@@ -282,3 +282,83 @@ def test_icp_prefilter_allows_legitimate_freight_carriers():
     score_obj, priority = LeadScorer.calculate_score(comp)
     assert score_obj.total_score > 0.0
     assert priority != "REJECTED"
+
+
+def test_h3_fleet_scoring_icp_range():
+    """H3: Full fleet points inside configured ICP range (2-10)."""
+    carrier_mid = Company(
+        company_name="MID ICP CARRIER",
+        usdot="1111111",
+        lead_type="CARRIER",
+        operating_status="ACTIVE",
+        fleet_size=5
+    )
+    score_mid, _ = LeadScorer.calculate_score(carrier_mid)
+    assert score_mid.target_fleet_size_score == 2.0
+    assert "inside ICP range 2-10" in score_mid.score_breakdown["fleet_size"]
+
+
+def test_h3_fleet_scoring_partial_credit():
+    """H3: Partial credit just outside ICP range (fleet=1 or 11-20)."""
+    # 1 truck solo owner-operator -> partial
+    carrier_solo = Company(
+        company_name="SOLO OPERATOR",
+        usdot="2222222",
+        lead_type="CARRIER",
+        operating_status="ACTIVE",
+        fleet_size=1
+    )
+    score_solo, _ = LeadScorer.calculate_score(carrier_solo)
+    assert score_solo.target_fleet_size_score == 1.0  # 2.0 * 0.5
+
+    # 15 trucks mid-fleet -> partial
+    carrier_15 = Company(
+        company_name="FIFTEEN TRUCKS",
+        usdot="3333333",
+        lead_type="CARRIER",
+        operating_status="ACTIVE",
+        fleet_size=15
+    )
+    score_15, _ = LeadScorer.calculate_score(carrier_15)
+    assert score_15.target_fleet_size_score == 1.0  # 2.0 * 0.5
+
+
+def test_h3_fleet_scoring_far_outside_and_unknown():
+    """H3: Zero fleet points far outside (>20) or unknown/None."""
+    # 50 trucks -> far outside (>20) -> 0.0
+    carrier_large = Company(
+        company_name="LARGE FLEET CARRIER",
+        usdot="4444444",
+        lead_type="CARRIER",
+        operating_status="ACTIVE",
+        fleet_size=50
+    )
+    score_large, _ = LeadScorer.calculate_score(carrier_large)
+    assert score_large.target_fleet_size_score == 0.0
+
+    # None fleet size -> 0.0
+    carrier_none = Company(
+        company_name="UNKNOWN FLEET CARRIER",
+        usdot="5555555",
+        lead_type="CARRIER",
+        operating_status="ACTIVE",
+        fleet_size=None
+    )
+    score_none, _ = LeadScorer.calculate_score(carrier_none)
+    assert score_none.target_fleet_size_score == 0.0
+
+
+def test_h3_shippers_receive_no_automatic_fleet_points():
+    """H3: Shippers get no automatic fleet points."""
+    shipper = Company(
+        company_name="ACME MANUFACTURING",
+        lead_type="SHIPPER",
+        operating_status="ACTIVE",
+        fleet_size=0,
+        carrier_operation="Shipper",
+        freight_volume="50 loads/month"
+    )
+    score_shipper, _ = LeadScorer.calculate_score(shipper)
+    assert score_shipper.target_fleet_size_score == 0.0
+    assert "no automatic fleet points" in score_shipper.score_breakdown["fleet_size"]
+
