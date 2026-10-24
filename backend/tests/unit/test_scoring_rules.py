@@ -601,3 +601,10 @@ def test_j2_name_keyword_only_routes_to_needs_review_icp():
     assert st_clean == "QUALIFIED"
 
 
+def test_j3_mcs150_24_month_rolling_recency_config_default():
+    """J3: MCS-150 recency filter defaults to the last 24 months ('20241024'), config-driven."""
+    from app.core.config import config
+    assert config.icp.mcs150_min_date == "20241024"
+
+
+
