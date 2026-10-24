@@ -71,6 +71,7 @@ class RoleAccountWeights(BaseModel):
 
 
 class ScoringConfig(BaseModel):
+    registered_officer_partial_credit: float = 0.5
     weights: ScoringWeights = Field(default_factory=ScoringWeights)
     priority_thresholds: ScoringThresholds = Field(default_factory=ScoringThresholds)
     role_account_weights: RoleAccountWeights = Field(default_factory=RoleAccountWeights)
@@ -196,7 +197,7 @@ class SignalHalfLifeConfig(BaseModel):
 class SignalWeightsConfig(BaseModel):
     new_authority: float = 2.0
     insurance_cancel_pending: float = 1.5
-    mcs150_recent_update: float = 1.0
+    mcs150_recent_update: float = 0.5
     power_units_growth: float = 1.5
     generic_intent: float = 1.0
 

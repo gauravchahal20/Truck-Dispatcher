@@ -55,7 +55,7 @@ def test_scorer_none_and_unknown_safety():
 
     score_obj, priority = LeadScorer.calculate_score(company)
     assert score_obj.total_score == 0.0
-    assert priority == "REJECTED"
+    assert priority == "NONE"
     assert "unknown" in score_obj.score_breakdown["fleet_size"].lower()
     assert "no usdot" in score_obj.score_breakdown["active_carrier"].lower()
     assert "no decision maker" in score_obj.score_breakdown["decision_maker"].lower()
@@ -132,7 +132,7 @@ def test_scorer_priority_tiers():
     )
     score_rej, priority_rej = LeadScorer.calculate_score(c_rej)
     assert score_rej.total_score < 5.0
-    assert priority_rej == "REJECTED"
+    assert priority_rej == "NONE"
 
 
 def test_priority_thresholds_from_config():
@@ -172,9 +172,15 @@ def test_scorer_direct_shipper_scoring():
         lead_type="SHIPPER",
         freight_volume="50+ truckloads/week",
         phone="+14045550199",
-        email="marcus.vance@continental.example.com",
+        email="elena.rostova@continental.example.com",
         contacts=[
-            Contact(company_id="c-ship", full_name="Elena Rostova", title="Director of Logistics", is_decision_maker=True)
+            Contact(
+                company_id="c-ship",
+                full_name="Elena Rostova",
+                title="Director of Logistics",
+                email="elena.rostova@continental.example.com",
+                is_decision_maker=True
+            )
         ]
     )
     score_obj, priority = LeadScorer.calculate_score(shipper)
@@ -255,7 +261,7 @@ def test_icp_prefilter_requires_second_signal_for_name_keywords():
     assert "Driveaway/Towaway" in reason_cargo
     score_obj, priority = LeadScorer.calculate_score(confirmed_cargo)
     assert score_obj.total_score == 0.0
-    assert priority == "NOT_ICP"
+    assert priority == "NONE"
 
     # 3. Name keyword confirmed by carrier operation -> NOT_ICP
     confirmed_op = Company(
@@ -271,7 +277,7 @@ def test_icp_prefilter_requires_second_signal_for_name_keywords():
     assert "Passenger" in reason_op
     score_obj, priority = LeadScorer.calculate_score(confirmed_op)
     assert score_obj.total_score == 0.0
-    assert priority == "NOT_ICP"
+    assert priority == "NONE"
 
 
 def test_icp_prefilter_whole_word_matching():
@@ -344,7 +350,7 @@ def test_icp_prefilter_excludes_non_freight_by_carrier_operation():
     assert "Excluded carrier operation 'Passenger'" in reason
     score_obj, priority = LeadScorer.calculate_score(comp)
     assert score_obj.total_score == 0.0
-    assert priority == "NOT_ICP"
+    assert priority == "NONE"
 
 
 def test_icp_prefilter_allows_legitimate_freight_carriers():
@@ -606,6 +612,92 @@ def test_j3_mcs150_24_month_rolling_recency_config_default():
     """J3: MCS-150 recency filter defaults to the last 24 months ('20241024'), config-driven."""
     from app.core.config import config
     assert config.icp.mcs150_min_date == "20241024"
+
+
+def test_k3_scoring_rules_priority_and_officer_corroboration():
+    """
+    K3: Verifies registered-officer partial credit (50% uncorroborated vs 100% corroborated),
+    priority is strictly score band (A, B, C, NONE, never 'REJECTED'),
+    and hard-gate rejected leads get priority NONE regardless of score.
+    """
+    # 1. Uncorroborated Registered Officer -> 50% partial credit (+1.0)
+    company_uncorroborated = Company(
+        id="c-uncorr",
+        company_name="Solitary Transport LLC",
+        usdot="1234567",
+        fleet_size=4,
+        operating_status="AUTHORIZED FOR HIRE",
+        equipment=["dry_van"],
+        phone="(555) 019-2834",
+        email=None,
+        contacts=[
+            Contact(company_id="c-uncorr", full_name="John Doe", title="Company Officer (MCS-150)", is_decision_maker=True)
+        ]
+    )
+    score_obj, priority = LeadScorer.calculate_score(company_uncorroborated)
+    # Fleet (2.0) + Active (2.0) + DM (1.0) + Equip (1.0) + Phone (0.75) = 6.75 -> 6.8 (Priority B)
+    assert score_obj.decision_maker_score == 1.0
+    assert "Uncorroborated" in score_obj.score_breakdown["decision_maker"]
+    assert priority == "B"
+    assert priority in ("A", "B", "C", "NONE")
+
+    # 2. Corroborated Registered Officer (Matching Named Individual Email) -> 100% full credit (+2.0)
+    company_corroborated = Company(
+        id="c-corr",
+        company_name="Verified Transport LLC",
+        usdot="1234568",
+        fleet_size=4,
+        operating_status="AUTHORIZED FOR HIRE",
+        equipment=["dry_van"],
+        phone="(555) 019-2835",
+        email="john.doe@verifiedtransport.com",
+        contacts=[
+            Contact(
+                company_id="c-corr",
+                full_name="John Doe",
+                title="President",
+                email="john.doe@verifiedtransport.com",
+                is_decision_maker=True
+            )
+        ]
+    )
+    score_corr, priority_corr = LeadScorer.calculate_score(company_corroborated)
+    # Fleet (2.0) + Active (2.0) + DM (2.0) + Equip (1.0) + Phone/Email (1.0) = 8.0 (Priority A)
+    assert score_corr.decision_maker_score == 2.0
+    assert "Corroborated" in score_corr.score_breakdown["decision_maker"]
+    assert priority_corr == "A"
+
+    # 3. Hard-gate REJECTED lead (e.g. Private Property) scores above 5.0 -> Priority MUST BE NONE
+    company_private = Company(
+        id="c-priv",
+        company_name="Private Yard LLC",
+        usdot="1234569",
+        lead_status="REJECTED",
+        fleet_size=4,
+        operating_status="PRIVATE PROPERTY",
+        equipment=["dry_van"],
+        phone="(555) 019-2836",
+        email="owner@privateyard.com",
+        contacts=[
+            Contact(company_id="c-priv", full_name="Alice Smith", title="Owner", is_decision_maker=True)
+        ]
+    )
+    score_priv, priority_priv = LeadScorer.calculate_score(company_private)
+    assert priority_priv == "NONE"
+    assert priority_priv != "REJECTED"
+
+    # 4. Low-scoring lead below 5.0 -> Priority MUST BE NONE (never 'REJECTED')
+    company_low = Company(
+        id="c-low",
+        company_name="Low Scoring LLC",
+        fleet_size=None,
+        operating_status=None,
+        contacts=[]
+    )
+    score_low, priority_low = LeadScorer.calculate_score(company_low)
+    assert priority_low == "NONE"
+    assert priority_low != "REJECTED"
+
 
 
 

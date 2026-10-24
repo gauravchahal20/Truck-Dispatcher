@@ -135,6 +135,7 @@ intent_signals:
 
 # Configurable Lead Scoring Matrix
 scoring:
+  registered_officer_partial_credit: 0.5 # Partial credit (50%) until corroborated by secondary source
   weights:
     target_fleet_size: 2.0        # Fleet size in target range (2-10)
     verified_active_carrier: 2.0  # FMCSA active for-hire authority
@@ -320,7 +321,7 @@ signals:
     weights:
       new_authority: 2.0
       insurance_cancel_pending: 1.5
-      mcs150_recent_update: 1.0
+      mcs150_recent_update: 0.5 # Small capped weight for recent updates within 60 days
       power_units_growth: 1.5
       generic_intent: 1.0
     new_authority_window:

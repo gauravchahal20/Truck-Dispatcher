@@ -49,10 +49,10 @@ def test_j6_no_signal_means_zero_intent_points():
         operating_status="AUTHORIZED FOR HIRE",  # +2.0
         equipment=["dry_van"],  # +1.0
         phone="+12145550199",
-        email="owner@cleanfleet.com",  # +1.0
+        email="john.doe@cleanfleet.com",  # +1.0
         intent_signals=[]  # No signals
     )
-    dm = Contact(full_name="John Doe", title="Owner", is_decision_maker=True)  # +2.0
+    dm = Contact(full_name="John Doe", title="Owner", email="john.doe@cleanfleet.com", is_decision_maker=True)  # +2.0
     company.contacts = [dm]
 
     score_entity, priority = LeadScorer.calculate_score(company)

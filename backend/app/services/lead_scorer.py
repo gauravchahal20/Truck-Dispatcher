@@ -106,7 +106,7 @@ class LeadScorer:
                 total_score=0.0,
                 fit_score=0.0,
                 intent_score=0.0,
-                priority="NOT_ICP",
+                priority="NONE",
                 scoring_version="2.0",
                 target_fleet_size_score=0.0,
                 verified_active_carrier_score=0.0,
@@ -117,7 +117,7 @@ class LeadScorer:
                 tech_business_event_score=0.0,
                 score_breakdown=breakdown
             )
-            return lead_score_entity, "NOT_ICP"
+            return lead_score_entity, "NONE"
         elif icp_status == "NEEDS_REVIEW_ICP":
             breakdown["icp_prefilter"] = f"REVIEW_REQUIRED: {prefilter_reason}"
 
@@ -175,11 +175,36 @@ class LeadScorer:
 
         # 3. Decision Maker Identified (+2.0)
         dm_score = 0.0
-        has_dm = any(c.is_decision_maker for c in (company.contacts or []))
-        if has_dm:
-            dm_contact = next(c for c in company.contacts if c.is_decision_maker)
-            dm_score = weights.decision_maker_identified
-            breakdown["decision_maker"] = f"+{dm_score} (Identified {dm_contact.title}: {dm_contact.full_name})"
+        dm_contacts = [c for c in (company.contacts or []) if c.is_decision_maker]
+        if dm_contacts:
+            dm_contact = dm_contacts[0]
+            # K3: Registered-officer credit: partial (configurable, default 50%)
+            # until corroborated by a second source (website team page, FMCSA contact, or human outcome)
+            has_outcome = bool(getattr(dm_contact, "outcomes", None)) or (
+                hasattr(company, "outcomes") and bool(company.outcomes)
+            )
+            named_email_corroborated = False
+            target_email = dm_contact.email or company.email
+            if target_email and dm_contact.full_name:
+                from .email_verifier import EmailVerifier
+                named_email_corroborated = EmailVerifier.is_named_person_match(target_email, dm_contact.full_name)
+
+            src_url = getattr(dm_contact, "source_url", "") or ""
+            has_secondary_src = bool(
+                ("linkedin" in src_url.lower()) or
+                ("website" in src_url.lower()) or
+                (getattr(dm_contact, "verification_status", "") == "CORROBORATED")
+            )
+
+            is_corroborated = has_outcome or named_email_corroborated or has_secondary_src
+            partial_ratio = getattr(config.scoring, "registered_officer_partial_credit", 0.5)
+
+            if is_corroborated:
+                dm_score = weights.decision_maker_identified
+                breakdown["decision_maker"] = f"+{dm_score} (Corroborated Decision Maker: {dm_contact.title} - {dm_contact.full_name})"
+            else:
+                dm_score = round(weights.decision_maker_identified * partial_ratio, 2)
+                breakdown["decision_maker"] = f"+{dm_score} (Uncorroborated Registered Officer: {dm_contact.title} - {dm_contact.full_name} [{int(partial_ratio*100)}% partial credit])"
         elif company.contacts:
             dm_score = weights.decision_maker_identified * 0.4
             breakdown["decision_maker"] = f"+{dm_score} (Staff contact identified without executive title)"
@@ -251,14 +276,18 @@ class LeadScorer:
         combined_total = round(min(10.0, fit_score + intent_points), 1)
 
         # Determine Priority Tier from config thresholds
-        if combined_total >= thresholds.priority_a_min:
+        # K3: Priority is a score band only: A / B / C / NONE (never 'REJECTED')
+        # Hard-gate rejected and NOT_ICP leads get no tier (NONE) and are excluded from tier counts
+        if (getattr(company, "lead_status", None) in ("REJECTED", "NOT_ICP")) or icp_status == "NOT_ICP":
+            priority = "NONE"
+        elif combined_total >= thresholds.priority_a_min:
             priority = "A"
         elif combined_total >= thresholds.priority_b_min:
             priority = "B"
         elif combined_total >= thresholds.priority_c_min:
             priority = "C"
         else:
-            priority = "REJECTED"
+            priority = "NONE"
 
         lead_score_entity = LeadScore(
             company_id=company.id,
