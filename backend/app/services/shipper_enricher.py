@@ -10,56 +10,6 @@ from .contact_crawler import ContactCrawler
 
 logger = logging.getLogger("trucklead.enricher.shipper")
 
-# Recorded benchmark shipper fixtures for offline execution
-RECORDED_SHIPPER_FIXTURES: Dict[str, Dict[str, Any]] = {
-    "Tesla": {
-        "formatted_phone_number": "(512) 516-8177",
-        "website": "https://www.tesla.com",
-        "formatted_address": "13101 Tesla Rd, Austin, TX 78725",
-        "contacts": [
-            {"full_name": "Marcus Vance", "title": "Inbound Transportation Manager", "email": "mvance@tesla.com", "is_decision_maker": True}
-        ]
-    },
-    "Lockheed Martin Aeronautics Co.": {
-        "formatted_phone_number": "(817) 777-2000",
-        "website": "https://www.lockheedmartin.com",
-        "formatted_address": "1 Lockheed Blvd, Fort Worth, TX 76108",
-        "contacts": [
-            {"full_name": "David Sterling", "title": "Director of Logistics & Supply Chain", "email": "david.sterling@lockheedmartin.com", "is_decision_maker": True}
-        ]
-    },
-    "Gulfstream Aerospace Corp.": {
-        "formatted_phone_number": "(912) 965-3000",
-        "website": "https://www.gulfstream.com",
-        "formatted_address": "500 Gulfstream Rd, Savannah, GA 31408",
-        "contacts": [
-            {"full_name": "Elena Rostova", "title": "Freight & Traffic Superintendent", "email": "elena.rostova@gulfstream.com", "is_decision_maker": True}
-        ]
-    },
-    "General Electric Co.": {
-        "formatted_phone_number": "(513) 243-2000",
-        "website": "https://www.ge.com",
-        "formatted_address": "1 Neumann Way, Cincinnati, OH 45215",
-        "contacts": [
-            {"full_name": "Thomas Wright", "title": "Global Logistics Operations Leader", "email": "thomas.wright@ge.com", "is_decision_maker": True}
-        ]
-    }
-}
-
-
-class MockPlacesProvider:
-    """Mock Google Places provider returning recorded shipper contacts for offline benchmarks."""
-    name = "mock_google_places"
-
-    def is_configured(self) -> bool:
-        return True
-
-    async def search_place(self, company_name: str, city: Optional[str] = None, state: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        for key, data in RECORDED_SHIPPER_FIXTURES.items():
-            if key.lower() in company_name.lower() or company_name.lower() in key.lower():
-                return data
-        return None
-
 
 class GooglePlacesClient:
     """

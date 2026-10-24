@@ -4,7 +4,8 @@ from sqlalchemy import select
 
 from app.models.entities import Company, Contact, Run, SuppressionEntry, PhoneVerificationCache, LeadOutcome
 from app.services.normalizer import Normalizer
-from app.services.phone_verifier import PhoneVerifier, MockPhoneProvider, PhoneVerificationResult
+from app.services.phone_verifier import PhoneVerifier, PhoneVerificationResult
+from tests.fixtures.mock_providers import MockPhoneProvider, MockPlacesProvider
 from app.services.email_verifier import EmailVerifier
 from app.services.lead_scorer import LeadScorer
 from app.api.routes_outcomes import log_lead_outcome, LogOutcomeRequest, list_callable_mailable_leads
@@ -657,7 +658,8 @@ async def test_honest_verification_labels_and_corroboration():
 @pytest.mark.asyncio
 async def test_shipper_contact_enrichment_mock_and_offline():
     """Validates shipper contact enrichment using MockPlacesProvider with recorded fixtures."""
-    from app.services.shipper_enricher import GooglePlacesClient, MockPlacesProvider, ShipperEnricher
+    from app.services.shipper_enricher import GooglePlacesClient, ShipperEnricher
+    from tests.fixtures.mock_providers import MockPlacesProvider
 
     # 1. Unconfigured GooglePlacesClient
     real_client = GooglePlacesClient(api_key=None)
