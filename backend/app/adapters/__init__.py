@@ -13,6 +13,7 @@ from .b2b_enrichment import B2BEnrichmentAdapter
 from .industry_directories import IndustryDirectoriesAdapter
 from .procurement_news import ProcurementNewsAdapter
 from .specialized_verticals import SpecializedVerticalsAdapter
+from .new_authority import NewAuthorityAdapter
 
 __all__ = [
     "BaseSourceAdapter",
@@ -32,5 +33,6 @@ __all__ = [
     "B2BEnrichmentAdapter",
     "IndustryDirectoriesAdapter",
     "ProcurementNewsAdapter",
-    "SpecializedVerticalsAdapter"
+    "SpecializedVerticalsAdapter",
+    "NewAuthorityAdapter"
 ]

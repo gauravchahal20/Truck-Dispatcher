@@ -390,8 +390,8 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
 
             record = RawLeadRecord(
                 company_name=rec.legal_name or rec.dba_name,
-                usdot=rec.dot_number,
-                mc_number=rec.docket_number,
+                usdot=Normalizer.normalize_usdot(rec.dot_number),
+                mc_number=Normalizer.normalize_docket(rec.docket_number),
                 city=rec.phy_city,
                 state=rec.phy_state,
                 address=rec.phy_street,
@@ -582,7 +582,8 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
             count = 0
             for r in records:
                 raw_dot = r.get("dot_number")
-                dot_clean = str(raw_dot).lstrip("0") if raw_dot else None
+                dot_clean = Normalizer.normalize_usdot(raw_dot)
+                docket_clean = Normalizer.normalize_docket(r.get("docket_number"))
                 checksum = self._compute_checksum(r)
 
                 policy = r.get("policy_no")
@@ -595,6 +596,7 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                     existing = res.scalar_one_or_none()
 
                 if existing:
+                    existing.docket_number = docket_clean
                     existing.ins_form_code = r.get("ins_form_code")
                     existing.name_company = r.get("name_company")
                     existing.underl_lim_amount = r.get("underl_lim_amount")
@@ -606,7 +608,7 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 else:
                     new_item = FMCSAInsurance(
                         dot_number=dot_clean,
-                        docket_number=r.get("docket_number"),
+                        docket_number=docket_clean,
                         ins_form_code=r.get("ins_form_code"),
                         name_company=r.get("name_company"),
                         policy_no=policy,
@@ -705,7 +707,8 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
             count = 0
             for r in records:
                 dot = r.get("usdot_number") or r.get("dot_number")
-                dot_clean = str(dot).lstrip("0") if dot else None
+                dot_clean = Normalizer.normalize_usdot(dot)
+                docket_clean = Normalizer.normalize_docket(r.get("docket_number"))
                 checksum = self._compute_checksum(r)
 
                 order_desc = r.get("order1_type_desc") or r.get("order_type_desc")
@@ -720,13 +723,14 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                     existing = res.scalar_one_or_none()
 
                 if existing:
+                    existing.docket_number = docket_clean
                     existing.serve_date = serve_date
                     existing.raw_checksum = checksum
                     existing.synced_at = now
                 else:
                     new_item = FMCSAAuthorityHistory(
                         dot_number=dot_clean,
-                        docket_number=r.get("docket_number"),
+                        docket_number=docket_clean,
                         op_auth_type=r.get("op_auth_type"),
                         order_type_desc=order_desc,
                         serve_date=serve_date,
@@ -818,7 +822,8 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
             count = 0
             for r in records:
                 raw_dot = r.get("dot_number")
-                dot_clean = str(raw_dot).lstrip("0") if raw_dot else None
+                dot_clean = Normalizer.normalize_usdot(raw_dot)
+                docket_clean = Normalizer.normalize_docket(r.get("docket_number"))
                 checksum = self._compute_checksum(r)
 
                 policy = r.get("policy_no")
@@ -831,13 +836,14 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                     existing = res.scalar_one_or_none()
 
                 if existing:
+                    existing.docket_number = docket_clean
                     existing.rej_reasons = r.get("rej_reasons")
                     existing.raw_checksum = checksum
                     existing.synced_at = now
                 else:
                     new_item = FMCSANewApplication(
                         dot_number=dot_clean,
-                        docket_number=r.get("docket_number"),
+                        docket_number=docket_clean,
                         ins_form_code=r.get("ins_form_code"),
                         policy_no=policy,
                         recv_date=r.get("recv_date"),

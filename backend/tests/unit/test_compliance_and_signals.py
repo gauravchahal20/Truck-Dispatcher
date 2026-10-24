@@ -319,3 +319,75 @@ async def test_j4_signal_coverage_and_config_caps():
         assert "1234567" in stored_dots
 
 
+@pytest.mark.asyncio
+async def test_k4_signals_canonical_join_and_new_authority_discovery():
+    """K4: Verifies canonical join normalization and new_authority discovery adapter."""
+    from backend.app.adapters.new_authority import NewAuthorityAdapter
+    from backend.app.models.entities import FMCSACarrierCensus, FMCSAInsurance
+    from backend.app.services.normalizer import Normalizer
+    from datetime import datetime, timezone, timedelta
+
+    now = datetime.now(timezone.utc)
+    grant_60d_ago = (now - timedelta(days=60)).strftime("%Y%m%d")
+
+    async with AsyncSessionLocal() as session:
+        # 1. Insert census carrier with authority granted 60 days ago
+        test_dot = "99887766"
+        test_mc = "554433"
+        census_rec = FMCSACarrierCensus(
+            dot_number=test_dot,
+            docket_number=f"MC-{test_mc}",
+            legal_name="Pioneer Freightways LLC",
+            phy_state="TX",
+            phy_city="Dallas",
+            power_units=4,
+            operating_status="AUTHORIZED FOR HIRE",
+            safety_rating="S",
+            add_date=grant_60d_ago,
+            phone="2145550177"
+        )
+        session.add(census_rec)
+
+        # 2. Insert insurance record with zero padding / MC prefix
+        ins_rec = FMCSAInsurance(
+            dot_number=f"00{test_dot}",
+            docket_number=f"MC00{test_mc}",
+            policy_no="POL-K4-TEST",
+            effective_date="2026-08-01"
+        )
+        session.add(ins_rec)
+        await session.commit()
+
+        # 3. Test canonical normalization allows exact match across representations
+        norm_carrier_dot = Normalizer.normalize_usdot(test_dot)
+        norm_ins_dot = Normalizer.normalize_usdot(ins_rec.dot_number)
+        assert norm_carrier_dot == norm_ins_dot == "99887766"
+
+        norm_carrier_mc = Normalizer.normalize_docket(census_rec.docket_number)
+        norm_ins_mc = Normalizer.normalize_docket(ins_rec.docket_number)
+        assert norm_carrier_mc == norm_ins_mc == "554433"
+
+        # 4. Run NewAuthorityAdapter discovery
+        adapter = NewAuthorityAdapter(enabled=True)
+        assert adapter.name == "new_authority"
+
+        leads = await adapter.discover_candidates(
+            target_states=["TX"],
+            fleet_min=2,
+            fleet_max=10,
+            limit=10
+        )
+        matched = [l for l in leads if l.usdot == test_dot]
+        assert len(matched) == 1
+        lead = matched[0]
+
+        assert lead.company_name == "Pioneer Freightways LLC"
+        assert lead.fleet_size == 4
+        assert lead.state == "TX"
+        assert lead.usdot == "99887766"
+        assert lead.mc_number == "554433"
+        assert "New operating authority granted" in lead.notes
+        assert lead.field_provenance["usdot"]["method"] == "official"
+        assert "az4n-8mr2" in lead.field_provenance["usdot"]["url"]
+
+

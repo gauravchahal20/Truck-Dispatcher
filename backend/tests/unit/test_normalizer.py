@@ -28,7 +28,19 @@ def test_format_phone_display():
 def test_normalize_usdot():
     assert Normalizer.normalize_usdot("USDOT# 3849102") == "3849102"
     assert Normalizer.normalize_usdot("3512940") == "3512940"
+    assert Normalizer.normalize_usdot("003458870") == "3458870"
+    assert Normalizer.normalize_usdot(" 00012345 ") == "12345"
+    assert Normalizer.normalize_usdot("00000000") is None
     assert Normalizer.normalize_usdot(None) is None
+
+def test_normalize_docket():
+    assert Normalizer.normalize_docket("MC1572973") == "1572973"
+    assert Normalizer.normalize_docket("MC-424836") == "424836"
+    assert Normalizer.normalize_docket("MC066124") == "66124"
+    assert Normalizer.normalize_docket("781620") == "781620"
+    assert Normalizer.normalize_docket("") is None
+    assert Normalizer.normalize_docket("MC-000123") == "123"
+    assert Normalizer.normalize_docket(None) is None
 
 def test_normalize_email():
     assert Normalizer.normalize_email("  Dispatch@AcmeTrucking.com ") == "dispatch@acmetrucking.com"

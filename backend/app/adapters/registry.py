@@ -15,6 +15,7 @@ from .b2b_enrichment import B2BEnrichmentAdapter
 from .industry_directories import IndustryDirectoriesAdapter
 from .procurement_news import ProcurementNewsAdapter
 from .specialized_verticals import SpecializedVerticalsAdapter
+from .new_authority import NewAuthorityAdapter
 from ..core.config import config
 
 logger = logging.getLogger("trucklead.registry")
@@ -57,6 +58,9 @@ class SourceRegistry:
         
         # 8. Specialized Verticals & Drayage Hubs
         self.register(SpecializedVerticalsAdapter(enabled=True))
+        
+        # 9. New Operating Authority Discovery (Sweet spot: 30-120 days post-grant)
+        self.register(NewAuthorityAdapter(enabled=True))
 
     def register(self, adapter: BaseSourceAdapter):
         """Adds a source adapter to the registry."""
@@ -75,6 +79,7 @@ class SourceRegistry:
         """Returns adapters enabled for discovery matching optional filter and lead type."""
         carrier_sources = {
             "fmcsa_official",
+            "new_authority",
             "fmcsa_safer",
             "fmcsa_li",
             "google_maps",

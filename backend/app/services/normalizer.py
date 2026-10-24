@@ -209,11 +209,29 @@ class Normalizer:
 
     @staticmethod
     def normalize_usdot(usdot: Optional[str]) -> Optional[str]:
-        """Strips non-digits and leading noise from USDOT."""
+        """Strips non-digits and leading zeros from USDOT, returning canonical integer string."""
         if not usdot:
             return None
-        digits = re.sub(r"\D", "", str(usdot)).strip()
-        return digits if digits else None
+        s = str(usdot).strip()
+        digits = re.sub(r"\D", "", s).strip()
+        canonical = digits.lstrip("0")
+        return canonical if canonical else None
+
+    @staticmethod
+    def normalize_docket(docket: Optional[str]) -> Optional[str]:
+        """
+        Strips non-digits and leading zeros from MC/FF/MX docket numbers,
+        returning canonical integer string (e.g. 'MC-424836' -> '424836', 'MC066124' -> '66124').
+        Returns None for invalid or corrupted values (e.g., replacement character \ufffd).
+        """
+        if not docket:
+            return None
+        s = str(docket).strip()
+        if "\ufffd" in s or "?" in s:
+            s = re.sub(r"[\ufffd\?]", "", s)
+        digits = re.sub(r"\D", "", s).strip()
+        canonical = digits.lstrip("0")
+        return canonical if canonical else None
 
     @staticmethod
     def normalize_email(email: Optional[str]) -> Optional[str]:
