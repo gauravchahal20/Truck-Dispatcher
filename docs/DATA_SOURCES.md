@@ -262,3 +262,18 @@ An audit was conducted across stored carriers, census mirror records, and the 23
    - Re-running the strict authority gate across stored carriers drops `QUALIFIED` from 62 to 0, routing 85 carriers to `NEEDS_ENRICHMENT` awaiting L&I/insurance synchronization or manual operator verification.
    - Provenance records `authority_status_source` as `li_dataset`, `census_docket`, or `manual_operator`.
 
+### 5.5 Inspection of 14 No-Docket Target-State Candidates (L2d)
+- **Cohort**: 14 carriers from the 43 target-state candidate pool (CA, GA, TX, FL, IL, Fleet 2-10, Operation `A`, 30-120 days) that lacked `docket_number` values in the census mirror.
+- **Lookup Results**: Target-lookup against `nakq-58th` (Motus Carrier) and `9mw4-x3tu` (Active Pending Insurance) returned **0 / 14 matches (100% `NO_RECORD`)**.
+- **Root Cause & Disposition**: These entities registered on the MCS-150 census declaring `carrier_operation = 'A'` (authorized for hire), but never completed an operating authority filing with FMCSA Licensing & Insurance (either operating strictly intrastate or abandoning interstate registration).
+- **Enforcement**: All 14 carriers are strictly retained as `NEEDS_REVIEW` with explicit reason recorded: `"No operating authority or docket filing on file in FMCSA L&I (intrastate or private registrant)"`. Zero ingestion.
+
+### 5.6 Operator Manual Authority Verification & Sanity Flags (L2i)
+- **Ready-to-Contact Filter**: Added `"Authority unproven - verify manually"` filter mode to `/api/leads/callable-mailable` to expose reachable carriers needing manual SAFER verification.
+- **Manual Verification Form/Endpoint**: `POST /api/leads/{company_id}/verify-authority-manual` allows operators to enter date, MC number, authority status, and insurance filing verification as observed on official SAFER (`https://safer.fmcsa.dot.gov/CompanySnapshot.aspx`). Updates provenance (`method="manual_operator"`), re-scores, and re-evaluates lifecycle status.
+- **Data Sanity Flags**:
+  - `fleet_inconsistent`: Flags divergence between power units, truck units, and drivers (42.9% across stored carriers).
+  - `hazmat_carrier`: Flags hazardous material haulers via `hm_ind = 'Y'` or explicit hazmat operation/equipment (47.1% across stored carriers; filters out `NON-HAZMAT`).
+  - `phone_region_mismatch`: Flags phone area code geocoded US state divergence from business address state (11.8% across stored carriers, e.g. SOPHY'S FRUITS FL address vs 973 NJ phone).
+
+
