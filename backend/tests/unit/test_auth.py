@@ -4,6 +4,17 @@ from app.main import app
 from app.core.config import settings
 
 
+from app.core.database import async_engine, Base
+
+
+@pytest.fixture(autouse=True)
+async def setup_test_db():
+    """Ensure database tables exist for auth endpoint testing."""
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+
 @pytest.fixture
 def configure_test_api_key(monkeypatch):
     """Sets a deterministic API key in the environment for auth testing."""

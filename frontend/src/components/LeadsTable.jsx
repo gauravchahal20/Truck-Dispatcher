@@ -283,8 +283,10 @@ export default function LeadsTable({
               <option value="ALL">All Statuses</option>
               <option value="FINAL">FINAL (Approved)</option>
               <option value="QUALIFIED">QUALIFIED</option>
+              <option value="NEEDS_ENRICHMENT">NEEDS ENRICHMENT</option>
               <option value="RESEARCHING">RESEARCHING</option>
               <option value="NEEDS_REVIEW">NEEDS REVIEW</option>
+              <option value="NOT_ICP">NOT ICP</option>
               <option value="REJECTED">REJECTED</option>
             </select>
           </div>

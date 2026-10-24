@@ -275,6 +275,25 @@ Best regards,
               </div>
             </div>
 
+            {/* Lead Status / Rejection / NOT_ICP Reason Banner */}
+            {lead.rejection_reason && (
+              <div style={{
+                padding: '10px 24px',
+                backgroundColor: lead.lead_status === 'NOT_ICP' ? '#FEF3C7' : '#FEE2E2',
+                borderBottom: '1px solid ' + (lead.lead_status === 'NOT_ICP' ? '#FDE68A' : '#FECACA'),
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.775rem',
+                color: lead.lead_status === 'NOT_ICP' ? '#92400E' : '#B91C1C'
+              }}>
+                <AlertTriangle size={14} />
+                <span>
+                  <strong>{lead.lead_status === 'NOT_ICP' ? 'NOT ICP (Reviewable):' : 'Rejection Reason:'}</strong> {lead.rejection_reason}
+                </span>
+              </div>
+            )}
+
             {/* Sub-Tab Navigation */}
             <div style={{
               display: 'flex',
@@ -582,7 +601,9 @@ Best regards,
                 >
                   <option value="FINAL">FINAL (Approved)</option>
                   <option value="QUALIFIED">QUALIFIED</option>
+                  <option value="NEEDS_ENRICHMENT">NEEDS ENRICHMENT</option>
                   <option value="NEEDS_REVIEW">NEEDS REVIEW</option>
+                  <option value="NOT_ICP">NOT ICP</option>
                   <option value="REJECTED">REJECTED</option>
                 </select>
 

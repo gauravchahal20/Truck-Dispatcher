@@ -221,35 +221,116 @@ def test_scorer_contactability_role_account_tiers():
     assert s_none.usable_contact_score == 0.0
 
 
-def test_icp_prefilter_excludes_non_freight_carriers_by_name_keywords():
-    """H2: Verifies that wrecker, towing, auto sales, and dumpster companies are excluded before scoring."""
-    non_freight_names = [
-        "CANTU'S WRECKER SERVICE",
-        "OREGON TOWING & TRANSPORT LLC",
-        "SAMS AUTOS LLC DBA SAMS AUTO SALES",
-        "CLEVELAND DUMPSTERS LLC",
-        "HAULX ROLL-OFF DUMPSTER LLC",
-        "GREEN ACRES LANDSCAPING LLC",
-        "CITY CHARTER BUS LINES INC",
-    ]
-    for name in non_freight_names:
-        comp = Company(
-            company_name=name,
-            usdot="1234567",
-            lead_type="CARRIER",
-            fleet_size=4,
-            operating_status="AUTHORIZED FOR Property"
-        )
-        is_excluded, reason = LeadScorer.evaluate_icp_prefilter(comp)
-        assert is_excluded is True
-        assert "ICP Pre-filter" in reason
-        score_obj, priority = LeadScorer.calculate_score(comp)
-        assert score_obj.total_score == 0.0
-        assert priority == "REJECTED"
+def test_icp_prefilter_requires_second_signal_for_name_keywords():
+    """I1: Name keyword alone does NOT exclude; requires confirming operation or cargo signal."""
+    # 1. Name keyword without second signal passes pre-filter
+    unconfirmed_comp = Company(
+        company_name="HAULX ROLL-OFF DUMPSTER LLC",
+        usdot="7438717",
+        lead_type="CARRIER",
+        carrier_operation="Intrastate Non-Hazmat",
+        operating_status="AUTHORIZED FOR HIRE",
+        fleet_size=2,
+        equipment=["general_freight"]
+    )
+    is_excluded, reason = LeadScorer.evaluate_icp_prefilter(unconfirmed_comp)
+    assert is_excluded is False
+    assert reason is None
+    score_obj, priority = LeadScorer.calculate_score(unconfirmed_comp)
+    assert priority != "NOT_ICP"
+
+    # 2. Name keyword confirmed by cargo classification -> NOT_ICP
+    confirmed_cargo = Company(
+        company_name="CANTU'S WRECKER SERVICE",
+        usdot="3319088",
+        lead_type="CARRIER",
+        carrier_operation="Intrastate Non-Hazmat",
+        operating_status="AUTHORIZED FOR HIRE",
+        fleet_size=8,
+        equipment=["Driveaway/Towaway"]
+    )
+    is_ex_cargo, reason_cargo = LeadScorer.evaluate_icp_prefilter(confirmed_cargo)
+    assert is_ex_cargo is True
+    assert "Driveaway/Towaway" in reason_cargo
+    score_obj, priority = LeadScorer.calculate_score(confirmed_cargo)
+    assert score_obj.total_score == 0.0
+    assert priority == "NOT_ICP"
+
+    # 3. Name keyword confirmed by carrier operation -> NOT_ICP
+    confirmed_op = Company(
+        company_name="CITY CHARTER BUS LINES INC",
+        usdot="1234567",
+        lead_type="CARRIER",
+        carrier_operation="Passenger",
+        operating_status="AUTHORIZED FOR HIRE",
+        fleet_size=4
+    )
+    is_ex_op, reason_op = LeadScorer.evaluate_icp_prefilter(confirmed_op)
+    assert is_ex_op is True
+    assert "Passenger" in reason_op
+    score_obj, priority = LeadScorer.calculate_score(confirmed_op)
+    assert score_obj.total_score == 0.0
+    assert priority == "NOT_ICP"
+
+
+def test_icp_prefilter_whole_word_matching():
+    """I1: Whole-word matching prevents false positive exclusions on partial substrings."""
+    comp = Company(
+        company_name="TOWNSHIP FREIGHT & LOGISTICS",
+        usdot="9876543",
+        lead_type="CARRIER",
+        carrier_operation="Interstate",
+        operating_status="AUTHORIZED FOR Property",
+        fleet_size=5,
+        equipment=["dry_van"]
+    )
+    is_excluded, reason = LeadScorer.evaluate_icp_prefilter(comp)
+    assert is_excluded is False
+    assert reason is None
+
+
+def test_icp_prefilter_car_haulers_not_excluded_by_default():
+    """I1: Car haulers (MOTOR_VEHICLES cargo) are NOT excluded by default."""
+    comp = Company(
+        company_name="APEX AUTO TRANSPORT HAULERS",
+        usdot="5544332",
+        lead_type="CARRIER",
+        carrier_operation="Interstate",
+        operating_status="AUTHORIZED FOR HIRE",
+        fleet_size=6,
+        equipment=["flatbed", "motor_vehicles"]
+    )
+    is_excluded, reason = LeadScorer.evaluate_icp_prefilter(comp)
+    assert is_excluded is False
+    assert reason is None
+
+
+def test_icp_prefilter_configurable_household_goods(monkeypatch):
+    """I1: Household goods exclusion is configurable."""
+    from app.core.config import config
+    comp = Company(
+        company_name="RELIABLE MOVING SYSTEMS",
+        usdot="1122334",
+        lead_type="CARRIER",
+        carrier_operation="Interstate",
+        operating_status="AUTHORIZED FOR HIRE",
+        fleet_size=3,
+        equipment=["Household Goods"]
+    )
+    # 1. By default, household goods is not excluded
+    monkeypatch.setattr(config.icp.carrier_prefilter, "exclude_household_goods", False)
+    is_ex_default, _ = LeadScorer.evaluate_icp_prefilter(comp)
+    assert is_ex_default is False
+
+    # 2. When configured to True, household goods is excluded as NOT_ICP
+    monkeypatch.setattr(config.icp.carrier_prefilter, "exclude_household_goods", True)
+    is_ex_configured, reason = LeadScorer.evaluate_icp_prefilter(comp)
+    assert is_ex_configured is True
+    assert "Household Goods" in reason
 
 
 def test_icp_prefilter_excludes_non_freight_by_carrier_operation():
-    """H2: Verifies that passenger carriers are rejected before scoring."""
+    """I1: Verifies that passenger carriers are excluded as NOT_ICP before scoring."""
     comp = Company(
         company_name="METRO SHUTTLE EXPRESS",
         usdot="1234567",
@@ -262,11 +343,11 @@ def test_icp_prefilter_excludes_non_freight_by_carrier_operation():
     assert "Excluded carrier operation 'Passenger'" in reason
     score_obj, priority = LeadScorer.calculate_score(comp)
     assert score_obj.total_score == 0.0
-    assert priority == "REJECTED"
+    assert priority == "NOT_ICP"
 
 
 def test_icp_prefilter_allows_legitimate_freight_carriers():
-    """H2: Verifies that authentic freight carriers pass pre-filter and score normally."""
+    """I1: Verifies that authentic freight carriers pass pre-filter and score normally."""
     comp = Company(
         company_name="LONE STAR FREIGHT SYSTEMS LLC",
         usdot="3849102",
@@ -281,7 +362,9 @@ def test_icp_prefilter_allows_legitimate_freight_carriers():
     assert reason is None
     score_obj, priority = LeadScorer.calculate_score(comp)
     assert score_obj.total_score > 0.0
+    assert priority != "NOT_ICP"
     assert priority != "REJECTED"
+
 
 
 def test_h3_fleet_scoring_icp_range():

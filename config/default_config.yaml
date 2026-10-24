@@ -45,6 +45,7 @@ icp:
   score_threshold_for_final: 5.0
   carrier_prefilter:
     enabled: true
+    exclude_household_goods: false
     excluded_name_keywords:
       - "wrecker"
       - "towing"
@@ -82,6 +83,9 @@ icp:
       - "Passengers"
       - "Garbage/Refuse"
       - "Driveaway/Towaway"
+      - "crgo_passengers"
+      - "crgo_garbage"
+      - "crgo_drivetow"
 
 # Decision Maker Prioritization
 decision_makers:

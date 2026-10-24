@@ -18,6 +18,7 @@ class FleetSizeConfig(BaseModel):
 
 class CarrierPrefilterConfig(BaseModel):
     enabled: bool = True
+    exclude_household_goods: bool = False
     excluded_name_keywords: List[str] = [
         "wrecker", "towing", "tow", "auto sales", "auto repair", "dealership",
         "used cars", "landscaping", "landscape", "tree service", "tree care",
@@ -26,7 +27,10 @@ class CarrierPrefilterConfig(BaseModel):
         "charter", "ambulance", "medical transport"
     ]
     excluded_carrier_operations: List[str] = ["Passenger", "Migrant", "Government"]
-    excluded_cargo_classifications: List[str] = ["Passengers", "Garbage/Refuse", "Driveaway/Towaway"]
+    excluded_cargo_classifications: List[str] = [
+        "Passengers", "Garbage/Refuse", "Driveaway/Towaway",
+        "crgo_passengers", "crgo_garbage", "crgo_drivetow"
+    ]
 
 
 class ICPConfig(BaseModel):

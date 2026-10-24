@@ -13,10 +13,14 @@ class LeadScorer:
     @classmethod
     def evaluate_icp_prefilter(cls, company: Company) -> Tuple[bool, Optional[str]]:
         """
-        H2 ICP Pre-Filter: Evaluates whether a candidate carrier is non-freight
+        I1 ICP Pre-Filter: Evaluates whether a candidate carrier is non-freight
         (e.g., towing, wrecker, auto sales, passenger, dumpsters, landscaping)
-        using name keywords, carrier operation, and cargo classifications.
-        Returns (is_excluded, rejection_reason).
+        using whole-word name keyword matching and requiring a confirming second
+        signal (carrier operation or cargo classification) before excluding on name alone.
+
+        Car haulers (MOTOR_VEHICLES cargo) are NOT excluded by default.
+        Household goods exclusion is configurable (exclude_household_goods).
+        Returns (is_excluded, not_icp_reason).
         """
         if company.lead_type == "SHIPPER":
             return False, None
@@ -25,27 +29,56 @@ class LeadScorer:
         if not prefilter or not getattr(prefilter, "enabled", True):
             return False, None
 
-        # 1. Excluded name keywords check (company_name, legal_name, dba_name)
-        full_name_text = f"{company.company_name or ''} {company.legal_name or ''} {company.dba_name or ''}".lower()
-        for kw in prefilter.excluded_name_keywords:
-            pattern = r'\b' + re.escape(kw.lower()) + r'\b'
-            if re.search(pattern, full_name_text):
-                return True, f"ICP Pre-filter: Excluded non-freight keyword '{kw}' in carrier name"
+        # Build active excluded cargo list (configurable household goods)
+        excluded_cargos = list(prefilter.excluded_cargo_classifications)
+        if getattr(prefilter, "exclude_household_goods", False):
+            if "Household Goods" not in excluded_cargos:
+                excluded_cargos.extend(["Household Goods", "crgo_household"])
 
-        # 2. Excluded carrier operations check
+        # 1. Check for confirming Carrier Operation signal
         op = (company.carrier_operation or "").strip()
+        matched_op = None
         if op:
             for ex_op in prefilter.excluded_carrier_operations:
                 if ex_op.lower() in op.lower():
-                    return True, f"ICP Pre-filter: Excluded carrier operation '{op}'"
+                    matched_op = ex_op
+                    break
 
-        # 3. Excluded cargo classifications check
+        # 2. Check for confirming Cargo Classification signal
         equipment_list = [str(e).lower() for e in (company.equipment or [])]
         notes_text = (company.notes or "").lower()
-        for ex_cargo in prefilter.excluded_cargo_classifications:
+        matched_cargo = None
+        for ex_cargo in excluded_cargos:
             c_low = ex_cargo.lower()
             if any(c_low in eq for eq in equipment_list) or c_low in notes_text:
-                return True, f"ICP Pre-filter: Excluded cargo classification '{ex_cargo}'"
+                matched_cargo = ex_cargo
+                break
+
+        # 3. Whole-word Name Keyword Matching
+        full_name_text = f"{company.company_name or ''} {company.legal_name or ''} {company.dba_name or ''}".lower()
+        matched_kw = None
+        for kw in prefilter.excluded_name_keywords:
+            pattern = r'\b' + re.escape(kw.lower()) + r'\b'
+            if re.search(pattern, full_name_text):
+                matched_kw = kw
+                break
+
+        # Decision Logic:
+        # Rule A: If name keyword matched, REQUIRE a second confirming signal (operation or cargo class)
+        if matched_kw:
+            if matched_op:
+                return True, f"ICP Pre-filter: Name keyword '{matched_kw}' confirmed by carrier operation '{matched_op}'"
+            elif matched_cargo:
+                return True, f"ICP Pre-filter: Name keyword '{matched_kw}' confirmed by cargo classification '{matched_cargo}'"
+            else:
+                # Name keyword without confirming operation or cargo signal is NOT excluded on name alone!
+                pass
+
+        # Rule B: Direct operation or cargo exclusion
+        if matched_op:
+            return True, f"ICP Pre-filter: Excluded carrier operation '{matched_op}'"
+        if matched_cargo:
+            return True, f"ICP Pre-filter: Excluded cargo classification '{matched_cargo}'"
 
         return False, None
 
@@ -62,14 +95,14 @@ class LeadScorer:
         breakdown: Dict[str, Any] = {}
         total = 0.0
 
-        # H2 Pre-Filter Check: Exclude non-freight carriers before scoring
+        # I1 Pre-Filter Check: Exclude non-freight carriers before scoring -> NOT_ICP
         is_excluded, prefilter_reason = cls.evaluate_icp_prefilter(company)
         if is_excluded:
             breakdown["icp_prefilter"] = f"EXCLUDED: {prefilter_reason}"
             lead_score_entity = LeadScore(
                 company_id=company.id,
                 total_score=0.0,
-                priority="REJECTED",
+                priority="NOT_ICP",
                 target_fleet_size_score=0.0,
                 verified_active_carrier_score=0.0,
                 decision_maker_score=0.0,
@@ -79,7 +112,7 @@ class LeadScorer:
                 tech_business_event_score=0.0,
                 score_breakdown=breakdown
             )
-            return lead_score_entity, "REJECTED"
+            return lead_score_entity, "NOT_ICP"
 
         # 1. Target Fleet Capacity / Shipper Demand (+2.0)
         fleet_score = 0.0
