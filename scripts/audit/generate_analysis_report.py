@@ -446,31 +446,53 @@ def build_section_6() -> str:
     TOTAL_SHIPPERS = c.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'SHIPPER'").fetchone()[0]
     TOTAL_POPULATION = TOTAL_CARRIERS + TOTAL_SHIPPERS
 
-    # 1. Status cross-tab
-    crosstab_query = """
+    # 1. Cross-Tab 1: Status x Lead Type
+    xtab_lt_query = """
     SELECT 
-        lead_type,
-        lead_status,
-        CASE 
-            WHEN lead_score < 3.0 THEN '<3.0'
-            WHEN lead_score < 5.0 THEN '3.0-4.9'
-            WHEN lead_score < 7.0 THEN '5.0-6.9'
-            WHEN lead_score < 8.0 THEN '7.0-7.9'
-            ELSE '>=8.0'
-        END AS score_bucket,
-        COALESCE(priority, 'NONE') as priority,
-        COUNT(*) as cnt
+        COALESCE(lead_status, 'UNKNOWN') AS lead_status,
+        SUM(CASE WHEN lead_type = 'CARRIER' THEN 1 ELSE 0 END) AS carrier_cnt,
+        SUM(CASE WHEN lead_type = 'SHIPPER' THEN 1 ELSE 0 END) AS shipper_cnt,
+        COUNT(*) AS total_cnt
     FROM companies
-    GROUP BY lead_type, lead_status, score_bucket, priority
-    ORDER BY lead_type, lead_status, score_bucket;
+    GROUP BY lead_status
+    ORDER BY total_cnt DESC;
     """
-    xtab_rows = c.execute(crosstab_query).fetchall()
-    sum_xtab = sum(r[4] for r in xtab_rows)
-    pass_xtab = "PASS" if sum_xtab == TOTAL_POPULATION else "FAIL"
+    xtab_lt_rows = c.execute(xtab_lt_query).fetchall()
+    sum_lt_carrier = sum(r[1] for r in xtab_lt_rows)
+    sum_lt_shipper = sum(r[2] for r in xtab_lt_rows)
+    sum_lt_total = sum(r[3] for r in xtab_lt_rows)
+    pass_xtab_lt = "PASS" if (sum_lt_carrier == TOTAL_CARRIERS and sum_lt_shipper == TOTAL_SHIPPERS and sum_lt_total == TOTAL_POPULATION) else "FAIL"
 
-    xtab_str = "\n".join(
-        f"| {r[0]} | `{r[1]}` | {r[2]} | {r[3]} | {r[4]} |" for r in xtab_rows
+    xtab_lt_str = "\n".join(
+        f"| `{r[0]}` | **{r[1]}** | **{r[2]}** | **{r[3]}** |" for r in xtab_lt_rows
     )
+    xtab_lt_str += f"\n| **TOTAL RECONCILED** | **{sum_lt_carrier}** | **{sum_lt_shipper}** | **{sum_lt_total}** |"
+
+    # 2. Cross-Tab 2: Status x Score Band (A >= 8.0, B 6.0-7.9, C 5.0-5.9, Below 5.0)
+    xtab_sb_query = """
+    SELECT 
+        COALESCE(lead_status, 'UNKNOWN') AS lead_status,
+        SUM(CASE WHEN lead_score >= 8.0 THEN 1 ELSE 0 END) AS tier_a,
+        SUM(CASE WHEN lead_score >= 6.0 AND lead_score < 8.0 THEN 1 ELSE 0 END) AS tier_b,
+        SUM(CASE WHEN lead_score >= 5.0 AND lead_score < 6.0 THEN 1 ELSE 0 END) AS tier_c,
+        SUM(CASE WHEN lead_score < 5.0 OR lead_score IS NULL THEN 1 ELSE 0 END) AS below_5,
+        COUNT(*) AS total_cnt
+    FROM companies
+    GROUP BY lead_status
+    ORDER BY total_cnt DESC;
+    """
+    xtab_sb_rows = c.execute(xtab_sb_query).fetchall()
+    sum_sb_a = sum(r[1] for r in xtab_sb_rows)
+    sum_sb_b = sum(r[2] for r in xtab_sb_rows)
+    sum_sb_c = sum(r[3] for r in xtab_sb_rows)
+    sum_sb_bel = sum(r[4] for r in xtab_sb_rows)
+    sum_sb_total = sum(r[5] for r in xtab_sb_rows)
+    pass_xtab_sb = "PASS" if sum_sb_total == TOTAL_POPULATION else "FAIL"
+
+    xtab_sb_str = "\n".join(
+        f"| `{r[0]}` | **{r[1]}** | **{r[2]}** | **{r[3]}** | **{r[4]}** | **{r[5]}** |" for r in xtab_sb_rows
+    )
+    xtab_sb_str += f"\n| **TOTAL RECONCILED** | **{sum_sb_a}** | **{sum_sb_b}** | **{sum_sb_c}** | **{sum_sb_bel}** | **{sum_sb_total}** |"
 
     # 2. Phone status distribution
     ph_query = "SELECT lead_type, COALESCE(phone_verification_status, 'UNKNOWN'), COUNT(*) FROM companies GROUP BY lead_type, phone_verification_status ORDER BY lead_type;"
@@ -538,15 +560,28 @@ def build_section_6() -> str:
 
     return f"""## 6. Lead Funnel & Population Metrics
 
-### 6.1 Status × Score Bucket × Priority Cross-Tabulation
+### 6.1 Separate Cross-Tabulations (Eliminating Mixed Priority Column)
+
+#### 6.1.1 Cross-Tabulation: Status × Lead Type
 * **SQL Query Executed**:
 ```sql
-{crosstab_query.strip()}
+{xtab_lt_query.strip()}
 ```
-| Lead Type | Lead Status | Score Bucket | Priority | Lead Count |
-| :--- | :--- | :---: | :---: | :---: |
-{xtab_str}
-* **Population Sum Check**: `{sum_xtab} / {TOTAL_POPULATION}` $\rightarrow$ **`{pass_xtab}`**
+| Lead Status | Carriers (N={TOTAL_CARRIERS}) | Shippers (N={TOTAL_SHIPPERS}) | Total (N={TOTAL_POPULATION}) |
+| :--- | :---: | :---: | :---: |
+{xtab_lt_str}
+* **Population Sum Check**: `{sum_lt_total} / {TOTAL_POPULATION}` -> **`{pass_xtab_lt}`**
+
+#### 6.1.2 Cross-Tabulation: Status × Score Band
+* **Score Band Thresholds**: Tier A (>= 8.0), Tier B (6.0 - 7.9), Tier C (5.0 - 5.9), Below ICP Threshold (< 5.0)
+* **SQL Query Executed**:
+```sql
+{xtab_sb_query.strip()}
+```
+| Lead Status | Tier A (>=8.0) | Tier B (6.0-7.9) | Tier C (5.0-5.9) | Below 5.0 (<5.0) | Total Population |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+{xtab_sb_str}
+* **Population Sum Check**: `{sum_sb_total} / {TOTAL_POPULATION}` -> **`{pass_xtab_sb}`**
 
 ### 6.2 Mutually Exclusive Phone Verification Statuses
 * **SQL Query Executed**:
@@ -556,8 +591,8 @@ def build_section_6() -> str:
 | Lead Type | Phone Status | Count |
 | :--- | :--- | :---: |
 {ph_str}
-* **Carrier Phone Sum Check**: `{sum_ph_carrier} / {TOTAL_CARRIERS}` $\rightarrow$ **`{pass_ph}`**
-* **Shipper Phone Sum Check**: `{sum_ph_shipper} / {TOTAL_SHIPPERS}` $\rightarrow$ **`{pass_ph}`**
+* **Carrier Phone Sum Check**: `{sum_ph_carrier} / {TOTAL_CARRIERS}` -> **`{pass_ph}`**
+* **Shipper Phone Sum Check**: `{sum_ph_shipper} / {TOTAL_SHIPPERS}` -> **`{pass_ph}`**
 
 ### 6.3 Mutually Exclusive Email Verification Statuses
 * **SQL Query Executed**:
@@ -567,8 +602,8 @@ def build_section_6() -> str:
 | Lead Type | Email Status | Count |
 | :--- | :--- | :---: |
 {em_str}
-* **Carrier Email Sum Check**: `{sum_em_carrier} / {TOTAL_CARRIERS}` $\rightarrow$ **`{pass_em}`**
-* **Shipper Email Sum Check**: `{sum_em_shipper} / {TOTAL_SHIPPERS}` $\rightarrow$ **`{pass_em}`**
+* **Carrier Email Sum Check**: `{sum_em_carrier} / {TOTAL_CARRIERS}` -> **`{pass_em}`**
+* **Shipper Email Sum Check**: `{sum_em_shipper} / {TOTAL_SHIPPERS}` -> **`{pass_em}`**
 
 ### 6.4 Contact Confidence Tiers & Named-Person Matching
 | Population | HIGH Confidence | MEDIUM Confidence | LOW Confidence | Population Total | Audit Status |

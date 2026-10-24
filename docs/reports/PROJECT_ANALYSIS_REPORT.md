@@ -2,11 +2,11 @@
 
 ## 0. Report Metadata & Execution Environment
 
-* **Generated At (UTC)**: `2026-10-24 18:11:46 UTC`
-* **Generated At (Asia/Kolkata)**: `2026-10-24 23:41:46 IST`
-* **Git Commit**: `6fd54bed61d392a284501c0426ba1f9c7e592b11`
+* **Generated At (UTC)**: `2026-10-24 18:35:19 UTC`
+* **Generated At (Asia/Kolkata)**: `2026-10-25 00:05:19 IST`
+* **Git Commit**: `7653d89bbf9df7ade00901654a8570116eeef479`
 * **Git Branch**: `cleanup/restructure`
-* **Working Tree State**: `Dirty (3 modified/untracked files)`
+* **Working Tree State**: `Dirty (4 modified/untracked files)`
 * **Python Runtime**: `CPython 3.13.7`
 * **Node Runtime**: `v24.8.0`
 * **Host Operating System**: `Windows 11 (10.0.26200)`
@@ -48,13 +48,13 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 ### 2.1 Lines of Code (LOC) by Subsystem
 | Subsystem Path | Description | Files | Lines of Code |
 | :--- | :--- | :---: | :---: |
-| `backend/app` | Backend Core Application | 56 | 10,337 |
-| `backend/tests` | Pytest Offline & Live Test Suite | 19 | 3,875 |
-| `frontend/src` | React / Vite Frontend Client | 15 | 6,085 |
-| `scripts` | Verification & Analysis Scripts | 27 | 6,350 |
+| `backend/app` | Backend Core Application | 56 | 10,372 |
+| `backend/tests` | Pytest Offline & Live Test Suite | 19 | 3,968 |
+| `frontend/src` | React / Vite Frontend Client | 15 | 6,095 |
+| `scripts` | Verification & Analysis Scripts | 27 | 6,385 |
 | `config` | System Configuration YAML | 1 | 305 |
 | `docs` | Project Architecture & Data Dictionaries | 10 | 2,846 |
-| **Total Project Codebase** | *All active components* | **128** | **29,798** |
+| **Total Project Codebase** | *All active components* | **128** | **29,971** |
 
 ### 2.2 Core Service Files & Modification History
 | Core Service File | Last Git Commit Date | Author |
@@ -101,6 +101,7 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 | **G4** | `f0537d1` | Outcome analytics & weekly summary feedback loop starter endpoints | `test_outcome_analytics_and_weekly_summary` |
 
 ### 3.2 Git Log (Last 50 Commits)
+- `7653d89 docs: Regenerate Project Analysis Report with latest census scaling, deduplication, and shipper archival metrics`
 - `6fd54be I5: Transition un-enrichable shippers to ARCHIVED_NO_CONTACT while Places API key is unconfigured`
 - `f9bf69d I4: Scale official FMCSA census sync with paging, fleet 2-10, and recent MCS-150 date filter`
 - `8006bf1 I3: Mark live database validation tests with live marker to achieve 0 skipped in offline suite`
@@ -255,40 +256,53 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 
 ## 6. Lead Funnel & Population Metrics
 
-### 6.1 Status × Score Bucket × Priority Cross-Tabulation
+### 6.1 Separate Cross-Tabulations (Eliminating Mixed Priority Column)
+
+#### 6.1.1 Cross-Tabulation: Status × Lead Type
 * **SQL Query Executed**:
 ```sql
 SELECT 
-        lead_type,
-        lead_status,
-        CASE 
-            WHEN lead_score < 3.0 THEN '<3.0'
-            WHEN lead_score < 5.0 THEN '3.0-4.9'
-            WHEN lead_score < 7.0 THEN '5.0-6.9'
-            WHEN lead_score < 8.0 THEN '7.0-7.9'
-            ELSE '>=8.0'
-        END AS score_bucket,
-        COALESCE(priority, 'NONE') as priority,
-        COUNT(*) as cnt
+        COALESCE(lead_status, 'UNKNOWN') AS lead_status,
+        SUM(CASE WHEN lead_type = 'CARRIER' THEN 1 ELSE 0 END) AS carrier_cnt,
+        SUM(CASE WHEN lead_type = 'SHIPPER' THEN 1 ELSE 0 END) AS shipper_cnt,
+        COUNT(*) AS total_cnt
     FROM companies
-    GROUP BY lead_type, lead_status, score_bucket, priority
-    ORDER BY lead_type, lead_status, score_bucket;
+    GROUP BY lead_status
+    ORDER BY total_cnt DESC;
 ```
-| Lead Type | Lead Status | Score Bucket | Priority | Lead Count |
-| :--- | :--- | :---: | :---: | :---: |
-| CARRIER | `NEEDS_ENRICHMENT` | 3.0-4.9 | REJECTED | 9 |
-| CARRIER | `NEEDS_ENRICHMENT` | 5.0-6.9 | C | 3 |
-| CARRIER | `NEEDS_ENRICHMENT` | <3.0 | REJECTED | 14 |
-| CARRIER | `NOT_ICP` | <3.0 | NOT_ICP | 3 |
-| CARRIER | `QUALIFIED` | 5.0-6.9 | C | 24 |
-| CARRIER | `QUALIFIED` | 7.0-7.9 | B | 25 |
-| CARRIER | `QUALIFIED` | >=8.0 | A | 14 |
-| CARRIER | `REJECTED` | 3.0-4.9 | REJECTED | 3 |
-| CARRIER | `REJECTED` | 5.0-6.9 | REJECTED | 15 |
-| CARRIER | `REJECTED` | 7.0-7.9 | REJECTED | 2 |
-| CARRIER | `REJECTED` | <3.0 | REJECTED | 2 |
-| CARRIER | `REJECTED` | >=8.0 | REJECTED | 5 |
-| SHIPPER | `ARCHIVED_NO_CONTACT` | <3.0 | REJECTED | 90 |
+| Lead Status | Carriers (N=119) | Shippers (N=90) | Total (N=209) |
+| :--- | :---: | :---: | :---: |
+| `ARCHIVED_NO_CONTACT` | **0** | **90** | **90** |
+| `QUALIFIED` | **63** | **0** | **63** |
+| `REJECTED` | **27** | **0** | **27** |
+| `NEEDS_ENRICHMENT` | **26** | **0** | **26** |
+| `NOT_ICP` | **3** | **0** | **3** |
+| **TOTAL RECONCILED** | **119** | **90** | **209** |
+* **Population Sum Check**: `209 / 209` $ightarrow$ **`PASS`**
+
+#### 6.1.2 Cross-Tabulation: Status × Score Band
+* **Score Band Thresholds**: Tier A ($\ge 8.0$), Tier B ($6.0–7.9$), Tier C ($5.0–5.9$), Below ICP Threshold ($< 5.0$)
+* **SQL Query Executed**:
+```sql
+SELECT 
+        COALESCE(lead_status, 'UNKNOWN') AS lead_status,
+        SUM(CASE WHEN lead_score >= 8.0 THEN 1 ELSE 0 END) AS tier_a,
+        SUM(CASE WHEN lead_score >= 6.0 AND lead_score < 8.0 THEN 1 ELSE 0 END) AS tier_b,
+        SUM(CASE WHEN lead_score >= 5.0 AND lead_score < 6.0 THEN 1 ELSE 0 END) AS tier_c,
+        SUM(CASE WHEN lead_score < 5.0 OR lead_score IS NULL THEN 1 ELSE 0 END) AS below_5,
+        COUNT(*) AS total_cnt
+    FROM companies
+    GROUP BY lead_status
+    ORDER BY total_cnt DESC;
+```
+| Lead Status | Tier A (>=8.0) | Tier B (6.0-7.9) | Tier C (5.0-5.9) | Below 5.0 (<5.0) | Total Population |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| `ARCHIVED_NO_CONTACT` | **0** | **0** | **0** | **90** | **90** |
+| `QUALIFIED` | **14** | **25** | **24** | **0** | **63** |
+| `REJECTED` | **5** | **7** | **10** | **5** | **27** |
+| `NEEDS_ENRICHMENT` | **0** | **0** | **3** | **23** | **26** |
+| `NOT_ICP` | **0** | **0** | **0** | **3** | **3** |
+| **TOTAL RECONCILED** | **19** | **32** | **37** | **121** | **209** |
 * **Population Sum Check**: `209 / 209` $ightarrow$ **`PASS`**
 
 ### 6.2 Mutually Exclusive Phone Verification Statuses
@@ -438,25 +452,25 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 
 ### 10.1 Pytest Execution Summary
 * **Command Executed**: `pytest backend/tests/ --durations=10`
-* **Test Outcome**: `===================== 107 passed, 12 deselected in 16.42s =====================`
+* **Test Outcome**: `===================== 109 passed, 12 deselected in 22.34s =====================`
 * **External Network Blocker**: 100% active via `backend/tests/conftest.py`. Non-loopback TCP, UDP, and DNS lookups trigger `SocketBlockedError`.
 
 ### 10.2 Slowest 10 Test Durations
 ```text
-...                       [100%]
+............                       [100%]
 
 ============================ slowest 10 durations =============================
-5.00s call     backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
-1.35s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
-1.04s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
-0.91s call     backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
-0.81s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
-0.66s call     backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
-0.30s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip
-0.20s setup    backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
-0.16s setup    backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+5.56s call     backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
+4.61s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
+2.77s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
+0.95s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
+0.87s call     backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
+0.67s call     backend/tests/live/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+0.27s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip
+0.21s setup    backend/tests/live/test_fmcsa_official.py::test_fmcsa_official_adapter_init
 0.15s setup    backend/tests/unit/test_compliance_and_signals.py::test_screen_and_apply_sets_dnc_flags
-===================== 107 passed, 12 deselected in 16.42s =====================
+0.14s setup    backend/tests/unit/test_callable_mailable.py::test_outcome_analytics_and_weekly_summary
+===================== 109 passed, 12 deselected in 22.34s =====================
 ```
 
 * **Coverage Status**: Coverage module not installed in environment; pip offline prevented package download. Verified zero test failures across 92 active unit and regression tests.
@@ -496,7 +510,7 @@ def is_ssrf_safe_ip(ip_str: str) -> bool:
 ## 13. System Performance Profile
 
 * **Database File Size**: **3492.0 KB** (`data/trucklead.db`, SQLite 3 WAL Mode).
-* **Live SQLite Query Latency (Measured)**: **0.11 ms** average read latency across 50 consecutive queries for `/api/leads/callable-mailable`.
+* **Live SQLite Query Latency (Measured)**: **0.12 ms** average read latency across 50 consecutive queries for `/api/leads/callable-mailable`.
 * **Uvicorn Backend Process Memory**: NOT VERIFIED (Uvicorn service is not currently running as an active background process; baseline RSS ~68 MB when active).
 * **End-to-End Live Corridor Benchmark Duration**: NOT VERIFIED (Corridor benchmark requires active external discovery network requests).
 

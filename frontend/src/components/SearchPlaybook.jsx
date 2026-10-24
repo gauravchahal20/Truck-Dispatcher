@@ -1277,7 +1277,7 @@ export default function SearchPlaybook() {
 
               <div style={{ padding: '14px', backgroundColor: '#FFFFFF', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong style={{ fontSize: '0.85rem', color: 'var(--terracotta-dark)' }}>Tier B (5 &ndash; 7 Points)</strong>
+                  <strong style={{ fontSize: '0.85rem', color: 'var(--terracotta-dark)' }}>Tier B (6.0 &ndash; 7.9 Points)</strong>
                   <span style={{ fontSize: '0.7rem', fontWeight: 700, backgroundColor: 'var(--warm-cream)', color: 'var(--terracotta-dark)', padding: '2px 8px', borderRadius: '999px' }}>Standard Qualified</span>
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
@@ -1287,11 +1287,21 @@ export default function SearchPlaybook() {
 
               <div style={{ padding: '14px', backgroundColor: '#FFFFFF', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong style={{ fontSize: '0.85rem', color: '#991B1B' }}>Tier C (Below 5 Points)</strong>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 700, backgroundColor: '#FEE2E2', color: '#991B1B', padding: '2px 8px', borderRadius: '999px' }}>Needs Review</span>
+                  <strong style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tier C (5.0 &ndash; 5.9 Points)</strong>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, backgroundColor: 'var(--sand-light)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '999px' }}>Minimum ICP Fit</span>
                 </div>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
-                  Lacks verified decision maker, missing direct contact, or fleet size unknown. Requires secondary enrichment before handoff.
+                  Meets base ICP criteria and holds active authority, but requires additional enrichment (decision maker identification or verified email/phone) before outreach.
+                </p>
+              </div>
+
+              <div style={{ padding: '14px', backgroundColor: '#FFFFFF', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <strong style={{ fontSize: '0.85rem', color: '#991B1B' }}>Below ICP Threshold (&lt; 5.0 Points)</strong>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, backgroundColor: '#FEE2E2', color: '#991B1B', padding: '2px 8px', borderRadius: '999px' }}>Needs Enrichment</span>
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
+                  Score is below minimum qualification threshold of 5.0; queued in NEEDS_ENRICHMENT for automated multi-tier contact and authority enrichment.
                 </p>
               </div>
             </div>

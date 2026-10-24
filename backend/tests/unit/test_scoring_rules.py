@@ -445,3 +445,96 @@ def test_h3_shippers_receive_no_automatic_fleet_points():
     assert score_shipper.target_fleet_size_score == 0.0
     assert "no automatic fleet points" in score_shipper.score_breakdown["fleet_size"]
 
+
+def test_j1_unproven_authority_routes_to_needs_enrichment_never_rejected():
+    """J1: Carriers with unproven/unverified operating authority route to NEEDS_ENRICHMENT, never REJECTED."""
+    from app.services.orchestrator import LeadOrchestrator
+
+    # 1. Operating status is None
+    c_none = Company(
+        company_name="UNPROVEN CARRIER LLC",
+        usdot="9876543",
+        lead_type="CARRIER",
+        operating_status=None,
+        lead_score=7.0,
+        priority="B"
+    )
+    st_none, qual_none, rej_none = LeadOrchestrator.resolve_lead_status(c_none, v_status="VERIFIED", priority="B")
+    assert st_none == "NEEDS_ENRICHMENT"
+    assert rej_none is None
+    assert "Operating authority unproven" in qual_none
+
+    # 2. Operating status is UNKNOWN
+    c_unk = Company(
+        company_name="PENDING STATUS CARRIER",
+        usdot="9876544",
+        lead_type="CARRIER",
+        operating_status="UNKNOWN",
+        lead_score=8.0,
+        priority="A"
+    )
+    st_unk, qual_unk, rej_unk = LeadOrchestrator.resolve_lead_status(c_unk, v_status="VERIFIED", priority="A")
+    assert st_unk == "NEEDS_ENRICHMENT"
+    assert rej_unk is None
+    assert "Operating authority unproven" in qual_unk
+
+
+def test_j1_rejected_strictly_for_confirmed_hard_gates():
+    """J1: REJECTED is strictly reserved for confirmed hard gates (revoked, inactive, private, out-of-service, passenger, DNC)."""
+    from app.services.orchestrator import LeadOrchestrator
+
+    # 1. PRIVATE PROPERTY -> REJECTED
+    c_priv = Company(
+        company_name="PRIVATE PROPERTY TRUCKING",
+        usdot="1111111",
+        lead_type="CARRIER",
+        operating_status="PRIVATE PROPERTY",
+        lead_score=6.0,
+        priority="B"
+    )
+    st_priv, _, rej_priv = LeadOrchestrator.resolve_lead_status(c_priv)
+    assert st_priv == "REJECTED"
+    assert "Carrier not authorized for-hire" in rej_priv
+
+    # 2. REVOKED -> REJECTED
+    c_rev = Company(
+        company_name="REVOKED AUTHORITY CARRIER",
+        usdot="2222222",
+        lead_type="CARRIER",
+        operating_status="REVOKED",
+        lead_score=6.0,
+        priority="B"
+    )
+    st_rev, _, rej_rev = LeadOrchestrator.resolve_lead_status(c_rev)
+    assert st_rev == "REJECTED"
+
+    # 3. PASSENGER -> REJECTED
+    c_pass = Company(
+        company_name="CITY LUXURY CHARTERS",
+        usdot="3333333",
+        lead_type="CARRIER",
+        operating_status="ACTIVE",
+        carrier_operation="Passenger",
+        lead_score=7.0,
+        priority="B"
+    )
+    st_pass, _, rej_pass = LeadOrchestrator.resolve_lead_status(c_pass)
+    assert st_pass == "REJECTED"
+    assert "Passenger transport operation" in rej_pass
+
+    # 4. Suppressed / DNC -> REJECTED
+    c_dnc = Company(
+        company_name="SUPPRESSED CARRIER",
+        usdot="4444444",
+        lead_type="CARRIER",
+        operating_status="AUTHORIZED FOR HIRE",
+        dnc_flag=True,
+        suppression_reason="Requested opt-out",
+        lead_score=8.5,
+        priority="A"
+    )
+    st_dnc, _, rej_dnc = LeadOrchestrator.resolve_lead_status(c_dnc)
+    assert st_dnc == "REJECTED"
+    assert "Requested opt-out" in rej_dnc
+
+

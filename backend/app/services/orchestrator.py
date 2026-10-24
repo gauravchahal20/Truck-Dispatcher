@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,6 +30,104 @@ logger = logging.getLogger("trucklead.orchestrator")
 
 class LeadOrchestrator:
     """Core autonomous pipeline coordinator executing end-to-end lead discovery & qualification across 41+ methods."""
+
+    @classmethod
+    def resolve_lead_status(
+        cls,
+        company: Company,
+        v_status: str = "VERIFIED",
+        v_reason: Optional[str] = None,
+        priority: Optional[str] = None,
+        is_suppressed: bool = False,
+        score_threshold: float = 5.0
+    ) -> Tuple[str, Optional[str], Optional[str]]:
+        """
+        Determines canonical lead_status, qualification_reason, and rejection_reason.
+        Returns: (lead_status, qualification_reason, rejection_reason)
+        """
+        # 1. Operating Status and Carrier Flags
+        is_carrier = company.lead_type != "SHIPPER"
+        op_status = (company.operating_status or "").upper()
+        carrier_op_upper = (company.carrier_operation or "").upper()
+
+        is_passenger = "PASSENGER" in op_status or "PASSENGER" in carrier_op_upper or "BUS" in carrier_op_upper
+        is_confirmed_revoked_or_private = is_carrier and op_status and any(
+            bad in op_status for bad in ["PRIVATE PROPERTY", "NOT AUTHORIZED", "REVOKED", "INACTIVE", "OUT OF SERVICE", "OUT-OF-SERVICE"]
+        )
+
+        # 2. Confirmed Hard Gates -> REJECTED (Strictly reserved for hard gates)
+        if is_suppressed or company.dnc_flag:
+            return "REJECTED", None, (company.suppression_reason or "Suppressed via compliance / DNC list")
+
+        if is_passenger:
+            return "REJECTED", None, f"Hard gate failure: Passenger transport operation ({company.carrier_operation or company.operating_status})"
+
+        if is_confirmed_revoked_or_private:
+            return "REJECTED", None, f"Hard gate failure: Carrier not authorized for-hire ({company.operating_status})"
+
+        # 3. Evaluate ICP Pre-filter -> NOT_ICP
+        is_prefilter_excluded, prefilter_reason = LeadScorer.evaluate_icp_prefilter(company)
+        if is_prefilter_excluded:
+            return "NOT_ICP", None, prefilter_reason
+
+        # 4. Authority Provenance: active for-hire verified
+        has_proven_active_authority = not is_carrier or (
+            bool(company.usdot) and
+            any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]) and
+            not any(bad in op_status for bad in ["NOT AUTHORIZED", "REVOKED", "INACTIVE", "UNVERIFIED"])
+        )
+
+        if is_carrier and not has_proven_active_authority:
+            # Unproven authority is NOT a hard gate rejection -> routes to NEEDS_ENRICHMENT
+            return "NEEDS_ENRICHMENT", f"Operating authority unproven ({company.operating_status or 'None'}); queued for census/SAFER verification", None
+
+        # 5. Score Threshold Check
+        if (company.lead_score or 0.0) < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
+            if is_carrier:
+                return "NEEDS_ENRICHMENT", f"Score {(company.lead_score or 0.0):.1f} below minimum threshold {config.scoring.priority_thresholds.reject_below}; queued for enrichment", None
+            else:
+                return "NEEDS_ENRICHMENT", "Shipper contacts pending Google Places / website enrichment", None
+
+        # 6. Verified Contact Channel Check for FINAL Qualification
+        has_verified_phone = (
+            (company.phone_verification_status == "VERIFIED") or
+            any(c.phone_verification_status == "VERIFIED" for c in (company.contacts or []))
+        )
+        has_verified_email = (
+            (company.email_verification_status == "DELIVERABLE") or
+            any(c.email_verification_status == "DELIVERABLE" for c in (company.contacts or []))
+        )
+        has_named_person = any(
+            (c.is_decision_maker or (c.full_name and len(c.full_name) > 3 and not c.full_name.lower().startswith("company officer")))
+            for c in (company.contacts or [])
+        )
+        has_reached_outcome = bool(
+            company.outcomes and any(
+                o.outcome in ["interested", "not_interested", "wrong_number", "do_not_contact", "voicemail"]
+                for o in company.outcomes
+            )
+        ) if hasattr(company, "outcomes") else False
+
+        has_verified_contact_for_named_person = (
+            (has_verified_phone or has_verified_email) and has_named_person
+        ) or has_reached_outcome
+
+        is_final_candidate = (
+            has_proven_active_authority and
+            v_status == "VERIFIED" and
+            (company.lead_score or 0.0) >= score_threshold and
+            not is_suppressed and
+            not company.dnc_flag
+        )
+
+        if is_final_candidate and has_verified_contact_for_named_person:
+            return "FINAL", f"Qualified: Score {company.lead_score} (Priority {priority}) with active authority & verified contact channel for named decision maker.", None
+
+        if is_final_candidate:
+            ch_reason = "contacts pending provider verification" if not (has_verified_phone or has_verified_email) else "unverified named officer"
+            return "QUALIFIED", f"Verified: Score {company.lead_score} (Priority {priority}, Active Authority), but {ch_reason} (stays QUALIFIED until verified).", None
+
+        return "NEEDS_REVIEW", f"Needs Review: {v_reason}", None
 
     @classmethod
     async def create_run(cls, session: AsyncSession, request: RunCreateRequest) -> Run:
@@ -576,85 +674,27 @@ class LeadOrchestrator:
                     from .compliance import ComplianceService
                     is_suppressed = await ComplianceService.screen_and_apply(session, candidate_company)
 
-                    # Strict FINAL Qualification Gate per Master SOP
-                    is_carrier = candidate_company.lead_type != "SHIPPER"
-                    op_status = (candidate_company.operating_status or "").upper()
-                    has_proven_active_authority = not is_carrier or (
-                        bool(candidate_company.usdot) and
-                        any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]) and
-                        not any(bad in op_status for bad in ["NOT AUTHORIZED", "REVOKED", "INACTIVE", "UNVERIFIED"])
+                    # Canonical Status Resolution (Guarantees Hard Gates vs Unproven Authority)
+                    new_status, qual_reason, rej_reason = cls.resolve_lead_status(
+                        company=candidate_company,
+                        v_status=v_status,
+                        v_reason=v_reason,
+                        priority=priority,
+                        is_suppressed=is_suppressed,
+                        score_threshold=run.score_threshold
                     )
 
-                    has_verified_phone = (
-                        (candidate_company.phone_verification_status == "VERIFIED") or
-                        any(c.phone_verification_status == "VERIFIED" for c in (candidate_company.contacts or []))
-                    )
-                    has_verified_email = (
-                        (candidate_company.email_verification_status == "DELIVERABLE") or
-                        any(c.email_verification_status == "DELIVERABLE" for c in (candidate_company.contacts or []))
-                    )
-                    has_named_person = any(
-                        (c.is_decision_maker or (c.full_name and len(c.full_name) > 3 and not c.full_name.lower().startswith("company officer")))
-                        for c in (candidate_company.contacts or [])
-                    )
-                    has_reached_outcome = bool(
-                        candidate_company.outcomes and any(
-                            o.outcome in ["interested", "not_interested", "wrong_number", "do_not_contact", "voicemail"]
-                            for o in candidate_company.outcomes
-                        )
-                    ) if hasattr(candidate_company, "outcomes") else False
+                    candidate_company.lead_status = new_status
+                    candidate_company.qualification_reason = qual_reason
+                    candidate_company.rejection_reason = rej_reason
 
-                    has_verified_contact_for_named_person = (
-                        (has_verified_phone or has_verified_email) and has_named_person
-                    ) or has_reached_outcome
-
-
-                    is_final_candidate = (
-                        has_proven_active_authority and
-                        v_status == "VERIFIED" and
-                        candidate_company.lead_score >= run.score_threshold and
-                        not is_suppressed and
-                        not candidate_company.dnc_flag
-                    )
-
-                    # Final Qualification Decision
-                    is_prefilter_excluded, prefilter_reason = LeadScorer.evaluate_icp_prefilter(candidate_company)
-                    if is_prefilter_excluded:
-                        candidate_company.lead_status = "NOT_ICP"
+                    if new_status == "REJECTED":
+                        candidate_company.priority = "REJECTED"
+                        run.rejected_count += 1
+                    elif new_status == "NOT_ICP":
                         candidate_company.priority = "NOT_ICP"
                         candidate_company.lead_score = 0.0
-                        candidate_company.rejection_reason = prefilter_reason
-                        candidate_company.qualification_reason = None
-
-                    elif is_suppressed or candidate_company.dnc_flag:
-                        candidate_company.lead_status = "REJECTED"
-                        candidate_company.priority = "REJECTED"
-                        candidate_company.rejection_reason = candidate_company.suppression_reason or "Suppressed via compliance / DNC list"
-                        run.rejected_count += 1
-                    elif v_status == "REJECTED":
-                        candidate_company.lead_status = "REJECTED"
-                        candidate_company.priority = "REJECTED"
-                        candidate_company.rejection_reason = v_reason
-                        run.rejected_count += 1
-                    elif is_carrier and op_status and any(bad in op_status for bad in ["PRIVATE PROPERTY", "NOT AUTHORIZED", "REVOKED", "INACTIVE"]):
-                        candidate_company.lead_status = "REJECTED"
-                        candidate_company.priority = "REJECTED"
-                        candidate_company.rejection_reason = f"Hard gate failure: Carrier not authorized for-hire ({candidate_company.operating_status})"
-                        run.rejected_count += 1
-                    elif candidate_company.lead_score < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
-                        candidate_company.lead_status = "NEEDS_ENRICHMENT"
-                        if is_carrier:
-                            candidate_company.qualification_reason = f"Score {candidate_company.lead_score:.1f} below minimum threshold {config.scoring.priority_thresholds.reject_below}; queued for enrichment"
-                        else:
-                            candidate_company.qualification_reason = "Shipper contacts pending Google Places / website enrichment"
-                    elif is_carrier and not candidate_company.operating_status:
-                        candidate_company.lead_status = "NEEDS_ENRICHMENT"
-                        candidate_company.qualification_reason = "Operating authority pending FMCSA census/SAFER verification"
-
-                    elif is_final_candidate and has_verified_contact_for_named_person:
-                        # Full FINAL qualification: Active authority + score + verified contact for named person
-                        candidate_company.lead_status = "FINAL"
-                        candidate_company.qualification_reason = f"Qualified: Score {candidate_company.lead_score} (Priority {priority}) with active authority & verified contact channel for named decision maker."
+                    elif new_status == "FINAL":
                         run.final_count += 1
                         run.verified_count += 1
                         run.qualified_count += 1
@@ -662,15 +702,10 @@ class LeadOrchestrator:
                             run.priority_a_count += 1
                         elif priority == "B":
                             run.priority_b_count += 1
-                    elif is_final_candidate:
-                        # Meets basic requirements but contacts pending verification -> QUALIFIED
-                        candidate_company.lead_status = "QUALIFIED"
-                        ch_reason = "contacts pending provider verification" if not (has_verified_phone or has_verified_email) else "unverified named officer"
-                        candidate_company.qualification_reason = f"Verified: Score {candidate_company.lead_score} (Priority {priority}, Active Authority), but {ch_reason} (stays QUALIFIED until verified)."
+                    elif new_status == "QUALIFIED":
                         run.verified_count += 1
                         run.qualified_count += 1
-                    else:
-                        candidate_company.lead_status = "NEEDS_REVIEW"
+                    elif new_status == "NEEDS_REVIEW":
                         candidate_company.notes = f"Needs Review: {v_reason}"
 
                     # Status History Audit
