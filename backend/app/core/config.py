@@ -205,6 +205,7 @@ class AppSettings(BaseSettings):
     hunter_api_key: Optional[str] = None
     anymail_api_key: Optional[str] = None
     apollo_api_key: Optional[str] = None
+    api_key: Optional[str] = None
 
     enable_continuous_autopilot: bool = False
 

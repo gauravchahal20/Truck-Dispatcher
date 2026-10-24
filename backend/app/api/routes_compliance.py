@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from ..core.database import get_db
+from ..core.auth import require_api_key
 from ..models.entities import SuppressionEntry
 from ..services.compliance import ComplianceService
 
@@ -22,7 +23,7 @@ class BulkOptOutRequest(BaseModel):
     records: List[SingleSuppressionRequest]
 
 
-@router.post("/suppress")
+@router.post("/suppress", dependencies=[Depends(require_api_key)])
 async def add_suppression(req: SingleSuppressionRequest, db: AsyncSession = Depends(get_db)):
     """Registers an email, phone, domain, or USDOT on the global suppression list."""
     if not any([req.email, req.phone, req.domain, req.usdot]):
@@ -44,7 +45,7 @@ async def add_suppression(req: SingleSuppressionRequest, db: AsyncSession = Depe
     }
 
 
-@router.post("/opt-out/bulk")
+@router.post("/opt-out/bulk", dependencies=[Depends(require_api_key)])
 async def bulk_import_opt_outs(req: BulkOptOutRequest, db: AsyncSession = Depends(get_db)):
     """Imports bulk opt-outs into the global suppression list."""
     raw_dicts = [r.model_dump() for r in req.records]

@@ -1,7 +1,8 @@
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
+from ..core.auth import require_api_key
 from ..services.continuous_runner import continuous_autopilot
 
 router = APIRouter(prefix="/api/autopilot", tags=["Continuous Autopilot"])
@@ -17,32 +18,32 @@ async def get_autopilot_status() -> Dict[str, Any]:
     return continuous_autopilot.get_status()
 
 
-@router.post("/start")
+@router.post("/start", dependencies=[Depends(require_api_key)])
 async def start_autopilot() -> Dict[str, Any]:
     """Starts or boots up the continuous autopilot background runner."""
     await continuous_autopilot.start()
     return continuous_autopilot.get_status()
 
 
-@router.post("/pause")
+@router.post("/pause", dependencies=[Depends(require_api_key)])
 async def pause_autopilot() -> Dict[str, Any]:
     """Pauses the continuous autopilot runner without terminating the background worker."""
     return continuous_autopilot.pause()
 
 
-@router.post("/resume")
+@router.post("/resume", dependencies=[Depends(require_api_key)])
 async def resume_autopilot() -> Dict[str, Any]:
     """Resumes the continuous autopilot runner."""
     return continuous_autopilot.resume()
 
 
-@router.post("/trigger")
+@router.post("/trigger", dependencies=[Depends(require_api_key)])
 async def trigger_autopilot_cycle() -> Dict[str, Any]:
     """Immediately triggers an autonomous lead generation run on the next corridor."""
     return await continuous_autopilot.trigger_now()
 
 
-@router.post("/interval")
+@router.post("/interval", dependencies=[Depends(require_api_key)])
 async def set_autopilot_interval(payload: IntervalUpdateRequest) -> Dict[str, Any]:
     """Updates the frequency / interval between continuous automated lead discovery runs."""
     return continuous_autopilot.set_interval(payload.interval_seconds)
@@ -52,7 +53,7 @@ class KillRequest(BaseModel):
     reason: Optional[str] = "Manual operator kill switch invoked via API"
 
 
-@router.post("/kill")
+@router.post("/kill", dependencies=[Depends(require_api_key)])
 async def kill_autopilot(payload: Optional[KillRequest] = None) -> Dict[str, Any]:
     """
     Emergency kill switch: aborts the active cycle immediately, marks active DB runs/logs

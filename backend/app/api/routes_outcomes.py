@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from ..core.database import get_db
 from ..core.config import config
+from ..core.auth import require_api_key
 from ..models.entities import Company, Contact, LeadOutcome, SuppressionEntry
 from ..services.normalizer import Normalizer
 from ..services.compliance import ComplianceService
@@ -46,7 +47,7 @@ class LogOutcomeRequest(BaseModel):
     notes: Optional[str] = None
 
 
-@router.post("/outcome")
+@router.post("/outcome", dependencies=[Depends(require_api_key)])
 async def log_lead_outcome(request: LogOutcomeRequest, session: AsyncSession = Depends(get_db)):
     """
     Logs call or email outcome for a lead.

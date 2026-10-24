@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pathlib import Path
 
 from ..core.database import get_db
+from ..core.auth import require_api_key
 from ..models.entities import Run
 from ..schemas.schemas import RunCreateRequest, RunResponse
 from ..services.orchestrator import LeadOrchestrator
@@ -15,7 +16,7 @@ from ..services.orchestrator import LeadOrchestrator
 router = APIRouter(prefix="/api/runs", tags=["Runs"])
 
 
-@router.post("", response_model=RunResponse)
+@router.post("", response_model=RunResponse, dependencies=[Depends(require_api_key)])
 async def create_run(
     request: RunCreateRequest,
     background_tasks: BackgroundTasks,
@@ -51,7 +52,7 @@ async def get_run(
     return run
 
 
-@router.post("/{run_id}/cancel", response_model=RunResponse)
+@router.post("/{run_id}/cancel", response_model=RunResponse, dependencies=[Depends(require_api_key)])
 async def cancel_run(
     run_id: str,
     session: AsyncSession = Depends(get_db)
@@ -69,7 +70,7 @@ async def cancel_run(
     return run
 
 
-@router.post("/{run_id}/retry", response_model=RunResponse)
+@router.post("/{run_id}/retry", response_model=RunResponse, dependencies=[Depends(require_api_key)])
 async def retry_run(
     run_id: str,
     background_tasks: BackgroundTasks,
