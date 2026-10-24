@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from ..core.database import get_db
 from ..core.config import config
-from ..core.auth import require_api_key
+from ..core.auth import require_api_key, require_pii_access
 from ..models.entities import Company, Contact, LeadOutcome, SuppressionEntry
 from ..services.normalizer import Normalizer
 from ..services.compliance import ComplianceService
@@ -142,7 +142,7 @@ class ManualAuthorityVerificationRequest(BaseModel):
     notes: Optional[str] = Field(None, description="Operator notes during manual verification")
 
 
-@router.get("/callable-mailable")
+@router.get("/callable-mailable", dependencies=[Depends(require_pii_access)])
 async def list_callable_mailable_leads(
     filter_mode: str = Query("all", description="all, callable, mailable, both, unproven_authority"),
     limit: int = Query(100, ge=1, le=500),
@@ -411,7 +411,7 @@ async def verify_authority_manual(
     }
 
 
-@router.get("/companies/{company_id}/draft-email")
+@router.get("/companies/{company_id}/draft-email", dependencies=[Depends(require_pii_access)])
 async def generate_compliant_email_draft(company_id: str, session: AsyncSession = Depends(get_db)):
     """
     Generates CAN-SPAM compliant email draft based strictly on verified facts.

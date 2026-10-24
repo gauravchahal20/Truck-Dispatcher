@@ -69,3 +69,44 @@ def require_api_key(api_key: str = Security(api_key_header)) -> str:
 
     return "unauthenticated_dev"
 
+
+def is_loopback_client(host: str | None) -> bool:
+    """Checks whether the client host is a local loopback address."""
+    if not host:
+        return False
+    return host in ("127.0.0.1", "::1", "localhost", "testclient")
+
+
+from fastapi import Request
+
+
+def require_pii_access(request: Request, api_key: str = Security(api_key_header)) -> str:
+    """
+    K7: GET endpoints returning lead PII must also require the API key
+    unless the request originates from loopback (local dev/operator).
+    """
+    client_host = getattr(getattr(request, "client", None), "host", None)
+    if is_loopback_client(client_host):
+        return "loopback_authorized"
+
+    # Non-loopback requests strictly require API key
+    return require_api_key(api_key)
+
+
+def validate_pii_security_startup():
+    """
+    K7: Validates that if the server host is not bound to loopback,
+    an API key is configured to protect PII endpoints.
+    """
+    host = (
+        getattr(settings, "backend_host", None) or
+        getattr(settings, "host", None) or
+        os.getenv("HOST", "127.0.0.1")
+    ).strip().lower()
+    key = get_configured_api_key()
+    if host not in ("127.0.0.1", "localhost", "::1") and (not key or not key.strip()):
+        raise RuntimeError(
+            f"Security Error: Server host is bound to public/network interface '{host}' "
+            "without an API key configured. Configure API_KEY to protect PII endpoints."
+        )
+

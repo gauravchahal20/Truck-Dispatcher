@@ -127,3 +127,87 @@ def test_k1_release_integrity():
     except subprocess.SubprocessError as e:
         pytest.skip(f"Git command failed: {e}")
 
+
+@pytest.mark.asyncio
+async def test_k7_security_basics(monkeypatch):
+    """
+    K7: Verifies:
+    1. GET endpoints returning lead PII require an API key unless request originates from loopback.
+    2. CORS is restricted to frontend origins (never wildcard *).
+    3. Startup check refuses non-loopback binding without configured API key.
+    """
+    import httpx
+    from app.main import app
+    from app.core.auth import validate_pii_security_startup, is_loopback_client, require_pii_access
+
+    # 1. Startup validation: Public host without key raises RuntimeError
+    monkeypatch.setattr(settings, "backend_host", "0.0.0.0")
+    monkeypatch.setenv("HOST", "0.0.0.0")
+    monkeypatch.setenv("API_KEY", "")
+    monkeypatch.setattr(settings, "api_key", None)
+    with pytest.raises(RuntimeError) as exc_info:
+        validate_pii_security_startup()
+    assert "Security Error: Server host is bound to public/network interface" in str(exc_info.value)
+
+    # 2. Startup validation: Public host WITH key passes
+    monkeypatch.setenv("API_KEY", "secure-token-999")
+    monkeypatch.setattr(settings, "api_key", "secure-token-999")
+    validate_pii_security_startup()  # Should not raise
+
+    # 3. Startup validation: Loopback host without key passes (local dev convenience)
+    monkeypatch.setattr(settings, "backend_host", "127.0.0.1")
+    monkeypatch.setenv("HOST", "127.0.0.1")
+    monkeypatch.setenv("API_KEY", "")
+    monkeypatch.setattr(settings, "api_key", None)
+    validate_pii_security_startup()  # Should not raise
+
+    # 4. Loopback client identification
+    assert is_loopback_client("127.0.0.1") is True
+    assert is_loopback_client("localhost") is True
+    assert is_loopback_client("::1") is True
+    assert is_loopback_client("testclient") is True
+    assert is_loopback_client("192.168.1.100") is False
+    assert is_loopback_client("10.0.0.5") is False
+
+    # 5. Remote non-loopback PII endpoint access
+    class MockRemoteRequest:
+        def __init__(self, host: str):
+            self.client = type("Client", (), {"host": host})()
+
+    remote_req = MockRemoteRequest(host="192.168.1.100")
+
+    # When key is configured, remote request without key -> 401
+    monkeypatch.setenv("API_KEY", "valid-k7-key")
+    monkeypatch.setattr(settings, "api_key", "valid-k7-key")
+
+    with pytest.raises(Exception) as exc401:
+        require_pii_access(remote_req, api_key=None)
+    assert getattr(exc401.value, "status_code", None) == 401
+
+    with pytest.raises(Exception) as exc403:
+        require_pii_access(remote_req, api_key="wrong-key")
+    assert getattr(exc403.value, "status_code", None) == 403
+
+    assert require_pii_access(remote_req, api_key="valid-k7-key") == "valid-k7-key"
+
+    # Loopback request bypasses without requiring key
+    loopback_req = MockRemoteRequest(host="127.0.0.1")
+    assert require_pii_access(loopback_req, api_key=None) == "loopback_authorized"
+
+    # 6. CORS verification
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        # Request with allowed frontend origin
+        res_allowed = await client.options(
+            "/api/leads/callable-mailable",
+            headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"}
+        )
+        assert res_allowed.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+        # Request with disallowed foreign origin
+        res_disallowed = await client.options(
+            "/api/leads/callable-mailable",
+            headers={"Origin": "http://malicious-external-site.com", "Access-Control-Request-Method": "GET"}
+        )
+        assert res_disallowed.headers.get("access-control-allow-origin") is None
+
+

@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from .core.config import settings, config
 from .core.logging import setup_logger
 from .core.database import init_db
-from .core.auth import validate_api_key_startup
+from .core.auth import validate_api_key_startup, validate_pii_security_startup
 from .api import api_router
 from .services.continuous_runner import continuous_autopilot
 
@@ -20,8 +20,9 @@ async def lifespan(app: FastAPI):
     logger.info("==================================================")
     logger.info("   TRUCKLEAD AUTOPILOT - Backend Engine v1.0.0    ")
     logger.info("==================================================")
-    # Refuse startup without configured key in non-dev mode
+    # Refuse startup without configured key in non-dev mode or public host
     validate_api_key_startup()
+    validate_pii_security_startup()
     logger.info("Initializing relational database schema...")
     await init_db()
     logger.info("Database schema successfully initialized.")
@@ -43,12 +44,25 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for Next.js frontend
+# Enable CORS restricted to configured frontend origins (K7)
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+configured_origins = getattr(settings, "cors_origins", None)
+if configured_origins:
+    if isinstance(configured_origins, list):
+        allowed_origins.extend(configured_origins)
+    elif isinstance(configured_origins, str):
+        allowed_origins.extend([o.strip() for o in configured_origins.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=list(set(allowed_origins)),
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
