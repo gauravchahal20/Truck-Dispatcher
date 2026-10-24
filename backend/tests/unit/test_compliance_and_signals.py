@@ -237,3 +237,54 @@ async def test_d5_signal_tables_checksum_persistence():
         assert ins_loaded is not None
         assert ins_loaded.raw_checksum == "chk_ins_123"
         assert ins_loaded.policy_no == "POL-7788"
+
+
+@pytest.mark.asyncio
+async def test_h6_signal_sync_methods_offline(monkeypatch):
+    """H6: Verifies sync_insurance, sync_authority_history, and sync_new_applications store rows with checksums."""
+    from unittest.mock import AsyncMock, MagicMock
+    import httpx
+    from app.adapters.fmcsa_official import FMCSAOfficialAdapter
+
+    adapter = FMCSAOfficialAdapter(enabled=True)
+
+    mock_ins_resp = MagicMock()
+    mock_ins_resp.status_code = 200
+    mock_ins_resp.json.return_value = [
+        {"dot_number": "01234567", "docket_number": "MC11111", "policy_no": "P-100", "name_company": "SAFE CARRIER INS", "max_cov_amount": "1000"}
+    ]
+
+    mock_auth_resp = MagicMock()
+    mock_auth_resp.status_code = 200
+    mock_auth_resp.json.return_value = [
+        {"usdot_number": "01234567", "docket_number": "MC11111", "order1_type_desc": "Notice Of Voluntary Suspension", "order1_serve_date": "20261024"}
+    ]
+
+    mock_app_resp = MagicMock()
+    mock_app_resp.status_code = 200
+    mock_app_resp.json.return_value = [
+        {"dot_number": "01234567", "docket_number": "MC11111", "policy_no": "P-200", "rej_reasons": "Carrier name differs"}
+    ]
+
+    async with AsyncSessionLocal() as session:
+        # 1. Test sync insurance
+        with monkeypatch.context() as m:
+            m.setattr(httpx.AsyncClient, "get", AsyncMock(return_value=mock_ins_resp))
+            res_ins = await adapter.sync_insurance(session, limit=1)
+            assert res_ins["status_code"] == 200
+            assert res_ins["inserted_or_updated"] == 1
+
+        # 2. Test sync authority history
+        with monkeypatch.context() as m:
+            m.setattr(httpx.AsyncClient, "get", AsyncMock(return_value=mock_auth_resp))
+            res_auth = await adapter.sync_authority_history(session, limit=1)
+            assert res_auth["status_code"] == 200
+            assert res_auth["inserted_or_updated"] == 1
+
+        # 3. Test sync new applications
+        with monkeypatch.context() as m:
+            m.setattr(httpx.AsyncClient, "get", AsyncMock(return_value=mock_app_resp))
+            res_app = await adapter.sync_new_applications(session, limit=1)
+            assert res_app["status_code"] == 200
+            assert res_app["inserted_or_updated"] == 1
+

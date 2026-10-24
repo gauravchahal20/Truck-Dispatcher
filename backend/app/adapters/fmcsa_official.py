@@ -13,12 +13,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .base import BaseSourceAdapter, RawLeadRecord, EnrichmentResult
 from ..core.database import AsyncSessionLocal
 from ..core.circuit_breaker import circuit_breaker
-from ..models.entities import FMCSACarrierCensus
+from ..models.entities import (
+    FMCSACarrierCensus,
+    FMCSAInsurance,
+    FMCSAAuthorityHistory,
+    FMCSANewApplication
+)
 from ..services.normalizer import Normalizer
 
 logger = logging.getLogger("trucklead.adapter.fmcsa_official")
 
 DEFAULT_SOCRATA_ENDPOINT = "https://data.transportation.gov/resource/az4n-8mr2.json"
+DEFAULT_INSURANCE_ENDPOINT = "https://data.transportation.gov/resource/qh9u-swkp.json"
+DEFAULT_AUTHORITY_HISTORY_ENDPOINT = "https://data.transportation.gov/resource/wb4f-neki.json"
+DEFAULT_NEW_APPLICATIONS_ENDPOINT = "https://data.transportation.gov/resource/96tg-4mhf.json"
 DEFAULT_QCMOBILE_BASE = "https://mobile.fmcsa.dot.gov/qc/services/carriers/"
 
 
@@ -434,3 +442,244 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
         except Exception as e:
             logger.debug(f"kjg3-diqy lookup failed for USDOT {dot_clean}: {e}")
         return None
+
+    async def sync_insurance(self, session: AsyncSession, limit: int = 50) -> Dict[str, Any]:
+        """
+        Syncs active/pending insurance filings (SODA qh9u-swkp) into fmcsa_insurance_active_pending.
+        """
+        endpoint = os.getenv("FMCSA_INSURANCE_ENDPOINT", DEFAULT_INSURANCE_ENDPOINT)
+        headers = {"User-Agent": "Trucklead-Autopilot-Official/2.0", "Accept": "application/json"}
+        app_token = os.getenv("SOCRATA_APP_TOKEN")
+        if app_token:
+            headers["X-App-Token"] = app_token
+
+        await self._rate_limit_wait()
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(endpoint, params={"$limit": limit}, headers=headers)
+                if resp.status_code != 200:
+                    return {
+                        "endpoint": endpoint,
+                        "status_code": resp.status_code,
+                        "rows_received": 0,
+                        "inserted_or_updated": 0,
+                        "cause": resp.text[:200]
+                    }
+                records = resp.json()
+
+            now = datetime.now(timezone.utc)
+            count = 0
+            for r in records:
+                raw_dot = r.get("dot_number")
+                dot_clean = str(raw_dot).lstrip("0") if raw_dot else None
+                checksum = self._compute_checksum(r)
+
+                policy = r.get("policy_no")
+                existing = None
+                if dot_clean and policy:
+                    stmt = select(FMCSAInsurance).where(
+                        and_(FMCSAInsurance.dot_number == dot_clean, FMCSAInsurance.policy_no == policy)
+                    ).limit(1)
+                    res = await session.execute(stmt)
+                    existing = res.scalar_one_or_none()
+
+                if existing:
+                    existing.ins_form_code = r.get("ins_form_code")
+                    existing.name_company = r.get("name_company")
+                    existing.underl_lim_amount = r.get("underl_lim_amount")
+                    existing.max_cov_amount = r.get("max_cov_amount")
+                    existing.effective_date = r.get("effective_date")
+                    existing.cancl_effective_date = r.get("cancl_effective_date")
+                    existing.raw_checksum = checksum
+                    existing.synced_at = now
+                else:
+                    new_item = FMCSAInsurance(
+                        dot_number=dot_clean,
+                        docket_number=r.get("docket_number"),
+                        ins_form_code=r.get("ins_form_code"),
+                        name_company=r.get("name_company"),
+                        policy_no=policy,
+                        underl_lim_amount=r.get("underl_lim_amount"),
+                        max_cov_amount=r.get("max_cov_amount"),
+                        effective_date=r.get("effective_date"),
+                        cancl_effective_date=r.get("cancl_effective_date"),
+                        raw_checksum=checksum,
+                        synced_at=now
+                    )
+                    session.add(new_item)
+                count += 1
+
+            await session.commit()
+            return {
+                "endpoint": endpoint,
+                "status_code": 200,
+                "rows_received": len(records),
+                "inserted_or_updated": count,
+                "cause": None
+            }
+        except Exception as e:
+            logger.error(f"Failed to sync insurance: {e}")
+            return {
+                "endpoint": endpoint,
+                "status_code": 0,
+                "rows_received": 0,
+                "inserted_or_updated": 0,
+                "cause": str(e)
+            }
+
+    async def sync_authority_history(self, session: AsyncSession, limit: int = 50) -> Dict[str, Any]:
+        """
+        Syncs authority history and dispositions (SODA wb4f-neki) into fmcsa_authority_history.
+        """
+        endpoint = os.getenv("FMCSA_AUTHORITY_HISTORY_ENDPOINT", DEFAULT_AUTHORITY_HISTORY_ENDPOINT)
+        headers = {"User-Agent": "Trucklead-Autopilot-Official/2.0", "Accept": "application/json"}
+        app_token = os.getenv("SOCRATA_APP_TOKEN")
+        if app_token:
+            headers["X-App-Token"] = app_token
+
+        await self._rate_limit_wait()
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(endpoint, params={"$limit": limit}, headers=headers)
+                if resp.status_code != 200:
+                    return {
+                        "endpoint": endpoint,
+                        "status_code": resp.status_code,
+                        "rows_received": 0,
+                        "inserted_or_updated": 0,
+                        "cause": resp.text[:200]
+                    }
+                records = resp.json()
+
+            now = datetime.now(timezone.utc)
+            count = 0
+            for r in records:
+                dot = r.get("usdot_number") or r.get("dot_number")
+                dot_clean = str(dot).lstrip("0") if dot else None
+                checksum = self._compute_checksum(r)
+
+                order_desc = r.get("order1_type_desc") or r.get("order_type_desc")
+                serve_date = r.get("order1_serve_date") or r.get("serve_date")
+
+                existing = None
+                if dot_clean and order_desc:
+                    stmt = select(FMCSAAuthorityHistory).where(
+                        and_(FMCSAAuthorityHistory.dot_number == dot_clean, FMCSAAuthorityHistory.order_type_desc == order_desc)
+                    ).limit(1)
+                    res = await session.execute(stmt)
+                    existing = res.scalar_one_or_none()
+
+                if existing:
+                    existing.serve_date = serve_date
+                    existing.raw_checksum = checksum
+                    existing.synced_at = now
+                else:
+                    new_item = FMCSAAuthorityHistory(
+                        dot_number=dot_clean,
+                        docket_number=r.get("docket_number"),
+                        op_auth_type=r.get("op_auth_type"),
+                        order_type_desc=order_desc,
+                        serve_date=serve_date,
+                        effective_date=r.get("effective_date"),
+                        raw_checksum=checksum,
+                        synced_at=now
+                    )
+                    session.add(new_item)
+                count += 1
+
+            await session.commit()
+            return {
+                "endpoint": endpoint,
+                "status_code": 200,
+                "rows_received": len(records),
+                "inserted_or_updated": count,
+                "cause": None
+            }
+        except Exception as e:
+            logger.error(f"Failed to sync authority history: {e}")
+            return {
+                "endpoint": endpoint,
+                "status_code": 0,
+                "rows_received": 0,
+                "inserted_or_updated": 0,
+                "cause": str(e)
+            }
+
+    async def sync_new_applications(self, session: AsyncSession, limit: int = 50) -> Dict[str, Any]:
+        """
+        Syncs operating authority applications (SODA 96tg-4mhf) into fmcsa_new_applications.
+        """
+        endpoint = os.getenv("FMCSA_NEW_APPLICATIONS_ENDPOINT", DEFAULT_NEW_APPLICATIONS_ENDPOINT)
+        headers = {"User-Agent": "Trucklead-Autopilot-Official/2.0", "Accept": "application/json"}
+        app_token = os.getenv("SOCRATA_APP_TOKEN")
+        if app_token:
+            headers["X-App-Token"] = app_token
+
+        await self._rate_limit_wait()
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(endpoint, params={"$limit": limit}, headers=headers)
+                if resp.status_code != 200:
+                    return {
+                        "endpoint": endpoint,
+                        "status_code": resp.status_code,
+                        "rows_received": 0,
+                        "inserted_or_updated": 0,
+                        "cause": resp.text[:200]
+                    }
+                records = resp.json()
+
+            now = datetime.now(timezone.utc)
+            count = 0
+            for r in records:
+                raw_dot = r.get("dot_number")
+                dot_clean = str(raw_dot).lstrip("0") if raw_dot else None
+                checksum = self._compute_checksum(r)
+
+                policy = r.get("policy_no")
+                existing = None
+                if dot_clean and policy:
+                    stmt = select(FMCSANewApplication).where(
+                        and_(FMCSANewApplication.dot_number == dot_clean, FMCSANewApplication.policy_no == policy)
+                    ).limit(1)
+                    res = await session.execute(stmt)
+                    existing = res.scalar_one_or_none()
+
+                if existing:
+                    existing.rej_reasons = r.get("rej_reasons")
+                    existing.raw_checksum = checksum
+                    existing.synced_at = now
+                else:
+                    new_item = FMCSANewApplication(
+                        dot_number=dot_clean,
+                        docket_number=r.get("docket_number"),
+                        ins_form_code=r.get("ins_form_code"),
+                        policy_no=policy,
+                        recv_date=r.get("recv_date"),
+                        rej_date=r.get("rej_date"),
+                        name_company=r.get("name_company"),
+                        rej_reasons=r.get("rej_reasons"),
+                        raw_checksum=checksum,
+                        synced_at=now
+                    )
+                    session.add(new_item)
+                count += 1
+
+            await session.commit()
+            return {
+                "endpoint": endpoint,
+                "status_code": 200,
+                "rows_received": len(records),
+                "inserted_or_updated": count,
+                "cause": None
+            }
+        except Exception as e:
+            logger.error(f"Failed to sync new applications: {e}")
+            return {
+                "endpoint": endpoint,
+                "status_code": 0,
+                "rows_received": 0,
+                "inserted_or_updated": 0,
+                "cause": str(e)
+            }
+
