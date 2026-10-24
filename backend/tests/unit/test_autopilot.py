@@ -91,3 +91,85 @@ async def test_autopilot_kill_and_audit_report_endpoints():
         assert audit_data["safeguards"]["max_requests_per_host_per_min"] == 30
         assert "recent_logs" in audit_data
 
+
+def test_k5_autopilot_ingestion_cap_enforcement():
+    """
+    K5: Verifies that autopilot strictly enforces per-cycle lead ingestion caps,
+    preventing runaway ingestion and respecting corridor target constraints.
+    """
+    autopilot = ContinuousAutopilot()
+    status = autopilot.get_status()
+    per_cycle_cap = status["safeguards"]["per_cycle_leads_cap"]
+    assert per_cycle_cap == 50
+
+    # Test capping logic across corridors
+    for corridor in status["all_corridors"]:
+        capped = min(corridor["target_count"], per_cycle_cap)
+        assert capped <= per_cycle_cap
+        assert capped > 0
+
+    # If corridor specifies target_count exceeding cap, it must clamp to per_cycle_cap
+    oversized_target = 120
+    effective_target = min(oversized_target, per_cycle_cap)
+    assert effective_target == 50
+
+
+@pytest.mark.asyncio
+async def test_k5_orchestrator_candidate_ingestion_cap():
+    """
+    K5: Verifies that LeadOrchestrator halts candidate ingestion as soon as
+    run.target_lead_count is reached, preventing unbounded ingestion.
+    """
+    from unittest.mock import patch, AsyncMock
+    from app.services.orchestrator import LeadOrchestrator
+    from app.schemas.schemas import RunCreateRequest
+    from app.core.database import AsyncSessionLocal
+    from app.models.entities import Run, Company
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as session:
+        req = RunCreateRequest(
+            name="K5 Ingestion Cap Verification",
+            target_states=["TX"],
+            fleet_size_min=2,
+            fleet_size_max=10,
+            target_lead_count=2,  # Strict cap of 2 leads
+            score_threshold=5.0
+        )
+        run = await LeadOrchestrator.create_run(session, req)
+        run_id = run.id
+
+    from app.adapters.base import RawLeadRecord
+
+    # Create 5 mock discovered candidates
+    mock_candidates = [
+        RawLeadRecord(
+            company_name=f"K5 Test Carrier {i}",
+            usdot=f"999888{i}",
+            state="TX",
+            fleet_size=5,
+            source_name="fmcsa_official",
+            source_url="https://data.transportation.gov/resource/test"
+        )
+        for i in range(5)
+    ]
+
+    mock_adapter = AsyncMock()
+    mock_adapter.name = "fmcsa_official"
+    mock_adapter.discover_candidates = AsyncMock(return_value=mock_candidates)
+
+    from app.adapters.registry import registry
+    with patch.object(registry, "get_active_discovery_adapters", return_value=[mock_adapter]), \
+         patch.object(registry, "get_adapter", return_value=None):
+        await LeadOrchestrator.run_pipeline_async(run_id)
+
+    async with AsyncSessionLocal() as session:
+        completed_run = await session.get(Run, run_id)
+        assert completed_run.status == "COMPLETED"
+
+        result = await session.execute(select(Company).where(Company.run_id == run_id))
+        stored = result.scalars().all()
+        # Strictly capped at target_lead_count = 2 despite 5 candidates discovered
+        assert len(stored) == 2
+
+

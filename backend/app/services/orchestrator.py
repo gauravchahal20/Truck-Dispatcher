@@ -340,6 +340,9 @@ class LeadOrchestrator:
 
                 processed_count = 0
                 for raw in discovered_leads:
+                    if run.target_lead_count and processed_count >= run.target_lead_count:
+                        logger.info(f"Target lead count reached ({processed_count}/{run.target_lead_count}). Halting candidate ingestion.")
+                        break
                     # Normalization
                     norm_name = Normalizer.normalize_company_name(raw.company_name)
                     norm_domain = Normalizer.normalize_domain(raw.website)
@@ -800,6 +803,9 @@ class LeadOrchestrator:
                     await session.flush()
                     processed_count += 1
 
+                    if run.target_lead_count and processed_count >= run.target_lead_count:
+                        logger.info(f"Target lead count reached ({processed_count}/{run.target_lead_count}). Halting candidate ingestion.")
+                        break
 
                     # Commit in batches of 10 for speed
                     if processed_count % 10 == 0:
