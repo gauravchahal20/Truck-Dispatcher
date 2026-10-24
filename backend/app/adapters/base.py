@@ -34,6 +34,9 @@ class RawLeadRecord(BaseModel):
     mcs_150_date: Optional[str] = None
     company_officer_1: Optional[str] = None
     company_officer_2: Optional[str] = None
+    authority_status: Optional[str] = "UNKNOWN"
+    authority_status_source: Optional[str] = None
+    insurance_filing_status: Optional[str] = "UNKNOWN"
 
     source_name: str
     source_url: Optional[str] = None
