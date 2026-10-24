@@ -288,3 +288,34 @@ async def test_h6_signal_sync_methods_offline(monkeypatch):
             assert res_app["status_code"] == 200
             assert res_app["inserted_or_updated"] == 1
 
+
+@pytest.mark.asyncio
+async def test_j4_signal_coverage_and_config_caps():
+    """J4: Verifies signals configuration caps and stored carrier targeting options."""
+    from backend.app.core.config import config
+    
+    assert hasattr(config, "signals")
+    assert config.signals.sync_caps.insurance_limit >= 500
+    assert config.signals.sync_caps.authority_history_limit >= 500
+    assert config.signals.sync_caps.new_applications_limit >= 500
+    assert config.signals.sync_caps.sync_stored_carriers_first is True
+
+    # Test joining by USDOT logic
+    from backend.app.models.entities import Company, FMCSAInsurance
+    from backend.app.adapters.fmcsa_official import FMCSAOfficialAdapter
+    async with AsyncSessionLocal() as session:
+        carrier = Company(
+            company_name="Test Logistics",
+            lead_type="CARRIER",
+            usdot="1234567",
+            lead_status="QUALIFIED"
+        )
+        session.add(carrier)
+        await session.commit()
+
+        adapter = FMCSAOfficialAdapter(enabled=True)
+        stored_dots = await adapter._get_stored_carrier_dots(session)
+        assert isinstance(stored_dots, list)
+        assert "1234567" in stored_dots
+
+

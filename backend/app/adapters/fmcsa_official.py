@@ -14,6 +14,7 @@ from .base import BaseSourceAdapter, RawLeadRecord, EnrichmentResult
 from ..core.database import AsyncSessionLocal
 from ..core.circuit_breaker import circuit_breaker
 from ..models.entities import (
+    Company,
     FMCSACarrierCensus,
     FMCSAInsurance,
     FMCSAAuthorityHistory,
@@ -505,10 +506,37 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
             logger.debug(f"kjg3-diqy lookup failed for USDOT {dot_clean}: {e}")
         return None
 
-    async def sync_insurance(self, session: AsyncSession, limit: int = 50) -> Dict[str, Any]:
+    async def _get_stored_carrier_dots(self, session: AsyncSession) -> List[str]:
+        """Retrieves distinct active USDOT numbers for stored carriers."""
+        stmt = select(Company.usdot).where(
+            and_(
+                Company.lead_type == "CARRIER",
+                Company.usdot.isnot(None),
+                Company.usdot != ""
+            )
+        )
+        res = await session.execute(stmt)
+        dots = [str(r[0]).strip() for r in res.fetchall() if r[0]]
+        return list(dict.fromkeys(dots))
+
+    async def sync_insurance(
+        self,
+        session: AsyncSession,
+        limit: Optional[int] = None,
+        target_dots: Optional[List[str]] = None,
+        sync_stored_carriers_first: Optional[bool] = None
+    ) -> Dict[str, Any]:
         """
         Syncs active/pending insurance filings (SODA qh9u-swkp) into fmcsa_insurance_active_pending.
+        Synchronizes records for stored carriers' USDOT numbers first before fetching stream records.
         """
+        from ..core.config import config
+        caps = getattr(getattr(config, "signals", None), "sync_caps", None)
+        effective_limit = limit if limit is not None else (caps.insurance_limit if caps else 500)
+        sync_stored = sync_stored_carriers_first if sync_stored_carriers_first is not None else (
+            (target_dots is not None) or (limit is None and getattr(caps, "sync_stored_carriers_first", False))
+        )
+
         endpoint = os.getenv("FMCSA_INSURANCE_ENDPOINT", DEFAULT_INSURANCE_ENDPOINT)
         headers = {"User-Agent": "Trucklead-Autopilot-Official/2.0", "Accept": "application/json"}
         app_token = os.getenv("SOCRATA_APP_TOKEN")
@@ -517,17 +545,38 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
 
         await self._rate_limit_wait()
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.get(endpoint, params={"$limit": limit}, headers=headers)
-                if resp.status_code != 200:
-                    return {
-                        "endpoint": endpoint,
-                        "status_code": resp.status_code,
-                        "rows_received": 0,
-                        "inserted_or_updated": 0,
-                        "cause": resp.text[:200]
-                    }
-                records = resp.json()
+            records: List[Dict[str, Any]] = []
+            seen_keys = set()
+
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                # 1. Sync stored carrier USDOTs first if configured
+                if sync_stored:
+                    dots = target_dots if target_dots is not None else await self._get_stored_carrier_dots(session)
+                    padded_dots = [f"{int(d):08d}" for d in dots if d.isdigit()]
+                    for i in range(0, len(padded_dots), 25):
+                        batch = padded_dots[i:i+25]
+                        in_list = ",".join(f"'{d}'" for d in batch)
+                        try:
+                            resp = await client.get(endpoint, params={"$where": f"dot_number in({in_list})", "$limit": 500}, headers=headers)
+                            if resp.status_code == 200:
+                                for row in resp.json():
+                                    k = (str(row.get("dot_number")).lstrip("0"), row.get("policy_no"))
+                                    if k not in seen_keys:
+                                        seen_keys.add(k)
+                                        records.append(row)
+                        except Exception as e:
+                            logger.warning(f"Error querying insurance batch {i}: {e}")
+
+                # 2. Query general stream up to effective_limit
+                remaining = max(0, effective_limit - len(records))
+                if remaining > 0 or not records:
+                    resp = await client.get(endpoint, params={"$limit": max(remaining, 50)}, headers=headers)
+                    if resp.status_code == 200:
+                        for row in resp.json():
+                            k = (str(row.get("dot_number")).lstrip("0"), row.get("policy_no"))
+                            if k not in seen_keys and len(records) < effective_limit:
+                                seen_keys.add(k)
+                                records.append(row)
 
             now = datetime.now(timezone.utc)
             count = 0
@@ -589,10 +638,24 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 "cause": str(e)
             }
 
-    async def sync_authority_history(self, session: AsyncSession, limit: int = 50) -> Dict[str, Any]:
+    async def sync_authority_history(
+        self,
+        session: AsyncSession,
+        limit: Optional[int] = None,
+        target_dots: Optional[List[str]] = None,
+        sync_stored_carriers_first: Optional[bool] = None
+    ) -> Dict[str, Any]:
         """
         Syncs authority history and dispositions (SODA wb4f-neki) into fmcsa_authority_history.
+        Synchronizes records for stored carriers' USDOT numbers first before fetching stream records.
         """
+        from ..core.config import config
+        caps = getattr(getattr(config, "signals", None), "sync_caps", None)
+        effective_limit = limit if limit is not None else (caps.authority_history_limit if caps else 500)
+        sync_stored = sync_stored_carriers_first if sync_stored_carriers_first is not None else (
+            (target_dots is not None) or (limit is None and getattr(caps, "sync_stored_carriers_first", False))
+        )
+
         endpoint = os.getenv("FMCSA_AUTHORITY_HISTORY_ENDPOINT", DEFAULT_AUTHORITY_HISTORY_ENDPOINT)
         headers = {"User-Agent": "Trucklead-Autopilot-Official/2.0", "Accept": "application/json"}
         app_token = os.getenv("SOCRATA_APP_TOKEN")
@@ -601,17 +664,42 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
 
         await self._rate_limit_wait()
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.get(endpoint, params={"$limit": limit}, headers=headers)
-                if resp.status_code != 200:
-                    return {
-                        "endpoint": endpoint,
-                        "status_code": resp.status_code,
-                        "rows_received": 0,
-                        "inserted_or_updated": 0,
-                        "cause": resp.text[:200]
-                    }
-                records = resp.json()
+            records: List[Dict[str, Any]] = []
+            seen_keys = set()
+
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                # 1. Sync stored carrier USDOTs first if configured
+                if sync_stored:
+                    dots = target_dots if target_dots is not None else await self._get_stored_carrier_dots(session)
+                    raw_dots = [str(int(d)) for d in dots if d.isdigit()]
+                    for i in range(0, len(raw_dots), 25):
+                        batch = raw_dots[i:i+25]
+                        in_list = ",".join(f"'{d}'" for d in batch)
+                        try:
+                            resp = await client.get(endpoint, params={"$where": f"usdot_number in({in_list})", "$limit": 500}, headers=headers)
+                            if resp.status_code == 200:
+                                for row in resp.json():
+                                    d_clean = str(row.get("usdot_number") or row.get("dot_number")).lstrip("0")
+                                    o_desc = row.get("order1_type_desc") or row.get("order_type_desc")
+                                    k = (d_clean, o_desc)
+                                    if k not in seen_keys:
+                                        seen_keys.add(k)
+                                        records.append(row)
+                        except Exception as e:
+                            logger.warning(f"Error querying authority history batch {i}: {e}")
+
+                # 2. Query general stream up to effective_limit
+                remaining = max(0, effective_limit - len(records))
+                if remaining > 0 or not records:
+                    resp = await client.get(endpoint, params={"$limit": max(remaining, 50)}, headers=headers)
+                    if resp.status_code == 200:
+                        for row in resp.json():
+                            d_clean = str(row.get("usdot_number") or row.get("dot_number")).lstrip("0")
+                            o_desc = row.get("order1_type_desc") or row.get("order_type_desc")
+                            k = (d_clean, o_desc)
+                            if k not in seen_keys and len(records) < effective_limit:
+                                seen_keys.add(k)
+                                records.append(row)
 
             now = datetime.now(timezone.utc)
             count = 0
@@ -667,10 +755,24 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 "cause": str(e)
             }
 
-    async def sync_new_applications(self, session: AsyncSession, limit: int = 50) -> Dict[str, Any]:
+    async def sync_new_applications(
+        self,
+        session: AsyncSession,
+        limit: Optional[int] = None,
+        target_dots: Optional[List[str]] = None,
+        sync_stored_carriers_first: Optional[bool] = None
+    ) -> Dict[str, Any]:
         """
         Syncs operating authority applications (SODA 96tg-4mhf) into fmcsa_new_applications.
+        Synchronizes records for stored carriers' USDOT numbers first before fetching stream records.
         """
+        from ..core.config import config
+        caps = getattr(getattr(config, "signals", None), "sync_caps", None)
+        effective_limit = limit if limit is not None else (caps.new_applications_limit if caps else 500)
+        sync_stored = sync_stored_carriers_first if sync_stored_carriers_first is not None else (
+            (target_dots is not None) or (limit is None and getattr(caps, "sync_stored_carriers_first", False))
+        )
+
         endpoint = os.getenv("FMCSA_NEW_APPLICATIONS_ENDPOINT", DEFAULT_NEW_APPLICATIONS_ENDPOINT)
         headers = {"User-Agent": "Trucklead-Autopilot-Official/2.0", "Accept": "application/json"}
         app_token = os.getenv("SOCRATA_APP_TOKEN")
@@ -679,17 +781,38 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
 
         await self._rate_limit_wait()
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.get(endpoint, params={"$limit": limit}, headers=headers)
-                if resp.status_code != 200:
-                    return {
-                        "endpoint": endpoint,
-                        "status_code": resp.status_code,
-                        "rows_received": 0,
-                        "inserted_or_updated": 0,
-                        "cause": resp.text[:200]
-                    }
-                records = resp.json()
+            records: List[Dict[str, Any]] = []
+            seen_keys = set()
+
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                # 1. Sync stored carrier USDOTs first if configured
+                if sync_stored:
+                    dots = target_dots if target_dots is not None else await self._get_stored_carrier_dots(session)
+                    padded_dots = [f"{int(d):08d}" for d in dots if d.isdigit()]
+                    for i in range(0, len(padded_dots), 25):
+                        batch = padded_dots[i:i+25]
+                        in_list = ",".join(f"'{d}'" for d in batch)
+                        try:
+                            resp = await client.get(endpoint, params={"$where": f"dot_number in({in_list})", "$limit": 500}, headers=headers)
+                            if resp.status_code == 200:
+                                for row in resp.json():
+                                    k = (str(row.get("dot_number")).lstrip("0"), row.get("policy_no"))
+                                    if k not in seen_keys:
+                                        seen_keys.add(k)
+                                        records.append(row)
+                        except Exception as e:
+                            logger.warning(f"Error querying new applications batch {i}: {e}")
+
+                # 2. Query general stream up to effective_limit
+                remaining = max(0, effective_limit - len(records))
+                if remaining > 0 or not records:
+                    resp = await client.get(endpoint, params={"$limit": max(remaining, 50)}, headers=headers)
+                    if resp.status_code == 200:
+                        for row in resp.json():
+                            k = (str(row.get("dot_number")).lstrip("0"), row.get("policy_no"))
+                            if k not in seen_keys and len(records) < effective_limit:
+                                seen_keys.add(k)
+                                records.append(row)
 
             now = datetime.now(timezone.utc)
             count = 0
@@ -744,4 +867,5 @@ class FMCSAOfficialAdapter(BaseSourceAdapter):
                 "inserted_or_updated": 0,
                 "cause": str(e)
             }
+
 

@@ -301,5 +301,10 @@ autopilot:
   per_cycle_spend_cap: 2.00
   max_requests_per_host_per_min: 30
 
-
-
+# Signal Datasets & Synchronization Configuration
+signals:
+  sync_caps:
+    insurance_limit: 500
+    authority_history_limit: 500
+    new_applications_limit: 500
+    sync_stored_carriers_first: true

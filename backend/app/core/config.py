@@ -178,6 +178,17 @@ class SourceConfigItem(BaseModel):
     timeout: int = 20
 
 
+class SignalSyncCapsConfig(BaseModel):
+    insurance_limit: int = 500
+    authority_history_limit: int = 500
+    new_applications_limit: int = 500
+    sync_stored_carriers_first: bool = True
+
+
+class SignalsConfig(BaseModel):
+    sync_caps: SignalSyncCapsConfig = Field(default_factory=SignalSyncCapsConfig)
+
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -309,6 +320,9 @@ class SystemConfig:
 
         autopilot_data = self.raw_yaml.get("autopilot", {})
         self.autopilot = AutopilotConfig(**autopilot_data) if autopilot_data else AutopilotConfig()
+
+        signals_data = self.raw_yaml.get("signals", {})
+        self.signals = SignalsConfig(**signals_data) if signals_data else SignalsConfig()
 
 
 
