@@ -538,3 +538,66 @@ def test_j1_rejected_strictly_for_confirmed_hard_gates():
     assert "Requested opt-out" in rej_dnc
 
 
+def test_j2_name_keyword_only_routes_to_needs_review_icp():
+    """J2: Carriers matching name keywords without confirming second signal route to NEEDS_REVIEW_ICP, not auto-admitted."""
+    from app.services.orchestrator import LeadOrchestrator
+    from app.services.lead_scorer import LeadScorer
+
+    # 1. Name keyword only ('dumpster') with generic freight equipment -> NEEDS_REVIEW_ICP
+    carrier_kw_only = Company(
+        company_name="HAULX ROLL-OFF DUMPSTER LLC",
+        usdot="7438717",
+        lead_type="CARRIER",
+        operating_status="AUTHORIZED FOR HIRE",
+        carrier_operation="Intrastate Non-Hazmat",
+        fleet_size=2,
+        equipment=["dry_van", "reefer"],
+        lead_score=5.8,
+        priority="B"
+    )
+    icp_status, icp_reason = LeadScorer.evaluate_icp_match(carrier_kw_only)
+    assert icp_status == "NEEDS_REVIEW_ICP"
+    assert "without secondary signal" in icp_reason
+
+    st_kw, _, rej_kw = LeadOrchestrator.resolve_lead_status(carrier_kw_only, priority="B")
+    assert st_kw == "NEEDS_REVIEW_ICP"
+    assert "review required" in rej_kw
+
+    # 2. Name keyword ('wrecker') WITH confirming cargo ('Driveaway/Towaway') -> NOT_ICP
+    carrier_confirmed = Company(
+        company_name="CANTU'S WRECKER SERVICE",
+        usdot="3319088",
+        lead_type="CARRIER",
+        operating_status="AUTHORIZED FOR HIRE",
+        carrier_operation="Intrastate Non-Hazmat",
+        fleet_size=8,
+        equipment=["Driveaway/Towaway"],
+        lead_score=5.8,
+        priority="B"
+    )
+    icp_st_conf, icp_reason_conf = LeadScorer.evaluate_icp_match(carrier_confirmed)
+    assert icp_st_conf == "NOT_ICP"
+    assert "Driveaway/Towaway" in icp_reason_conf
+
+    st_conf, _, rej_conf = LeadOrchestrator.resolve_lead_status(carrier_confirmed, priority="B")
+    assert st_conf == "NOT_ICP"
+    assert "Driveaway/Towaway" in rej_conf
+
+    # 3. Clean carrier with no keyword -> passes normally
+    carrier_clean = Company(
+        company_name="BLUE RIDGE FREIGHT LLC",
+        usdot="1234567",
+        lead_type="CARRIER",
+        operating_status="AUTHORIZED FOR HIRE",
+        carrier_operation="Interstate",
+        fleet_size=5,
+        equipment=["dry_van"],
+        lead_score=7.0,
+        priority="B"
+    )
+    icp_st_clean, _ = LeadScorer.evaluate_icp_match(carrier_clean)
+    assert icp_st_clean is None
+    st_clean, _, _ = LeadOrchestrator.resolve_lead_status(carrier_clean, priority="B")
+    assert st_clean == "QUALIFIED"
+
+

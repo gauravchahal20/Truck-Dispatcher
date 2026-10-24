@@ -65,10 +65,12 @@ class LeadOrchestrator:
         if is_confirmed_revoked_or_private:
             return "REJECTED", None, f"Hard gate failure: Carrier not authorized for-hire ({company.operating_status})"
 
-        # 3. Evaluate ICP Pre-filter -> NOT_ICP
-        is_prefilter_excluded, prefilter_reason = LeadScorer.evaluate_icp_prefilter(company)
-        if is_prefilter_excluded:
-            return "NOT_ICP", None, prefilter_reason
+        # 3. Evaluate ICP Matching -> NOT_ICP or NEEDS_REVIEW_ICP
+        icp_status, icp_reason = LeadScorer.evaluate_icp_match(company)
+        if icp_status == "NOT_ICP":
+            return "NOT_ICP", None, icp_reason
+        if icp_status == "NEEDS_REVIEW_ICP":
+            return "NEEDS_REVIEW_ICP", None, icp_reason
 
         # 4. Authority Provenance: active for-hire verified
         has_proven_active_authority = not is_carrier or (
@@ -694,6 +696,8 @@ class LeadOrchestrator:
                     elif new_status == "NOT_ICP":
                         candidate_company.priority = "NOT_ICP"
                         candidate_company.lead_score = 0.0
+                    elif new_status == "NEEDS_REVIEW_ICP":
+                        candidate_company.priority = "NEEDS_REVIEW_ICP"
                     elif new_status == "FINAL":
                         run.final_count += 1
                         run.verified_count += 1

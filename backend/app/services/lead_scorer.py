@@ -11,23 +11,19 @@ class LeadScorer:
     """Configurable lead scoring and priority ranking engine."""
 
     @classmethod
-    def evaluate_icp_prefilter(cls, company: Company) -> Tuple[bool, Optional[str]]:
+    def evaluate_icp_match(cls, company: Company) -> Tuple[Optional[str], Optional[str]]:
         """
-        I1 ICP Pre-Filter: Evaluates whether a candidate carrier is non-freight
-        (e.g., towing, wrecker, auto sales, passenger, dumpsters, landscaping)
-        using whole-word name keyword matching and requiring a confirming second
-        signal (carrier operation or cargo classification) before excluding on name alone.
-
-        Car haulers (MOTOR_VEHICLES cargo) are NOT excluded by default.
-        Household goods exclusion is configurable (exclude_household_goods).
-        Returns (is_excluded, not_icp_reason).
+        J2 ICP Matching Rules:
+        - Confirmed non-ICP (two signals or direct excluded op/cargo) -> ("NOT_ICP", reason)
+        - Name keyword matched WITHOUT confirming second signal -> ("NEEDS_REVIEW_ICP", reason)
+        - Clean freight candidate -> (None, None)
         """
         if company.lead_type == "SHIPPER":
-            return False, None
+            return None, None
 
         prefilter = getattr(config.icp, "carrier_prefilter", None)
         if not prefilter or not getattr(prefilter, "enabled", True):
-            return False, None
+            return None, None
 
         # Build active excluded cargo list (configurable household goods)
         excluded_cargos = list(prefilter.excluded_cargo_classifications)
@@ -64,23 +60,29 @@ class LeadScorer:
                 break
 
         # Decision Logic:
-        # Rule A: If name keyword matched, REQUIRE a second confirming signal (operation or cargo class)
+        # Rule A: If name keyword matched, check for confirming second signal
         if matched_kw:
             if matched_op:
-                return True, f"ICP Pre-filter: Name keyword '{matched_kw}' confirmed by carrier operation '{matched_op}'"
+                return "NOT_ICP", f"ICP Pre-filter: Name keyword '{matched_kw}' confirmed by carrier operation '{matched_op}'"
             elif matched_cargo:
-                return True, f"ICP Pre-filter: Name keyword '{matched_kw}' confirmed by cargo classification '{matched_cargo}'"
+                return "NOT_ICP", f"ICP Pre-filter: Name keyword '{matched_kw}' confirmed by cargo classification '{matched_cargo}'"
             else:
-                # Name keyword without confirming operation or cargo signal is NOT excluded on name alone!
-                pass
+                # Name keyword without confirming operation or cargo signal -> NEEDS_REVIEW_ICP (reviewable, not auto-admitted)
+                return "NEEDS_REVIEW_ICP", f"ICP Pre-filter: Name keyword '{matched_kw}' matched without secondary signal (review required)"
 
         # Rule B: Direct operation or cargo exclusion
         if matched_op:
-            return True, f"ICP Pre-filter: Excluded carrier operation '{matched_op}'"
+            return "NOT_ICP", f"ICP Pre-filter: Excluded carrier operation '{matched_op}'"
         if matched_cargo:
-            return True, f"ICP Pre-filter: Excluded cargo classification '{matched_cargo}'"
+            return "NOT_ICP", f"ICP Pre-filter: Excluded cargo classification '{matched_cargo}'"
 
-        return False, None
+        return None, None
+
+    @classmethod
+    def evaluate_icp_prefilter(cls, company: Company) -> Tuple[bool, Optional[str]]:
+        """Backward-compatible helper returning (is_not_icp, reason)."""
+        match_status, reason = cls.evaluate_icp_match(company)
+        return (match_status == "NOT_ICP"), (reason if match_status == "NOT_ICP" else None)
 
     @classmethod
     def calculate_score(cls, company: Company) -> Tuple[LeadScore, str]:
@@ -95,9 +97,9 @@ class LeadScorer:
         breakdown: Dict[str, Any] = {}
         total = 0.0
 
-        # I1 Pre-Filter Check: Exclude non-freight carriers before scoring -> NOT_ICP
-        is_excluded, prefilter_reason = cls.evaluate_icp_prefilter(company)
-        if is_excluded:
+        # I1/J2 Pre-Filter Check: Exclude non-freight carriers before scoring -> NOT_ICP
+        icp_status, prefilter_reason = cls.evaluate_icp_match(company)
+        if icp_status == "NOT_ICP":
             breakdown["icp_prefilter"] = f"EXCLUDED: {prefilter_reason}"
             lead_score_entity = LeadScore(
                 company_id=company.id,
@@ -113,6 +115,8 @@ class LeadScorer:
                 score_breakdown=breakdown
             )
             return lead_score_entity, "NOT_ICP"
+        elif icp_status == "NEEDS_REVIEW_ICP":
+            breakdown["icp_prefilter"] = f"REVIEW_REQUIRED: {prefilter_reason}"
 
         # 1. Target Fleet Capacity / Shipper Demand (+2.0)
         fleet_score = 0.0
