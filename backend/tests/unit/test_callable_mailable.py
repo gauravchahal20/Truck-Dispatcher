@@ -179,30 +179,36 @@ async def test_email_verifier_syntax_disposable_and_tiering():
 
 @pytest.mark.asyncio
 async def test_scorer_awards_authority_only_when_proven():
-    """Proves that unverified authority awards 0.0 points in scorer, and shippers get N/A (0.0)."""
-    # Carrier with unverified / None authority
-    c_unverified = Company(
+    """L2c: Proves that census self-declaration alone awards 0.0 points, proven L&I active authority + insurance awards 2.0, and shippers get N/A (0.0)."""
+    # 1. Carrier with census self-declaration only (Form MCS-150) -> UNKNOWN (0.0 pts)
+    c_census_only = Company(
         company_name="Pending Logistics LLC",
         lead_type="CARRIER",
         usdot="4123456",
-        operating_status=None,
+        operating_status="AUTHORIZED FOR HIRE",
+        authority_status="UNKNOWN",
+        insurance_filing_status="UNKNOWN",
         fleet_size=3
     )
-    score1, _ = LeadScorer.calculate_score(c_unverified)
+    score1, _ = LeadScorer.calculate_score(c_census_only)
     assert score1.verified_active_carrier_score == 0.0
+    assert "census MCS-150 self-declaration only" in score1.score_breakdown["active_carrier"]
 
-    # Carrier with active authority
+    # 2. Carrier with proven L&I active authority AND active insurance filing -> +2.0 pts
     c_active = Company(
         company_name="Active Freight LLC",
         lead_type="CARRIER",
         usdot="4123457",
         operating_status="AUTHORIZED FOR HIRE",
+        authority_status="ACTIVE",
+        insurance_filing_status="ACTIVE",
         fleet_size=3
     )
     score2, _ = LeadScorer.calculate_score(c_active)
     assert score2.verified_active_carrier_score == 2.0
+    assert "Proven L&I Active Authority & Active Insurance Filing" in score2.score_breakdown["active_carrier"]
 
-    # Shipper has authority = N/A (0.0)
+    # 3. Shipper has authority = N/A (0.0)
     c_shipper = Company(
         company_name="Texas Pipe Supply",
         lead_type="SHIPPER",

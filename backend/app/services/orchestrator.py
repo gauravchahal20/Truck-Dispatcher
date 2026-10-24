@@ -72,16 +72,18 @@ class LeadOrchestrator:
         if icp_status == "NEEDS_REVIEW_ICP":
             return "NEEDS_REVIEW_ICP", None, icp_reason
 
-        # 4. Authority Provenance: active for-hire verified
+        # 4. Authority Provenance: active for-hire verified via L&I + Insurance
+        auth_st = (getattr(company, "authority_status", None) or "UNKNOWN").upper()
+        ins_st = (getattr(company, "insurance_filing_status", None) or "UNKNOWN").upper()
         has_proven_active_authority = not is_carrier or (
             bool(company.usdot) and
-            any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]) and
-            not any(bad in op_status for bad in ["NOT AUTHORIZED", "REVOKED", "INACTIVE", "UNVERIFIED"])
+            auth_st == "ACTIVE" and
+            ins_st == "ACTIVE"
         )
 
         if is_carrier and not has_proven_active_authority:
             # Unproven authority is NOT a hard gate rejection -> routes to NEEDS_ENRICHMENT
-            return "NEEDS_ENRICHMENT", f"Operating authority unproven ({company.operating_status or 'None'}); queued for census/SAFER verification", None
+            return "NEEDS_ENRICHMENT", f"Operating authority unproven (L&I: {auth_st}, Insurance: {ins_st}); queued for L&I verification", None
 
         # 5. Score Threshold Check
         if (company.lead_score or 0.0) < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":

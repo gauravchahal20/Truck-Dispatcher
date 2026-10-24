@@ -158,19 +158,28 @@ class LeadScorer:
             active_score = 0.0
             breakdown["active_carrier"] = "+0 (N/A for Shippers - Direct freight demand)"
         else:
-            op_status = (company.operating_status or "").upper()
+            auth_st = (getattr(company, "authority_status", None) or "UNKNOWN").upper()
+            ins_st = (getattr(company, "insurance_filing_status", None) or "UNKNOWN").upper()
+
+            # L2c: Verified active authority strictly requires L&I authority status ACTIVE
+            # plus an active insurance filing on record.
+            # Census self-declaration alone (Form MCS-150 operating_status) gives UNKNOWN (0 authority points).
             is_actively_authorized = (
                 bool(company.usdot) and
-                any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]) and
-                not any(bad in op_status for bad in ["NOT AUTHORIZED", "REVOKED", "INACTIVE", "UNVERIFIED"])
+                auth_st == "ACTIVE" and
+                ins_st == "ACTIVE"
             )
             if is_actively_authorized:
                 active_score = weights.verified_active_carrier
-                breakdown["active_carrier"] = f"+{active_score} (USDOT {company.usdot} Proven Active & Authorized For-Hire)"
+                breakdown["active_carrier"] = f"+{active_score} (USDOT {company.usdot} Proven L&I Active Authority & Active Insurance Filing)"
             else:
                 active_score = 0.0
                 dot_info = f"USDOT {company.usdot}" if company.usdot else "No USDOT"
-                breakdown["active_carrier"] = f"+0 ({dot_info} authority not proven active: {company.operating_status or 'UNVERIFIED'})"
+                op_status = (company.operating_status or "").upper()
+                if any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]):
+                    breakdown["active_carrier"] = f"+0 ({dot_info} census MCS-150 self-declaration only; L&I operating authority UNKNOWN)"
+                else:
+                    breakdown["active_carrier"] = f"+0 ({dot_info} authority not proven active: L&I={auth_st}, Ins={ins_st})"
         total += active_score
 
         # 3. Decision Maker Identified (+2.0)

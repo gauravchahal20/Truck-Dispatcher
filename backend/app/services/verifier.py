@@ -127,38 +127,41 @@ class Verifier:
                 checked_at=now
             ))
         else:
+            auth_st = (getattr(company, "authority_status", None) or "UNKNOWN").upper()
+            ins_st = (getattr(company, "insurance_filing_status", None) or "UNKNOWN").upper()
             op_status = (company.operating_status or "").upper()
-            if "REVOKED" in op_status or "INACTIVE" in op_status or "NOT AUTHORIZED" in op_status:
+
+            if "REVOKED" in auth_st or "REVOKED" in op_status or "NOT AUTHORIZED" in op_status:
                 is_hard_rejected = True
-                rejection_reasons.append(f"Operating authority status inactive: {company.operating_status}")
+                rejection_reasons.append(f"Operating authority status revoked/inactive: {auth_st or op_status}")
                 records.append(VerificationRecord(
                     company_id=company.id,
                     step_name="4. Operating Authority",
                     status="FAILED",
                     confidence=0.0,
-                    evidence_text=f"Authority not active: {company.operating_status}",
+                    evidence_text=f"Authority not active: L&I={auth_st}, Census={op_status}",
                     source_url=company.source_url,
                     checked_at=now
                 ))
-            elif any(st in op_status for st in ["ACTIVE", "AUTHORIZED", "FOR-HIRE", "FOR HIRE"]):
+            elif auth_st == "ACTIVE" and ins_st == "ACTIVE":
                 passed_steps += 1
                 records.append(VerificationRecord(
                     company_id=company.id,
                     step_name="4. Operating Authority",
                     status="PASSED",
                     confidence=1.0,
-                    evidence_text=f"Verified Active Operating Authority: {company.operating_status}",
+                    evidence_text=f"Verified Active Operating Authority & Insurance: L&I={auth_st}, Ins={ins_st}",
                     source_url=company.source_url,
                     checked_at=now
                 ))
             else:
-                # Neutral / Unverified
+                # Neutral / Unverified (Census self-declaration only or pending L&I)
                 records.append(VerificationRecord(
                     company_id=company.id,
                     step_name="4. Operating Authority",
                     status="WARNING",
-                    confidence=0.5,
-                    evidence_text="Operating authority pending FMCSA check",
+                    confidence=0.0,
+                    evidence_text=f"Operating authority unproven (L&I: {auth_st}, Ins: {ins_st}, Census MCS-150: {op_status or 'None'})",
                     source_url=company.source_url,
                     checked_at=now
                 ))

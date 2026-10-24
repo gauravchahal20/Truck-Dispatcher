@@ -121,7 +121,9 @@ class Company(Base):
     driver_count = Column(Integer, nullable=True)
     equipment = Column(JSON, default=list)
     carrier_operation = Column(String(100), nullable=True)
-    operating_status = Column(String(100), nullable=True)  # AUTHORIZED, ACTIVE, NOT AUTHORIZED, INACTIVE
+    operating_status = Column(String(100), nullable=True)  # AUTHORIZED, ACTIVE, NOT AUTHORIZED, INACTIVE (Form MCS-150 census self-declaration)
+    authority_status = Column(String(50), default="UNKNOWN", index=True)  # ACTIVE, INACTIVE, REVOKED, UNKNOWN (L&I Operating Authority)
+    insurance_filing_status = Column(String(50), default="UNKNOWN", index=True)  # ACTIVE, CANCEL_PENDING, EXPIRED, UNKNOWN (L&I Insurance Filing)
     safety_rating = Column(String(100), nullable=True)
     mcs_150_date = Column(String(50), nullable=True)
 

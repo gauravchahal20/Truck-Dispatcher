@@ -47,6 +47,8 @@ def test_j6_no_signal_means_zero_intent_points():
         usdot="1234567",
         fleet_size=5,  # +2.0
         operating_status="AUTHORIZED FOR HIRE",  # +2.0
+        authority_status="ACTIVE",
+        insurance_filing_status="ACTIVE",
         equipment=["dry_van"],  # +1.0
         phone="+12145550199",
         email="john.doe@cleanfleet.com",  # +1.0
@@ -82,6 +84,8 @@ def test_j6_signal_to_score_effects_hot_vs_stale():
             usdot="7654321",
             fleet_size=5,  # +2.0
             operating_status="AUTHORIZED FOR HIRE",  # +2.0
+            authority_status="ACTIVE",
+            insurance_filing_status="ACTIVE",
             equipment=["flatbed"],  # +1.0
             phone="+12145550177",  # +0.75 contact
             contacts=[Contact(full_name="Alice Smith", title="Dispatcher", is_decision_maker=False)]  # +0.8 staff
