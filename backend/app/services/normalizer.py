@@ -207,6 +207,39 @@ class Normalizer:
         except Exception:
             return tz_name, "09:00 - 17:00 Local", "19:30 - 03:30 IST"
 
+    @classmethod
+    def get_dual_call_windows(
+        cls,
+        state: Optional[str],
+        phone: Optional[str],
+        reference_date: Optional[datetime] = None
+    ) -> Dict[str, Any]:
+        """
+        L2e: Computes dual call windows (business state local vs area code local)
+        and the IST equivalent for each, alongside area code state and mismatch flag.
+        """
+        phone_st = cls.get_state_for_phone(phone)
+        bus_st = cls.normalize_state(state) if state else None
+        mismatch = bool(phone_st and bus_st and phone_st != bus_st)
+
+        # 1. Business State Windows
+        bus_tz, bus_local, bus_ist = cls.get_timezone_and_windows(bus_st, reference_date=reference_date)
+
+        # 2. Area Code Windows
+        phone_tz, phone_local, phone_ist = cls.get_timezone_and_windows(phone_st, phone=phone, reference_date=reference_date)
+
+        return {
+            "business_state": bus_st,
+            "business_timezone": bus_tz,
+            "business_call_window_local": bus_local,
+            "business_call_window_ist": bus_ist,
+            "phone_state": phone_st,
+            "phone_timezone": phone_tz,
+            "phone_call_window_local": phone_local,
+            "phone_call_window_ist": phone_ist,
+            "phone_region_mismatch": mismatch
+        }
+
     @staticmethod
     def normalize_usdot(usdot: Optional[str]) -> Optional[str]:
         """Strips non-digits and leading zeros from USDOT, returning canonical integer string."""

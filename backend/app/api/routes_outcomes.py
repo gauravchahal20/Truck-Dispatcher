@@ -263,6 +263,7 @@ async def list_callable_mailable_leads(
             "local_timezone": tz_name,
             "call_window_local": w_local,
             "call_window_ist": w_ist,
+            "dual_call_windows": Normalizer.get_dual_call_windows(c.state, p_e164),
             "usdot": c.usdot,
             "mc_number": c.mc_number,
             "authority_status": getattr(c, "authority_status", None) or "UNKNOWN",

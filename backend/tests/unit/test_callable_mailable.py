@@ -942,6 +942,36 @@ def test_l2i_data_sanity_flags_evaluation():
     assert flags4["phone_region_mismatch"] is False
 
 
+def test_l2e_dual_call_windows_and_area_code_geocoding():
+    """L2e: Validates area code geocoding to state/timezone and dual call window computation."""
+    from app.services.normalizer import Normalizer
+
+    # 1. Carrier in GA with NY area code (516)
+    dual_ga_ny = Normalizer.get_dual_call_windows(state="GA", phone="+15163607916")
+    assert dual_ga_ny["business_state"] == "GA"
+    assert dual_ga_ny["phone_state"] == "NY"
+    assert dual_ga_ny["phone_region_mismatch"] is True
+    assert "IST" in dual_ga_ny["business_call_window_ist"]
+    assert "IST" in dual_ga_ny["phone_call_window_ist"]
+
+    # 2. Carrier in TX (Central) with CA area code (909, Pacific)
+    dual_tx_ca = Normalizer.get_dual_call_windows(state="TX", phone="+19093196862")
+    assert dual_tx_ca["business_state"] == "TX"
+    assert dual_tx_ca["business_timezone"] == "America/Chicago"
+    assert dual_tx_ca["phone_state"] == "CA"
+    assert dual_tx_ca["phone_timezone"] == "America/Los_Angeles"
+    assert dual_tx_ca["phone_region_mismatch"] is True
+    # Different local timezones produce different windows
+    assert dual_tx_ca["business_timezone"] != dual_tx_ca["phone_timezone"]
+
+    # 3. Carrier in GA with local GA phone (404)
+    dual_ga_ga = Normalizer.get_dual_call_windows(state="GA", phone="+14045550199")
+    assert dual_ga_ga["business_state"] == "GA"
+    assert dual_ga_ga["phone_state"] == "GA"
+    assert dual_ga_ga["phone_region_mismatch"] is False
+
+
+
 
 
 
