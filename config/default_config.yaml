@@ -40,6 +40,45 @@ icp:
   authorized_only: true
   min_verification_confidence: 0.70
   score_threshold_for_final: 5.0
+  carrier_prefilter:
+    enabled: true
+    excluded_name_keywords:
+      - "wrecker"
+      - "towing"
+      - "tow"
+      - "auto sales"
+      - "auto repair"
+      - "dealership"
+      - "used cars"
+      - "landscaping"
+      - "landscape"
+      - "tree service"
+      - "tree care"
+      - "dumpster"
+      - "dumpsters"
+      - "waste"
+      - "trash"
+      - "junk"
+      - "scrap"
+      - "concrete"
+      - "paving"
+      - "roofing"
+      - "passenger"
+      - "limo"
+      - "limousine"
+      - "taxi"
+      - "bus"
+      - "charter"
+      - "ambulance"
+      - "medical transport"
+    excluded_carrier_operations:
+      - "Passenger"
+      - "Migrant"
+      - "Government"
+    excluded_cargo_classifications:
+      - "Passengers"
+      - "Garbage/Refuse"
+      - "Driveaway/Towaway"
 
 # Decision Maker Prioritization
 decision_makers:

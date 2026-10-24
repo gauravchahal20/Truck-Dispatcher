@@ -599,7 +599,15 @@ class LeadOrchestrator:
                     )
 
                     # Final Qualification Decision
-                    if is_suppressed or candidate_company.dnc_flag:
+                    is_prefilter_excluded, prefilter_reason = LeadScorer.evaluate_icp_prefilter(candidate_company)
+                    if is_prefilter_excluded:
+                        candidate_company.lead_status = "REJECTED"
+                        candidate_company.priority = "REJECTED"
+                        candidate_company.lead_score = 0.0
+                        candidate_company.rejection_reason = prefilter_reason
+                        candidate_company.qualification_reason = None
+                        run.rejected_count += 1
+                    elif is_suppressed or candidate_company.dnc_flag:
                         candidate_company.lead_status = "REJECTED"
                         candidate_company.priority = "REJECTED"
                         candidate_company.rejection_reason = candidate_company.suppression_reason or "Suppressed via compliance / DNC list"

@@ -1,5 +1,6 @@
 import logging
-from typing import Dict, Any, Tuple
+import re
+from typing import Dict, Any, Tuple, Optional
 from ..models.entities import Company, LeadScore
 from ..core.config import config
 from .normalizer import Normalizer
@@ -8,6 +9,45 @@ logger = logging.getLogger("trucklead.scorer")
 
 class LeadScorer:
     """Configurable lead scoring and priority ranking engine."""
+
+    @classmethod
+    def evaluate_icp_prefilter(cls, company: Company) -> Tuple[bool, Optional[str]]:
+        """
+        H2 ICP Pre-Filter: Evaluates whether a candidate carrier is non-freight
+        (e.g., towing, wrecker, auto sales, passenger, dumpsters, landscaping)
+        using name keywords, carrier operation, and cargo classifications.
+        Returns (is_excluded, rejection_reason).
+        """
+        if company.lead_type == "SHIPPER":
+            return False, None
+
+        prefilter = getattr(config.icp, "carrier_prefilter", None)
+        if not prefilter or not getattr(prefilter, "enabled", True):
+            return False, None
+
+        # 1. Excluded name keywords check (company_name, legal_name, dba_name)
+        full_name_text = f"{company.company_name or ''} {company.legal_name or ''} {company.dba_name or ''}".lower()
+        for kw in prefilter.excluded_name_keywords:
+            pattern = r'\b' + re.escape(kw.lower()) + r'\b'
+            if re.search(pattern, full_name_text):
+                return True, f"ICP Pre-filter: Excluded non-freight keyword '{kw}' in carrier name"
+
+        # 2. Excluded carrier operations check
+        op = (company.carrier_operation or "").strip()
+        if op:
+            for ex_op in prefilter.excluded_carrier_operations:
+                if ex_op.lower() in op.lower():
+                    return True, f"ICP Pre-filter: Excluded carrier operation '{op}'"
+
+        # 3. Excluded cargo classifications check
+        equipment_list = [str(e).lower() for e in (company.equipment or [])]
+        notes_text = (company.notes or "").lower()
+        for ex_cargo in prefilter.excluded_cargo_classifications:
+            c_low = ex_cargo.lower()
+            if any(c_low in eq for eq in equipment_list) or c_low in notes_text:
+                return True, f"ICP Pre-filter: Excluded cargo classification '{ex_cargo}'"
+
+        return False, None
 
     @classmethod
     def calculate_score(cls, company: Company) -> Tuple[LeadScore, str]:
@@ -21,6 +61,25 @@ class LeadScorer:
 
         breakdown: Dict[str, Any] = {}
         total = 0.0
+
+        # H2 Pre-Filter Check: Exclude non-freight carriers before scoring
+        is_excluded, prefilter_reason = cls.evaluate_icp_prefilter(company)
+        if is_excluded:
+            breakdown["icp_prefilter"] = f"EXCLUDED: {prefilter_reason}"
+            lead_score_entity = LeadScore(
+                company_id=company.id,
+                total_score=0.0,
+                priority="REJECTED",
+                target_fleet_size_score=0.0,
+                verified_active_carrier_score=0.0,
+                decision_maker_score=0.0,
+                equipment_verified_score=0.0,
+                usable_contact_score=0.0,
+                intent_signal_score=0.0,
+                tech_business_event_score=0.0,
+                score_breakdown=breakdown
+            )
+            return lead_score_entity, "REJECTED"
 
         # 1. Target Fleet Capacity / Shipper Demand (+2.0)
         fleet_score = 0.0

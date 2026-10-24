@@ -13,6 +13,19 @@ class FleetSizeConfig(BaseModel):
     preferred_max: int = 9999
 
 
+class CarrierPrefilterConfig(BaseModel):
+    enabled: bool = True
+    excluded_name_keywords: List[str] = [
+        "wrecker", "towing", "tow", "auto sales", "auto repair", "dealership",
+        "used cars", "landscaping", "landscape", "tree service", "tree care",
+        "dumpster", "dumpsters", "waste", "trash", "junk", "scrap", "concrete",
+        "paving", "roofing", "passenger", "limo", "limousine", "taxi", "bus",
+        "charter", "ambulance", "medical transport"
+    ]
+    excluded_carrier_operations: List[str] = ["Passenger", "Migrant", "Government"]
+    excluded_cargo_classifications: List[str] = ["Passengers", "Garbage/Refuse", "Driveaway/Towaway"]
+
+
 class ICPConfig(BaseModel):
     target_country: str = "US"
     target_states: List[str] = ["TX", "CA", "GA", "IL", "OH", "PA", "FL", "NC", "IN", "MI"]
@@ -22,6 +35,7 @@ class ICPConfig(BaseModel):
     authorized_only: bool = True
     min_verification_confidence: float = 0.70
     score_threshold_for_final: float = 5.0
+    carrier_prefilter: CarrierPrefilterConfig = Field(default_factory=CarrierPrefilterConfig)
 
 
 class ScoringWeights(BaseModel):

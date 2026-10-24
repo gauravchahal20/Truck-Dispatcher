@@ -219,3 +219,66 @@ def test_scorer_contactability_role_account_tiers():
     c_none = Company(phone=None, email=None)
     s_none, _ = LeadScorer.calculate_score(c_none)
     assert s_none.usable_contact_score == 0.0
+
+
+def test_icp_prefilter_excludes_non_freight_carriers_by_name_keywords():
+    """H2: Verifies that wrecker, towing, auto sales, and dumpster companies are excluded before scoring."""
+    non_freight_names = [
+        "CANTU'S WRECKER SERVICE",
+        "OREGON TOWING & TRANSPORT LLC",
+        "SAMS AUTOS LLC DBA SAMS AUTO SALES",
+        "CLEVELAND DUMPSTERS LLC",
+        "HAULX ROLL-OFF DUMPSTER LLC",
+        "GREEN ACRES LANDSCAPING LLC",
+        "CITY CHARTER BUS LINES INC",
+    ]
+    for name in non_freight_names:
+        comp = Company(
+            company_name=name,
+            usdot="1234567",
+            lead_type="CARRIER",
+            fleet_size=4,
+            operating_status="AUTHORIZED FOR Property"
+        )
+        is_excluded, reason = LeadScorer.evaluate_icp_prefilter(comp)
+        assert is_excluded is True
+        assert "ICP Pre-filter" in reason
+        score_obj, priority = LeadScorer.calculate_score(comp)
+        assert score_obj.total_score == 0.0
+        assert priority == "REJECTED"
+
+
+def test_icp_prefilter_excludes_non_freight_by_carrier_operation():
+    """H2: Verifies that passenger carriers are rejected before scoring."""
+    comp = Company(
+        company_name="METRO SHUTTLE EXPRESS",
+        usdot="1234567",
+        lead_type="CARRIER",
+        carrier_operation="Passenger",
+        operating_status="AUTHORIZED FOR Passenger"
+    )
+    is_excluded, reason = LeadScorer.evaluate_icp_prefilter(comp)
+    assert is_excluded is True
+    assert "Excluded carrier operation 'Passenger'" in reason
+    score_obj, priority = LeadScorer.calculate_score(comp)
+    assert score_obj.total_score == 0.0
+    assert priority == "REJECTED"
+
+
+def test_icp_prefilter_allows_legitimate_freight_carriers():
+    """H2: Verifies that authentic freight carriers pass pre-filter and score normally."""
+    comp = Company(
+        company_name="LONE STAR FREIGHT SYSTEMS LLC",
+        usdot="3849102",
+        lead_type="CARRIER",
+        carrier_operation="Interstate",
+        operating_status="AUTHORIZED FOR Property",
+        fleet_size=4,
+        equipment=["dry_van"]
+    )
+    is_excluded, reason = LeadScorer.evaluate_icp_prefilter(comp)
+    assert is_excluded is False
+    assert reason is None
+    score_obj, priority = LeadScorer.calculate_score(comp)
+    assert score_obj.total_score > 0.0
+    assert priority != "REJECTED"
