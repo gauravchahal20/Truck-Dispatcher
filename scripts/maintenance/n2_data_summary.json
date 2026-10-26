@@ -1,0 +1,768 @@
+{
+  "dist_overall": [
+    [
+      "Active",
+      445
+    ],
+    [
+      "Pending",
+      317
+    ],
+    [
+      "Inactive",
+      199
+    ],
+    [
+      "Withdrawn",
+      29
+    ]
+  ],
+  "type_status_dist": [
+    [
+      "Broker of Household Goods",
+      "Pending",
+      1
+    ],
+    [
+      "Broker of Property (Except Household Goods)",
+      "Pending",
+      20
+    ],
+    [
+      "Broker of Property (Except Household Goods)",
+      "Active",
+      19
+    ],
+    [
+      "Broker of Property (Except Household Goods)",
+      "Inactive",
+      7
+    ],
+    [
+      "Broker of Property (Except Household Goods)",
+      "Withdrawn",
+      1
+    ],
+    [
+      "Enterprise Motor Carrier of Property (Except Household Goods)",
+      "Pending",
+      3
+    ],
+    [
+      "Enterprise Motor Carrier of Property (Except Household Goods)",
+      "Inactive",
+      1
+    ],
+    [
+      "Enterprise Motor Carrier of Property (Except Household Goods)",
+      "Active",
+      1
+    ],
+    [
+      "Freight Forwarder of Household Goods",
+      "Pending",
+      2
+    ],
+    [
+      "Freight Forwarder of Property (Except Household Goods)",
+      "Pending",
+      5
+    ],
+    [
+      "Freight Forwarder of Property (Except Household Goods)",
+      "Active",
+      2
+    ],
+    [
+      "Freight Forwarder of Property (Except Household Goods)",
+      "Withdrawn",
+      1
+    ],
+    [
+      "Mexico Domiciled Motor Carrier of Property (Except Household Goods)",
+      "Pending",
+      1
+    ],
+    [
+      "Mexico Domiciled Private Motor Carrier of Property (Except Household Goods)",
+      "Active",
+      1
+    ],
+    [
+      "Motor Carrier of Household Goods",
+      "Pending",
+      14
+    ],
+    [
+      "Motor Carrier of Household Goods",
+      "Inactive",
+      2
+    ],
+    [
+      "Motor Carrier of Household Goods",
+      "Withdrawn",
+      1
+    ],
+    [
+      "Motor Carrier of Household Goods",
+      "Active",
+      1
+    ],
+    [
+      "Motor Carrier of Passengers",
+      "Active",
+      9
+    ],
+    [
+      "Motor Carrier of Passengers",
+      "Pending",
+      3
+    ],
+    [
+      "Motor Carrier of Passengers",
+      "Withdrawn",
+      1
+    ],
+    [
+      "Motor Carrier of Passengers",
+      "Inactive",
+      1
+    ],
+    [
+      "Motor Carrier of Property (Except Household Goods)",
+      "Active",
+      412
+    ],
+    [
+      "Motor Carrier of Property (Except Household Goods)",
+      "Pending",
+      268
+    ],
+    [
+      "Motor Carrier of Property (Except Household Goods)",
+      "Inactive",
+      188
+    ],
+    [
+      "Motor Carrier of Property (Except Household Goods)",
+      "Withdrawn",
+      25
+    ]
+  ],
+  "crosstab": {
+    "Census_A_vs_Motus_Active": 25,
+    "Census_A_vs_Motus_Inactive": 23,
+    "Census_A_vs_Motus_Pending": 2
+  },
+  "comparisons_50": [
+    {
+      "usdot": "1012902",
+      "legal_name": "MAYFIELD'S GARAGE & WRECKER SERVICE INC",
+      "census_docket": "MC1724604",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC1724604",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1130476",
+      "legal_name": "ISAAC CREED CATRON",
+      "census_docket": "MC460710",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC460710",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1176088",
+      "legal_name": "BISHOP BROTHERS CONSTRUCTION CO INC",
+      "census_docket": "MC599485",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC599485",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1189941",
+      "legal_name": "MIGUEL A ALVAREZ",
+      "census_docket": "MC475208",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC475208",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1261886",
+      "legal_name": "ALLACO TOWING SERVICE INC",
+      "census_docket": "MC522247",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC522247",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1305307",
+      "legal_name": "LA CANADA EXPRESS LLC",
+      "census_docket": "MC506252",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC506252",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1387616",
+      "legal_name": "WESTERN MOTORCOACH INC",
+      "census_docket": "MC528470",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC528470",
+      "motus_auth_type": "Motor Carrier of Passengers",
+      "motus_status": "Active",
+      "motus_bipd": "5000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1416207",
+      "legal_name": "TGM TRUCKING INC",
+      "census_docket": "MC535988",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC535988",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1614360",
+      "legal_name": "DIAMOND G TRUCKING LLC",
+      "census_docket": "MC596777",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC596777",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1622092",
+      "legal_name": "GGLN LLC",
+      "census_docket": "MC1733047",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC1733047",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1633919",
+      "legal_name": "RAVNEET S GILL",
+      "census_docket": "MC602439",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC602439",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1642929",
+      "legal_name": "COMBS TRANSPORT LLC",
+      "census_docket": "MC605210",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC605210",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1643659",
+      "legal_name": "915 HAULER INC",
+      "census_docket": "MC90164847",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC90164847",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1697743",
+      "legal_name": "HURST HAUL'N LLC",
+      "census_docket": "MC623313",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC623313",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1727267",
+      "legal_name": "ELLISON MOTOR CARRIERS LLC",
+      "census_docket": "MC632948",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC632948",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1743855",
+      "legal_name": "NIKSTER TRANSPORT LLC",
+      "census_docket": "MC638557",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC638557",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1761730",
+      "legal_name": "VC LOGISTICS LLC",
+      "census_docket": "MC619140",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC619140",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1794713",
+      "legal_name": "SERVANT TRUCKING LLC",
+      "census_docket": "MC653658",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC653658",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1846215",
+      "legal_name": "EAGLES TRADE HOUSE LTD",
+      "census_docket": "MC668700",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC668700",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "1863719",
+      "legal_name": "K EXPRESS LLC",
+      "census_docket": "MC712046",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC712046",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1888770",
+      "legal_name": "TANNER TRUCKING LLC",
+      "census_docket": "MC61676621",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC61676621",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "1951230",
+      "legal_name": "T S T CARGO INC",
+      "census_docket": "MC698387",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC698387",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2009408",
+      "legal_name": "LUIS E GARCIA CONTRERAS",
+      "census_docket": "MC913367",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC913367",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2236619",
+      "legal_name": "SUN CITY GROUP LLC",
+      "census_docket": "MC564481",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "FF55811027",
+      "motus_auth_type": "Freight Forwarder of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2304671",
+      "legal_name": "TAG DME INC",
+      "census_docket": "MC56665299",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC56665299",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2366406",
+      "legal_name": "WINWAY EXPRESS INC",
+      "census_docket": "MC863855",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC863855",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2409484",
+      "legal_name": "ALLEN KEY TRANSPORTATION LLC",
+      "census_docket": "MC911925",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC911925",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2428609",
+      "legal_name": "MONTOYA TRANSPORT LLC",
+      "census_docket": "MC1731074",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC1731074",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2442415",
+      "legal_name": "STAY UP TOWING LLC",
+      "census_docket": "MC49946896",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC49946896",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2461027",
+      "legal_name": "CHEETHA INC",
+      "census_docket": "MC86959797",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC86959797",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2518020",
+      "legal_name": "R AND J DIRTWORKS INC",
+      "census_docket": "MC1356444",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC1356444",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2585739",
+      "legal_name": "FORWARD EXPRESS TRANSPORTATION LLC",
+      "census_docket": "MC906143",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC906143",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2593305",
+      "legal_name": "DIGGERS TOWING & AUTO REPAIR LLC",
+      "census_docket": "",
+      "census_docket_status": "",
+      "census_status_code": "A",
+      "motus_docket": "MC87470071",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Pending",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2635403",
+      "legal_name": "MANUEL GILBERTO ORTEGA CARDENAS OR PERLA CAROL MENDOZA ESPINOZA",
+      "census_docket": "MC99127268",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC99127268",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "263622",
+      "legal_name": "FOSTER FUELS LLC",
+      "census_docket": "MC1629107",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC295289",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "5000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2638185",
+      "legal_name": "SPT TRANSPORT LLC",
+      "census_docket": "MC919062",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC919062",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2744361",
+      "legal_name": "MCN LOGISTICS INC",
+      "census_docket": "MC46496",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC46496",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2765119",
+      "legal_name": "E.R. VELIZ TRUCKING LLC",
+      "census_docket": "MC1651333",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC1651333",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2788182",
+      "legal_name": "NORTH AMERICAN DISTRIBUTION LOG INC",
+      "census_docket": "MC886305",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC886305",
+      "motus_auth_type": "Broker of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2821656",
+      "legal_name": "BEE'S TRANSPORT LLC",
+      "census_docket": "MC1068797",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC1068797",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2835111",
+      "legal_name": "INNOVATION WITH GREEN LLC",
+      "census_docket": "MC948419",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC948419",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2846701",
+      "legal_name": "911 AUTO MOVERS LLC",
+      "census_docket": "MC954588",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC954588",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2858092",
+      "legal_name": "AMERICAN TRANSPORTS EXPRESS LLC",
+      "census_docket": "MC957026",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC957026",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2882704",
+      "legal_name": "EASTERN TOWING LLC",
+      "census_docket": "MC967522",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC967522",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2903382",
+      "legal_name": "MADJIM INC",
+      "census_docket": "MC64606535",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC64606535",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2929438",
+      "legal_name": "DK TRUCKIN LLC",
+      "census_docket": "MC988911",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC988911",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2930800",
+      "legal_name": "CLARKE TRUCKING LLC",
+      "census_docket": "MC989584",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC989584",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "1000000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2932084",
+      "legal_name": "HIGH FIVE LOGISTICS LLC",
+      "census_docket": "MC990168",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC990168",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Active",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": true
+    },
+    {
+      "usdot": "2933023",
+      "legal_name": "JL TRANSPORT USA LLC",
+      "census_docket": "MC992524",
+      "census_docket_status": "A",
+      "census_status_code": "I",
+      "motus_docket": "MC992524",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Inactive",
+      "motus_bipd": "0.000000000000000000",
+      "agrees": false
+    },
+    {
+      "usdot": "2934017",
+      "legal_name": "WALKERS TRUCKING INC",
+      "census_docket": "MC991106",
+      "census_docket_status": "A",
+      "census_status_code": "A",
+      "motus_docket": "MC991106",
+      "motus_auth_type": "Motor Carrier of Property (Except Household Goods)",
+      "motus_status": "Pending",
+      "motus_bipd": "750000.000000000000000000",
+      "agrees": false
+    }
+  ],
+  "audit_stored_distribution": {
+    "Active": 1,
+    "Pending": 19,
+    "Withdrawn": 1
+  },
+  "audit_candidate_distribution": {
+    "Active": 23,
+    "Withdrawn": 2
+  }
+}
