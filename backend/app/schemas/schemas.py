@@ -182,7 +182,7 @@ class RunCreateRequest(BaseModel):
     fleet_size_min: int = 1
     fleet_size_max: int = 9999
     equipment_types: List[str] = ["dry_van", "reefer", "flatbed", "drayage", "hotshot", "box_truck", "tanker"]
-    target_lead_count: int = 35
+    target_lead_count: Optional[int] = 35
     score_threshold: float = 5.0
     active_sources: Optional[List[str]] = None
     auto_enrich: bool = True
@@ -197,7 +197,7 @@ class RunResponse(BaseModel):
     fleet_size_min: int
     fleet_size_max: int
     equipment_types: List[str]
-    target_lead_count: int
+    target_lead_count: Optional[int] = None
     score_threshold: float
     raw_count: int
     verified_count: int

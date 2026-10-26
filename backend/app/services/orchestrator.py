@@ -271,8 +271,12 @@ class LeadOrchestrator:
                 source_stats: Dict[str, int] = {}
 
                 # Calculate per-adapter allocation so total target lead count is evenly balanced
+                # Manual operator runs and benchmark runs with target_lead_count=None or 0 are uncapped.
                 adapter_count = max(1, len(discovery_adapters))
-                base_per_adapter = max(3, run.target_lead_count // adapter_count)
+                if run.target_lead_count and run.target_lead_count > 0:
+                    base_per_adapter = max(3, run.target_lead_count // adapter_count)
+                else:
+                    base_per_adapter = 50  # Uncapped discovery batch size
 
                 async def run_adapter(adapter):
                     try:
@@ -282,11 +286,12 @@ class LeadOrchestrator:
 
                         logger.info(f"Executing discovery adapter: {adapter.name}")
                         adapter_limit = base_per_adapter
-                        if adapter.name == "fmcsa_official":
-                            # Official FMCSA data is primary carrier discovery channel (targets >= 85% share)
-                            adapter_limit = max(base_per_adapter, int(run.target_lead_count * 0.85))
-                        elif adapter.name in ("fmcsa_safer", "fmcsa_li", "direct_shippers"):
-                            adapter_limit = max(base_per_adapter, run.target_lead_count // 2)
+                        if run.target_lead_count and run.target_lead_count > 0:
+                            if adapter.name == "fmcsa_official":
+                                # Official FMCSA data is primary carrier discovery channel (targets >= 85% share)
+                                adapter_limit = max(base_per_adapter, int(run.target_lead_count * 0.85))
+                            elif adapter.name in ("fmcsa_safer", "fmcsa_li", "direct_shippers"):
+                                adapter_limit = max(base_per_adapter, run.target_lead_count // 2)
 
                         candidates = await adapter.discover_candidates(
                             target_states=run.target_states,

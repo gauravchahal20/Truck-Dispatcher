@@ -173,3 +173,66 @@ async def test_k5_orchestrator_candidate_ingestion_cap():
         assert len(stored) == 2
 
 
+@pytest.mark.asyncio
+async def test_m2_manual_and_benchmark_runs_not_capped():
+    """
+    M2: Verifies that manual operator discovery runs and benchmark runs
+    (where target_lead_count is None or 0) are NOT capped by autopilot limits.
+    All discovered leads are ingested.
+    """
+    from unittest.mock import patch, AsyncMock
+    from app.services.orchestrator import LeadOrchestrator
+    from app.schemas.schemas import RunCreateRequest
+    from app.core.database import AsyncSessionLocal
+    from app.models.entities import Run, Company
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as session:
+        req = RunCreateRequest(
+            name="M2 Benchmark Evaluation Run",
+            target_states=["TX"],
+            fleet_size_min=2,
+            fleet_size_max=10,
+            target_lead_count=None,  # No cap requested for benchmark / manual run
+            score_threshold=5.0
+        )
+        run = await LeadOrchestrator.create_run(session, req)
+        run_id = run.id
+
+    from app.adapters.base import RawLeadRecord
+
+    import time
+    ts = int(time.time()) % 10000
+    # Create 5 mock discovered candidates with unique USDOTs
+    mock_candidates = [
+        RawLeadRecord(
+            company_name=f"M2 Benchmark Carrier {i} {ts}",
+            usdot=f"77{ts}{i}",
+            state="TX",
+            fleet_size=6,
+            source_name="fmcsa_official",
+            source_url="https://data.transportation.gov/resource/test"
+        )
+        for i in range(5)
+    ]
+
+    mock_adapter = AsyncMock()
+    mock_adapter.name = "fmcsa_official"
+    mock_adapter.discover_candidates = AsyncMock(return_value=mock_candidates)
+
+    from app.adapters.registry import registry
+    with patch.object(registry, "get_active_discovery_adapters", return_value=[mock_adapter]), \
+         patch.object(registry, "get_adapter", return_value=None):
+        await LeadOrchestrator.run_pipeline_async(run_id)
+
+    async with AsyncSessionLocal() as session:
+        completed_run = await session.get(Run, run_id)
+        assert completed_run.status == "COMPLETED"
+
+        result = await session.execute(select(Company).where(Company.run_id == run_id))
+        stored = result.scalars().all()
+        # All 5 candidates processed and stored without artificial cap
+        assert len(stored) == 5
+
+
+
