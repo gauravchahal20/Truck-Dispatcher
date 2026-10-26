@@ -276,4 +276,79 @@ An audit was conducted across stored carriers, census mirror records, and the 23
   - `hazmat_carrier`: Flags hazardous material haulers via `hm_ind = 'Y'` or explicit hazmat operation/equipment (47.1% across stored carriers; filters out `NON-HAZMAT`).
   - `phone_region_mismatch`: Flags phone area code geocoded US state divergence from business address state (11.8% across stored carriers, e.g. SOPHY'S FRUITS FL address vs 973 NJ phone).
 
+### 5.7 Positive Control Audit & Motus Dataset Resolution (M1)
+
+#### 1. Positive Control Carriers in `nakq-58th`
+An audit was conducted on 5 large, well-known interstate carriers from the census mirror (fleet > 500 power units):
+1. **SWIFT TRANSPORTATION COMPANY OF ARIZONA LLC** (USDOT: `54283`, Fleet: 12,940 power units, Census Docket: `MC-136818`)
+2. **J B HUNT TRANSPORT INC** (USDOT: `80806`, Fleet: 25,280 power units, Census Docket: `FF-51075` / `MC-135797`)
+3. **SCHNEIDER NATIONAL CARRIERS INC** (USDOT: `264184`, Fleet: 9,866 power units, Census Docket: `MC-133655`)
+4. **OLD DOMINION FREIGHT LINE INC** (USDOT: `90849`, Fleet: 10,313 power units, Census Docket: `MC-107478`)
+5. **UNITED PARCEL SERVICE INC** (USDOT: `21800`, Fleet: 112,321 power units, Census Docket: `MC-116200`)
+
+##### Exact Query URLs & Row Counts in `nakq-58th`:
+- **SWIFT** (`54283`):
+  - Unpadded: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=54283` $\to$ **0 rows**
+  - Padded-7: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=0054283` $\to$ **0 rows**
+  - Padded-8: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=00054283` $\to$ **0 rows**
+- **J B HUNT** (`80806`):
+  - Unpadded: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=80806` $\to$ **0 rows**
+  - Padded-7: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=0080806` $\to$ **0 rows**
+  - Padded-8: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=00080806` $\to$ **0 rows**
+- **SCHNEIDER** (`264184`):
+  - Unpadded: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=264184` $\to$ **0 rows**
+  - Padded-7: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=0264184` $\to$ **0 rows**
+  - Padded-8: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=00264184` $\to$ **0 rows**
+- **OLD DOMINION** (`90849`):
+  - Unpadded: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=90849` $\to$ **0 rows**
+  - Padded-7: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=0090849` $\to$ **0 rows**
+  - Padded-8: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=00090849` $\to$ **0 rows**
+- **UPS** (`21800`):
+  - Unpadded: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=21800` $\to$ **0 rows**
+  - Padded-7: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=0021800` $\to$ **0 rows**
+  - Padded-8: `https://data.transportation.gov/resource/nakq-58th.json?usdot_number=00021800` $\to$ **0 rows**
+
+##### Diagnosis & Defect Resolution:
+1. **Root Cause**: Inspection of SODA view metadata (`https://data.transportation.gov/api/views/nakq-58th.json`) revealed dataset name is `"Motus Carrier"` and official FMCSA description explicitly states: `*This is a Daily Difference dataset*. Records for all carriers/brokers/freight forwarders with active, inactive, or pending operating authorities...` It contains only ~476 daily transaction rows. Static/unmodified carriers do not appear in `nakq-58th`.
+2. **Master Dataset Discovery**: The cumulative master dataset on `data.transportation.gov` is **`inys-ebih`** (*"Motus Carrier - All With History"*).
+3. **Master Verification**: Querying `inys-ebih` (`https://data.transportation.gov/resource/inys-ebih.json?$where=usdot_number in('54283','80806','264184','90849','21800')`) yielded **14 matching rows across all 5 carriers (100% match rate)**, proving 100% active authority status (`Active`), active BIPD liability filings ($75k-$5M), and active bond filings.
+4. **Column Format**: In both datasets, `usdot_number` is strictly an unpadded numeric string (e.g. `'54283'`). Any zero-padding produces 0 SODA results.
+
+##### 3 Raw Rows from `nakq-58th`:
+- **Row 1**: `USDOT='9594490'`, `Docket='MC63607823'`, `Legal='Buffalo Hauling LLC'`, `Op Auth Type='Motor Carrier of Property (Except Household Goods)'`, `Status='Pending'`, `BIPD='0.000000000000000000'`, `Bond='N'`
+- **Row 2**: `USDOT='6397572'`, `Docket='MC55990689'`, `Legal=None`, `Op Auth Type='Motor Carrier of Property (Except Household Goods)'`, `Status='Active'`, `BIPD='750000.000000000000000000'`, `Bond='N'`
+- **Row 3**: `USDOT='7887402'`, `Docket='MC75191074'`, `Legal=None`, `Op Auth Type='Motor Carrier of Property (Except Household Goods)'`, `Status='Active'`, `BIPD='750000.000000000000000000'`, `Bond='N'`
+
+#### 2. Stored Carriers (104) and Discovery Candidates (23) Audit
+- **Direct `nakq-58th` Matches**:
+  - 104 Stored Carriers with USDOT: **0 / 104 (0.0% match rate)**
+  - 23 Discovery Candidates: **0 / 23 (0.0% match rate)**
+- **Master Cumulative `inys-ebih` Matches**:
+  - 104 Stored Carriers: **21 / 104 (20.2% match rate)** (21 rows)
+  - 23 Discovery Candidates: **23 / 23 (100.0% match rate)** (25 rows)
+- **Status Distributions (`inys-ebih`)**:
+  - Stored: `Active: 1`, `Pending: 19`, `Withdrawn: 1`
+  - Candidates: `Active: 23`, `Withdrawn: 2`
+- **Insurance Distributions (`inys-ebih`)**:
+  - Stored BIPD: `$750k: 5`, `$0: 16`
+  - Candidates BIPD: `$750k: 18`, `$1M: 4`, `$300k: 1`, `$0: 2`
+- **Format Audit (10 Sample Rows in `nakq-58th`)**:
+  1. `USDOT='4307273'`, `Docket='MC1678370'`, `Status='Active'`, `BIPD='750000'`, `Bond='N'`
+  2. `USDOT='5535481'`, `Docket='MC87002554'`, `Status='Active'`, `BIPD='750000'`, `Bond='N'`
+  3. `USDOT='7887402'`, `Docket='MC75191074'`, `Status='Active'`, `BIPD='750000'`, `Bond='N'`
+  4. `USDOT='4545048'`, `Docket='MC1804248'`, `Status='Inactive'`, `BIPD='0'`, `Bond='N'`
+  5. `USDOT='4411793'`, `Docket='MC1733205'`, `Status='Inactive'`, `BIPD='0'`, `Bond='N'`
+  6. `USDOT='8695669'`, `Docket='MC82079206'`, `Status='Pending'`, `BIPD='0'`, `Bond='Y'`
+  7. `USDOT='7555897'`, `Docket='MC63200380'`, `Status='Pending'`, `BIPD='0'`, `Bond='N'`
+  8. `USDOT='2882704'`, `Docket='MC967522'`, `Status='Active'`, `BIPD='1000000'`, `Bond='N'`
+  9. `USDOT='6248267'`, `Docket='MC84856419'`, `Status='Active'`, `BIPD='750000'`, `Bond='N'`
+  10. `USDOT='3205074'`, `Docket='MC203249'`, `Status='Active'`, `BIPD='750000'`, `Bond='N'`
+
+#### 3. Census `docket1` vs `nakq-58th` `docket_number` Agreement Rate
+- Evaluated across 50 carriers appearing in both `az4n-8mr2` and `nakq-58th`:
+  - **Docket Number Agreement Rate**: **47 / 50 (94.0%)**
+  - **Status Code Agreement Rate**: **25 / 50 (50.0%)**
+- **HYPOTHESIS**: The status disagreement occurs because census `docket1_status_code` in `az4n-8mr2` reflects monthly batch synchronization lag or historical grant status, whereas `nakq-58th` reflects real-time operating authority status following revocations or insurance cancellations.
+
+
 

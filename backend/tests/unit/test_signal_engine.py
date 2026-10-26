@@ -73,7 +73,7 @@ def test_j6_signal_to_score_effects_hot_vs_stale():
     - A hot fresh signal can lift a mid-fit lead from Priority B to Priority A.
     - A stale decayed signal fades toward zero and does not lift the lead.
     """
-    now = datetime(2026, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
 
     # Carrier with mid-fit score = 6.0 (Priority B threshold: 6.0 - 7.9)
     # Fleet size 5 (+2.0), Authorized (+2.0), Named email only (+0.75), Equipment (+1.0), Staff contact (+0.8) => ~6.5
