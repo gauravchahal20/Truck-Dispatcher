@@ -329,3 +329,9 @@ signals:
       max_days: 120
     mcs150_window_days: 60
 
+# M6 Call Queue for Unproven Carriers
+call_queue:
+  daily_cap: 30
+  default_sort: "fit_score"
+
+

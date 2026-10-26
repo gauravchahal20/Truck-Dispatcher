@@ -104,4 +104,6 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  getVerifyAndCallQueue: (limit) =>
+    request(`/api/leads/verify-and-call-queue${limit ? `?limit=${limit}` : ''}`),
 };

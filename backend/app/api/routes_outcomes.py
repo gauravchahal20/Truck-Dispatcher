@@ -140,6 +140,8 @@ class ManualAuthorityVerificationRequest(BaseModel):
     insurance_on_file: bool = Field(..., description="Whether active BIPD insurance filing is on file")
     insurance_amount: Optional[int] = Field(None, description="BIPD insurance coverage amount e.g. 750000 or 1000000")
     notes: Optional[str] = Field(None, description="Operator notes during manual verification")
+    call_outcome: Optional[str] = Field(None, description="Optional call outcome e.g. connected, no_answer, wrong_number, interested, not_interested, do_not_contact")
+    call_notes: Optional[str] = Field(None, description="Optional notes from phone call")
 
 
 @router.get("/callable-mailable", dependencies=[Depends(require_pii_access)])
@@ -297,6 +299,124 @@ async def list_callable_mailable_leads(
     }
 
 
+@router.get("/verify-and-call-queue", dependencies=[Depends(require_api_key)])
+async def get_verify_and_call_queue(
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Max carriers to return (defaults to call_queue.daily_cap)"),
+    session: AsyncSession = Depends(get_db)
+):
+    """
+    M6: Ranked 'Verify and call' list of NEEDS_ENRICHMENT carriers with phone format-valid (+1 E.164).
+    Ordered by fit score descending, then verification confidence descending, then lead score descending.
+    Capped at daily limit (configured via call_queue.daily_cap, default 30).
+    Provides company, officer, phone (E.164 and pretty), local call window & IST,
+    data sanity flags (phone_region_mismatch, fleet_inconsistent, hazmat_carrier),
+    dynamic call script opening, and direct SAFER lookup URL.
+    """
+    daily_cap = getattr(getattr(config, "call_queue", None), "daily_cap", 30) or 30
+    effective_limit = min(limit, daily_cap) if limit else daily_cap
+
+    stmt = (
+        select(Company)
+        .where(
+            and_(
+                Company.lead_type == "CARRIER",
+                Company.lead_status == "NEEDS_ENRICHMENT",
+                Company.dnc_flag == False,
+                Company.phone_e164 != None,
+                Company.phone_e164 != ""
+            )
+        )
+        .options(
+            selectinload(Company.contacts),
+            selectinload(Company.intent_signals)
+        )
+        .order_by(
+            Company.fit_score.desc(),
+            Company.verification_confidence.desc(),
+            Company.lead_score.desc(),
+            Company.created_at.desc()
+        )
+        .limit(effective_limit)
+    )
+
+    res = await session.execute(stmt)
+    companies = res.scalars().all()
+
+    items = []
+    for c in companies:
+        primary_contact = next((ct for ct in c.contacts if ct.is_decision_maker), None)
+        if not primary_contact and c.contacts:
+            primary_contact = c.contacts[0]
+
+        officer_name = primary_contact.full_name if primary_contact else None
+        officer_title = primary_contact.title if primary_contact else (c.carrier_operation or "Carrier Dispatch")
+
+        p_e164 = (primary_contact.phone_e164 if primary_contact and primary_contact.phone_e164 else c.phone_e164) or Normalizer.to_e164(c.phone)
+        p_pretty = (primary_contact.phone_display if primary_contact and primary_contact.phone_display else c.phone_display) or Normalizer.format_phone_display(p_e164)
+
+        w_local = c.call_window_local
+        w_ist = c.call_window_ist
+        if not w_local or not w_ist:
+            _, w_local, w_ist = Normalizer.get_timezone_and_windows(c.state, p_e164)
+
+        flags = {
+            "phone_region_mismatch": bool(c.phone_region_mismatch),
+            "fleet_inconsistent": bool(c.fleet_inconsistent),
+            "hazmat_carrier": bool(c.hazmat_carrier)
+        }
+
+        officer_salutation = officer_name if officer_name and officer_name != "Owner / Operations" else "there"
+        fleet_phrase = f"your fleet of {c.fleet_size} trucks" if c.fleet_size and c.fleet_size > 1 else ("your 1 truck" if c.fleet_size == 1 else "your fleet")
+        state_phrase = c.state or "your operating region"
+        call_script = (
+            f"Hello {officer_salutation}, this is Dispatch at TruckLead Logistics calling regarding {c.company_name} (USDOT #{c.usdot or 'N/A'}). "
+            f"We have immediate freight volume in {state_phrase}. "
+            f"Can you confirm if you have active interstate MC operating authority and current open capacity on {fleet_phrase}?"
+        )
+
+        safer_url = (
+            f"https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string={c.usdot}"
+            if c.usdot else "https://safer.fmcsa.dot.gov/CompanySnapshot.aspx"
+        )
+
+        items.append({
+            "id": c.id,
+            "company_id": c.id,
+            "company_name": c.company_name,
+            "usdot": c.usdot,
+            "mc_number": c.mc_number,
+            "state": c.state,
+            "city": c.city,
+            "fleet_size": c.fleet_size,
+            "officer": officer_name or "Owner / Operations",
+            "officer_title": officer_title,
+            "phone_e164": p_e164,
+            "phone_pretty": p_pretty,
+            "phone_line_type": c.phone_line_type or "unknown",
+            "dial_link": f"tel:{p_e164}" if p_e164 else None,
+            "call_window_local": w_local,
+            "call_window_ist": w_ist,
+            "flags": flags,
+            "fit_score": round(float(c.fit_score or 0.0), 2),
+            "confidence": round(float(c.verification_confidence or 0.0), 2),
+            "lead_score": round(float(c.lead_score or 0.0), 2),
+            "priority": c.priority or "NONE",
+            "call_script": call_script,
+            "safer_lookup_url": safer_url,
+            "authority_status": c.authority_status or "UNKNOWN",
+            "insurance_filing_status": c.insurance_filing_status or "UNKNOWN",
+            "lead_status": c.lead_status
+        })
+
+    return {
+        "status": "success",
+        "count": len(items),
+        "daily_cap": daily_cap,
+        "effective_limit": effective_limit,
+        "items": items
+    }
+
+
 @router.post("/{company_id}/verify-authority-manual", dependencies=[Depends(require_api_key)])
 async def verify_authority_manual(
     company_id: str,
@@ -363,6 +483,22 @@ async def verify_authority_manual(
 
     # Re-evaluate sanity flags
     LeadOrchestrator.evaluate_sanity_flags(company)
+
+    # Optional Call Outcome Logging
+    if request.call_outcome:
+        call_clean = request.call_outcome.strip().lower()
+        call_rec = LeadOutcome(
+            company_id=company.id,
+            channel="PHONE",
+            outcome=call_clean,
+            target_value=company.phone_e164 or company.phone,
+            notes=request.call_notes or request.notes,
+            created_at=now
+        )
+        session.add(call_rec)
+        if call_clean in ("do_not_contact", "do not contact", "opt_out", "opt-out"):
+            company.dnc_flag = True
+            company.suppression_reason = f"Suppressed via call outcome: {call_clean}"
 
     # Re-score
     lead_score_obj, new_tier = LeadScorer.calculate_score(company)

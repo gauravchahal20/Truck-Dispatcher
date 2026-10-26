@@ -216,6 +216,11 @@ class SignalEngineConfig(BaseModel):
     mcs150_window_days: int = 60
 
 
+class CallQueueConfig(BaseModel):
+    daily_cap: int = 30
+    default_sort: str = "fit_score"
+
+
 class SignalsConfig(BaseModel):
     sync_caps: SignalSyncCapsConfig = Field(default_factory=SignalSyncCapsConfig)
     engine: SignalEngineConfig = Field(default_factory=SignalEngineConfig)
@@ -356,6 +361,9 @@ class SystemConfig:
 
         signals_data = self.raw_yaml.get("signals", {})
         self.signals = SignalsConfig(**signals_data) if signals_data else SignalsConfig()
+
+        call_queue_data = self.raw_yaml.get("call_queue", {})
+        self.call_queue = CallQueueConfig(**call_queue_data) if call_queue_data else CallQueueConfig()
 
 
 

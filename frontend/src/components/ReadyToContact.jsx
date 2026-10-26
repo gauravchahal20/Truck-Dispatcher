@@ -50,6 +50,9 @@ export default function ReadyToContact({ onViewLead }) {
   const [verifyInsurance, setVerifyInsurance] = useState(true);
   const [verifyAmount, setVerifyAmount] = useState(750000);
   const [verifyNotes, setVerifyNotes] = useState('');
+  const [verifyCallOutcome, setVerifyCallOutcome] = useState('');
+  const [verifyCallNotes, setVerifyCallNotes] = useState('');
+  const [copiedScriptId, setCopiedScriptId] = useState(null);
   const [isSubmittingVerify, setIsSubmittingVerify] = useState(false);
   const [verifyError, setVerifyError] = useState(null);
   const [verifySuccess, setVerifySuccess] = useState(null);
@@ -62,6 +65,8 @@ export default function ReadyToContact({ onViewLead }) {
     setVerifyInsurance(true);
     setVerifyAmount(750000);
     setVerifyNotes(`Verified active common carrier authority and $750k+ BIPD insurance on SAFER for USDOT ${lead.usdot || ''}`);
+    setVerifyCallOutcome('');
+    setVerifyCallNotes('');
     setVerifyError(null);
     setVerifySuccess(null);
   };
@@ -79,9 +84,11 @@ export default function ReadyToContact({ onViewLead }) {
         authority_status: verifyStatus,
         insurance_on_file: verifyInsurance,
         insurance_amount: Number(verifyAmount) || 750000,
-        notes: verifyNotes
+        notes: verifyNotes,
+        call_outcome: verifyCallOutcome || null,
+        call_notes: verifyCallNotes || null
       });
-      setVerifySuccess(`Verified authority for ${selectedLeadForVerify.company}! New Status: ${res.lead_status} (Score ${res.lead_score?.toFixed(1)})`);
+      setVerifySuccess(`Verified authority for ${selectedLeadForVerify.company || selectedLeadForVerify.company_name}! New Status: ${res.lead_status} (Score ${res.lead_score?.toFixed(1)})`);
       setTimeout(() => {
         setSelectedLeadForVerify(null);
         fetchLeads();
@@ -97,8 +104,13 @@ export default function ReadyToContact({ onViewLead }) {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const data = await api.getCallableMailableLeads(filterMode, 200);
-      setLeads(data.leads || []);
+      if (filterMode === 'verify_and_call') {
+        const data = await api.getVerifyAndCallQueue();
+        setLeads(data.items || []);
+      } else {
+        const data = await api.getCallableMailableLeads(filterMode, 200);
+        setLeads(data.leads || []);
+      }
     } catch (err) {
       console.error('Failed to load callable & mailable leads:', err);
     } finally {
@@ -303,6 +315,7 @@ export default function ReadyToContact({ onViewLead }) {
             { id: 'callable', label: 'Phone Format-Valid (+1)' },
             { id: 'mailable', label: 'Mailable (Deliverable)' },
             { id: 'both', label: 'Both Channels' },
+            { id: 'verify_and_call', label: 'Verify & Call Queue (Max 30)' },
             { id: 'unproven_authority', label: 'Authority unproven - verify manually' }
           ].map(tab => (
             <button
@@ -357,6 +370,44 @@ export default function ReadyToContact({ onViewLead }) {
           </select>
         </div>
       </div>
+
+      {/* Guidance Banner for Verify & Call Queue (M6) */}
+      {filterMode === 'verify_and_call' && (
+        <div style={{
+          backgroundColor: '#F0FDF4',
+          border: '1px solid #BBF7D0',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px',
+          marginBottom: '16px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <PhoneCall size={18} color="#15803D" />
+              <strong style={{ color: '#166534', fontSize: '0.9rem' }}>
+                Ranked "Verify & Call" Queue (Capped at 30/day per config.call_queue.daily_cap)
+              </strong>
+            </div>
+            <a
+              href="https://safer.fmcsa.dot.gov/CompanySnapshot.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              Open SAFER Company Snapshot <ExternalLink size={12} />
+            </a>
+          </div>
+          <p style={{ fontSize: '0.78rem', color: '#14532D', margin: '0 0 8px 0' }}>
+            Top-ranked <strong>NEEDS_ENRICHMENT</strong> carriers with phone format-valid (+1 E.164). Sorted by <strong>Fit Score</strong>, then <strong>Confidence</strong>. Call the carrier using the tailored dynamic opening script to verify active MC authority and open capacity, then log the call outcome and SAFER verification to re-score and promote the lead.
+          </p>
+          <div style={{ fontSize: '0.72rem', color: '#166534', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '6px' }}>
+            <div>🔍 1. Open SAFER link to check active interstate authority & insurance</div>
+            <div>📞 2. Dial phone and use the tailored opening script</div>
+            <div>📝 3. Click "Verify & Log Call" to enter SAFER findings & call response</div>
+            <div>🚀 4. System immediately re-scores lead and promotes to QUALIFIED / FINAL</div>
+          </div>
+        </div>
+      )}
 
       {/* Guidance Banner for Unproven Authority (L2i) */}
       {filterMode === 'unproven_authority' && (
@@ -442,7 +493,7 @@ export default function ReadyToContact({ onViewLead }) {
                     {/* 1. Company */}
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ fontWeight: 700, color: 'var(--text-dark)', cursor: 'pointer' }} onClick={() => onViewLead && onViewLead(lead)}>
-                        {lead.company}
+                        {lead.company || lead.company_name}
                       </div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '6px', marginTop: '2px', flexWrap: 'wrap' }}>
                         <span>USDOT #{lead.usdot || 'N/A'}</span>
@@ -451,17 +502,17 @@ export default function ReadyToContact({ onViewLead }) {
                       </div>
                       {/* Sanity & Quality Flags (L2i) */}
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
-                        {lead.fleet_inconsistent && (
+                        {(lead.flags?.fleet_inconsistent ?? lead.fleet_inconsistent) && (
                           <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#FEE2E2', color: '#991B1B', fontWeight: 700 }} title="Power units, trucks, and drivers diverge significantly">
                             ⚠️ Fleet Inconsistent
                           </span>
                         )}
-                        {lead.hazmat_carrier && (
+                        {(lead.flags?.hazmat_carrier ?? lead.hazmat_carrier) && (
                           <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#FEF3C7', color: '#92400E', fontWeight: 700 }} title="Carrier hauls hazardous materials">
                             ☣️ Hazmat
                           </span>
                         )}
-                        {lead.phone_region_mismatch && (
+                        {(lead.flags?.phone_region_mismatch ?? lead.phone_region_mismatch) && (
                           <span style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', backgroundColor: '#EDE9FE', color: '#5B21B6', fontWeight: 700 }} title="Phone area code geocoded state does not match company physical address state">
                             📍 Phone Mismatch
                           </span>
@@ -472,15 +523,50 @@ export default function ReadyToContact({ onViewLead }) {
                           </span>
                         )}
                       </div>
+                      {/* SAFER direct link */}
+                      {lead.safer_lookup_url && (
+                        <div style={{ marginTop: '4px' }}>
+                          <a
+                            href={lead.safer_lookup_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '0.68rem', color: '#2563EB', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            SAFER Snapshot <ExternalLink size={10} />
+                          </a>
+                        </div>
+                      )}
+                      {/* Dynamic Call Script snippet */}
+                      {lead.call_script && (
+                        <div style={{ marginTop: '6px', padding: '6px 8px', backgroundColor: '#F8FAFC', borderRadius: '4px', border: '1px solid #E2E8F0', fontSize: '0.7rem', color: '#334155' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                            <span style={{ fontWeight: 700, color: '#0F172A' }}>Call Script Opening:</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(lead.call_script);
+                                setCopiedScriptId(lead.id);
+                                setTimeout(() => setCopiedScriptId(null), 2000);
+                              }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.68rem', color: 'var(--ocean-dark)', display: 'flex', alignItems: 'center', gap: '3px' }}
+                            >
+                              {copiedScriptId === lead.id ? <><Check size={11} color="green" /> Copied!</> : <><Copy size={11} /> Copy</>}
+                            </button>
+                          </div>
+                          <div style={{ fontStyle: 'italic', lineHeight: 1.3 }}>
+                            "{lead.call_script}"
+                          </div>
+                        </div>
+                      )}
                     </td>
 
                     {/* 2. Contact */}
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ fontWeight: 600, color: 'var(--text-dark)' }}>
-                        {lead.contact_name}
+                        {lead.officer || lead.contact_name || 'Owner / Operations'}
                       </div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {lead.title || 'Decision Maker'}
+                        {lead.officer_title || lead.title || 'Decision Maker'}
                       </div>
                     </td>
 
@@ -1188,6 +1274,50 @@ export default function ReadyToContact({ onViewLead }) {
                 <label htmlFor="insuranceCheck" style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-dark)', cursor: 'pointer' }}>
                   Confirmed active BIPD / Cargo Insurance filing on file in L&I database
                 </label>
+              </div>
+
+              {/* Call Outcome Logging (M6) */}
+              <div style={{ marginBottom: '14px', padding: '10px 12px', backgroundColor: '#F8FAFC', borderRadius: 'var(--radius-sm)', border: '1px solid #E2E8F0' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '4px' }}>
+                  CALL OUTCOME (M6 LOG OUTCOME & SAFER VERIFICATION)
+                </label>
+                <select
+                  value={verifyCallOutcome}
+                  onChange={(e) => setVerifyCallOutcome(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: '0.82rem',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-subtle)',
+                    backgroundColor: '#FFFFFF',
+                    marginBottom: verifyCallOutcome ? '6px' : '0'
+                  }}
+                >
+                  <option value="">-- No Call Made / SAFER Verification Only --</option>
+                  <option value="connected">Connected - Spoke with Carrier</option>
+                  <option value="interested">Interested - Wants Freight Loads</option>
+                  <option value="not_interested">Not Interested</option>
+                  <option value="voicemail">Left Voicemail</option>
+                  <option value="no_answer">No Answer</option>
+                  <option value="wrong_number">Wrong Number</option>
+                  <option value="do_not_contact">Do Not Contact (Suppresses Lead)</option>
+                </select>
+                {verifyCallOutcome && (
+                  <input
+                    type="text"
+                    placeholder="Call notes / conversation details..."
+                    value={verifyCallNotes}
+                    onChange={(e) => setVerifyCallNotes(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      fontSize: '0.8rem',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)'
+                    }}
+                  />
+                )}
               </div>
 
               {/* Operator Notes */}
