@@ -182,6 +182,25 @@ class SignalEngine:
                 "is_sensitive": False
             })
 
+        # 5. NEW_USDOT_REGISTRATION (Fresh DOT assignment / registration within 60 days)
+        if getattr(company, "lead_source", None) == "recent_registration" or "recent_registration" in notes:
+            reg_dt = add_dt or now
+            detected.append({
+                "signal_type": "NEW_USDOT_REGISTRATION",
+                "title": "Fresh USDOT Registration",
+                "description": "Carrier completed recent initial USDOT registration.",
+                "source_url": "https://data.transportation.gov/resource/az4n-8mr2",
+                "confidence": 0.90,
+                "strength": 1.0,
+                "observed_at": reg_dt,
+                "half_life_days": getattr(hl_cfg, "new_usdot_registration", 60.0),
+                "evidence": {
+                    "dataset_id": "az4n-8mr2",
+                    "row_reference": {"dot_number": company.usdot, "segment": "recent_registration"}
+                },
+                "is_sensitive": False
+            })
+
         return detected
 
     @classmethod
@@ -223,6 +242,8 @@ class SignalEngine:
             # 2. Get signal weight
             if "NEW_AUTHORITY" in sig_type:
                 w = getattr(weights_cfg, "new_authority", 2.0)
+            elif "NEW_USDOT_REGISTRATION" in sig_type or "REGISTRATION" in sig_type:
+                w = getattr(weights_cfg, "new_usdot_registration", 0.5)
             elif "INSURANCE_CANCEL" in sig_type:
                 w = getattr(weights_cfg, "insurance_cancel_pending", 1.5)
             elif "MCS150" in sig_type:
