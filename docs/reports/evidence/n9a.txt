@@ -1,0 +1,47 @@
+=== N9a: Priority Thresholds Alignment & Forensic Trace ===
+Timestamp: 2026-10-26T17:50:00Z
+
+1. Priority Thresholds from config/default_config.yaml & backend/app/core/config.py:
+   priority_a_min: 8.0 (A >= 8.0)
+   priority_b_min: 6.0 (B 6.0 - 7.9)
+   priority_c_min: 5.0 (C 5.0 - 5.9)
+   reject_below:   5.0 (NONE < 5.0)
+
+2. Priority Determination in backend/app/services/lead_scorer.py (lines 298-305):
+   elif combined_total >= thresholds.priority_a_min: priority = 'A'
+   elif combined_total >= thresholds.priority_b_min: priority = 'B'
+   elif combined_total >= thresholds.priority_c_min: priority = 'C'
+   else: priority = 'NONE'
+
+3. Execution of: git log -p -S"6.5" -- config backend/app/services/lead_scorer.py
+   Exit code: 0
+   Stdout:
+   <EMPTY OUTPUT - 6.5 was never committed to config or lead_scorer.py>
+
+4. Investigation of where 6.5 originated across git history:
+   Commits touching '6.5':
+f3dd838 feat(N5): document pool funnels, restore 50 lead cap default, and ingest clean pool
+9d1656c feat(N3): apply Motus authority to stored carriers and set NO_LI_RECORD for unmatched
+9fc4fcc J6: Implement time-decayed signal engine v1 with fit-intent score separation and sensitive insurance cancellation flagging
+848bce5 J1: Enforce priority thresholds consistency, unproven authority routing, and separate cross-tabs
+5638478 H5: Update report generator with pure Python scans, NOT VERIFIED handling, query-driven claims, reconciled adapter shares, and dated report generation
+ed8e28c Phase 1: Remove dead files, stale test artifacts, and unused requirements
+003cd29 Add complete evidence-based Project Analysis Report and automated regeneration script
+9d269cb Workstream E: Callable and mailable leads contact layer, phone/email verification, and Ready-to-Contact UI
+704cc99 Step A: Stop fabrication, add field provenance and Alembic migration, clean database, add regression tests
+
+   Forensic Finding: 6.5 was introduced in commits 9d1656c (N3) and f3dd838 (N5)
+   specifically within scripts/maintenance/generate_n3_report.py line 41 and
+   scripts/maintenance/ingest_clean_pool.py line 144 as an unvetted script literal,
+   while config/default_config.yaml and frontend LeadsTable.jsx remained at 6.0.
+
+5. Frontend LeadsTable.jsx (lines 305-307) Verification:
+   <option value="A">Priority A (≥ 8.0)</option>
+   <option value="B">Priority B (6.0 - 7.9)</option>
+   <option value="C">Priority C (5.0 - 5.9)</option>
+
+6. Alignment Status:
+   Config: priority_a_min=8.0, priority_b_min=6.0, priority_c_min=5.0
+   LeadScorer: Dynamically references config thresholds.
+   Frontend UI: Displays A (>= 8.0), B (6.0 - 7.9), C (5.0 - 5.9).
+   Maintenance scripts: Restored to 6.0.

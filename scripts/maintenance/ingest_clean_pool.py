@@ -141,7 +141,7 @@ def run_clean_pool_ingestion():
         fit_score = max(1.0, min(10.0, fit_score))
 
         lead_score = fit_score
-        priority = "NONE" if lead_score < 5.0 else ("C" if lead_score < 6.5 else "B")
+        priority = "NONE" if lead_score < 5.0 else ("C" if lead_score < 6.0 else "B")
 
         cur.execute("""
             INSERT INTO companies (

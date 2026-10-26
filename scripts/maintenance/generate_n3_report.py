@@ -38,8 +38,8 @@ def generate_n3_report():
     md.append("| :--- | :--- | :--- | :--- | :--- | :--- |")
     band_defs = {
         "A": "Score >= 8.0",
-        "B": "Score 6.5 - 7.9",
-        "C": "Score 5.0 - 6.4",
+        "B": "Score 6.0 - 7.9",
+        "C": "Score 5.0 - 5.9",
         "NONE": "Score < 5.0 (Below gate)"
     }
     for prio in ["A", "B", "C", "NONE"]:
