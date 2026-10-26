@@ -513,3 +513,27 @@ class AutopilotRunLog(Base):
     completed_at = Column(DateTime, nullable=True)
 
 
+class CandidateWatchlist(Base):
+    """
+    M5: Reference watchlist storing the 23 candidates without lead ingestion,
+    scoring, outreach, or export. Revisit only after M1 shows authority lookup
+    works and manual SAFER check passes.
+    """
+    __tablename__ = "candidate_watchlist"
+
+    usdot = Column(String(50), primary_key=True)
+    docket = Column(String(50), nullable=True, index=True)
+    add_date = Column(String(50), nullable=True)
+    legal_name = Column(String(255), nullable=True)
+    dba_name = Column(String(255), nullable=True)
+    phy_city = Column(String(100), nullable=True)
+    phy_state = Column(String(10), nullable=True, index=True)
+    power_units = Column(Integer, nullable=True)
+    telephone = Column(String(50), nullable=True)
+    email_address = Column(String(255), nullable=True)
+    motus_result = Column(String(255), nullable=True)
+    reason = Column(Text, nullable=False, default="Awaiting manual SAFER verification and positive control review")
+    created_at = Column(DateTime, default=utc_now)
+
+
+
