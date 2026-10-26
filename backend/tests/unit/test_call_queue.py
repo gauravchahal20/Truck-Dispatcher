@@ -115,6 +115,9 @@ async def test_m6_verify_and_call_queue_endpoint():
         session.add_all([ct1, ct2])
         await session.commit()
 
+    # Set sender_identity to test active script generation
+    config.compliance.sender_identity = "Alex Turner with Summit Dispatch"
+
     headers = {"X-API-Key": "test-key"}
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         res = await client.get("/api/leads/verify-and-call-queue", headers=headers)
@@ -133,9 +136,13 @@ async def test_m6_verify_and_call_queue_endpoint():
         assert items[0]["officer"] == "Sarah Connor"
         assert items[0]["flags"]["fleet_inconsistent"] is True
         assert items[0]["flags"]["hazmat_carrier"] is False
+        assert "Alex Turner with Summit Dispatch" in items[0]["call_script"]
+        assert "dispatch support and load booking assistance" in items[0]["call_script"]
         assert "interstate MC operating authority" in items[0]["call_script"]
         assert "open capacity" in items[0]["call_script"]
         assert "8 trucks" in items[0]["call_script"]
+        assert "remove you from our call list" in items[0]["call_script"]
+        assert "immediate freight volume" not in items[0]["call_script"]
         assert "1000001" in items[0]["safer_lookup_url"]
 
         assert items[1]["company_name"] == "MID FIT FREIGHT INC"
@@ -144,6 +151,13 @@ async def test_m6_verify_and_call_queue_endpoint():
         assert items[1]["flags"]["phone_region_mismatch"] is True
         assert items[1]["flags"]["hazmat_carrier"] is True
         assert "3 trucks" in items[1]["call_script"]
+
+        # Test script hiding when sender_identity is unset
+        config.compliance.sender_identity = ""
+        res_hidden = await client.get("/api/leads/verify-and-call-queue", headers=headers)
+        hidden_items = res_hidden.json()["items"]
+        assert hidden_items[0]["call_script"] is None
+        assert hidden_items[0]["script_status"] == "hidden: sender_identity not set"
 
 
 @pytest.mark.asyncio

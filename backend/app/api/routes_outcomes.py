@@ -367,12 +367,22 @@ async def get_verify_and_call_queue(
 
         officer_salutation = officer_name if officer_name and officer_name != "Owner / Operations" else "there"
         fleet_phrase = f"your fleet of {c.fleet_size} trucks" if c.fleet_size and c.fleet_size > 1 else ("your 1 truck" if c.fleet_size == 1 else "your fleet")
-        state_phrase = c.state or "your operating region"
-        call_script = (
-            f"Hello {officer_salutation}, this is Dispatch at TruckLead Logistics calling regarding {c.company_name} (USDOT #{c.usdot or 'N/A'}). "
-            f"We have immediate freight volume in {state_phrase}. "
-            f"Can you confirm if you have active interstate MC operating authority and current open capacity on {fleet_phrase}?"
-        )
+        
+        # N6: Script must be factual, use sender_identity, offer dispatch help, ask for decision-maker,
+        # ask about MC authority and capacity, offer opt-out, and hide when sender_identity is unset.
+        sender_ident = (getattr(getattr(config, "compliance", None), "sender_identity", "") or "").strip()
+        if sender_ident:
+            call_script = (
+                f"Hello {officer_salutation}, this is {sender_ident} calling regarding {c.company_name} (USDOT #{c.usdot or 'N/A'}). "
+                f"Am I speaking with the person who handles dispatch and freight operations for your fleet? "
+                f"We provide dispatch support and load booking assistance for small carriers. "
+                f"Can you confirm if you currently have active interstate MC operating authority and open capacity on {fleet_phrase}? "
+                f"Also, if you're not interested in dispatch assistance, just let me know and I will remove you from our call list immediately."
+            )
+            script_status = "active"
+        else:
+            call_script = None
+            script_status = "hidden: sender_identity not set"
 
         safer_url = (
             f"https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&query_string={c.usdot}"
@@ -402,6 +412,7 @@ async def get_verify_and_call_queue(
             "lead_score": round(float(c.lead_score or 0.0), 2),
             "priority": c.priority or "NONE",
             "call_script": call_script,
+            "script_status": script_status,
             "safer_lookup_url": safer_url,
             "authority_status": c.authority_status or "UNKNOWN",
             "insurance_filing_status": c.insurance_filing_status or "UNKNOWN",
