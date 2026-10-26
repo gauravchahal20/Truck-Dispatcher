@@ -355,5 +355,16 @@ An audit was conducted on 5 large, well-known interstate carriers from the censu
   - **Status Code Agreement Rate**: **25 / 50 (50.0%)**
 - **HYPOTHESIS**: The status disagreement occurs because census `docket1_status_code` in `az4n-8mr2` reflects monthly batch synchronization lag or historical grant status, whereas `nakq-58th` reflects real-time operating authority status following revocations or insurance cancellations.
 
+### 5.8 Release Integrity & Tag Verification (M4)
+- **Tag Inventory (`git tag -l -n`)**:
+  - `pre-cleanup`: `Add complete evidence-based Project Analysis Report and automated regeneration script`
+  - `v1.1.0`: `Release v1.1.0: Complete post-review enhancements J1-J6, signal engine v1, and full verification`
+- **Tag Object vs Commit Object Reconciliation**:
+  - Git tag ref `refs/tags/v1.1.0` is an annotated tag pointing to tag object hash `b90fb9f986362f866a0593dbb574d19c824399df`.
+  - The tag object encapsulates target commit `9fc4fccded3ccc73c8eb7626a286b03f17b5ebd5` ("J6: Implement time-decayed signal engine v1 with fit-intent score separation and sensitive insurance cancellation flagging").
+  - Explanation of Hash Variation: Queries resolving the tag reference (`git show-ref --tags` or `git rev-parse v1.1.0`) return the tag object SHA (`b90fb9f`), whereas queries dereferencing to the underlying commit (`git rev-parse v1.1.0^{commit}` or `git log`) return the commit SHA (`9fc4fcc`). The tag has never moved or been recreated.
+  - Published tags remain unmodified. Release `v1.2.0` will be created only at the conclusion of Workstream M.
+
+
 
 
