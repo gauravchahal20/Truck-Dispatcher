@@ -140,27 +140,32 @@ class LeadOrchestrator:
         if icp_status == "NEEDS_REVIEW_ICP":
             return "NEEDS_REVIEW_ICP", None, icp_reason
 
-        # 4. Authority Provenance: active for-hire verified via L&I + Insurance
+        # 4. Authority Provenance & BIPD Insurance Gate
         auth_st = (getattr(company, "authority_status", None) or "UNKNOWN").upper()
         ins_st = (getattr(company, "insurance_filing_status", None) or "UNKNOWN").upper()
-        has_proven_active_authority = not is_carrier or (
-            bool(company.usdot) and
-            auth_st == "ACTIVE" and
-            ins_st == "ACTIVE"
+        bipd = getattr(company, "bipd_insurance_on_file", None) or 0
+
+        # Hard Gate: Motus property authority ACTIVE + BIPD >= 750,000 for carriers
+        if is_carrier:
+            if not company.usdot:
+                return "NEEDS_ENRICHMENT", "Carrier missing USDOT; queued for L&I verification", None
+            if auth_st != "ACTIVE":
+                return "NEEDS_ENRICHMENT", f"Operating authority unproven (L&I: {auth_st}, Insurance: {ins_st}); queued for L&I verification", None
+            if bipd < 750000:
+                return "NEEDS_REVIEW", f"BIPD insurance on file ${bipd:,} is below $750,000 minimum threshold", None
+
+        # 5. Contact Presence Check (phone or email present)
+        has_phone_or_email = bool(
+            company.phone or company.email or
+            any((c.phone or c.email) for c in (company.contacts or []))
         )
-
-        if is_carrier and not has_proven_active_authority:
-            # Unproven authority is NOT a hard gate rejection -> routes to NEEDS_ENRICHMENT
-            return "NEEDS_ENRICHMENT", f"Operating authority unproven (L&I: {auth_st}, Insurance: {ins_st}); queued for L&I verification", None
-
-        # 5. Score Threshold Check
-        if (company.lead_score or 0.0) < config.scoring.priority_thresholds.reject_below or priority == "REJECTED":
-            if is_carrier:
-                return "NEEDS_ENRICHMENT", f"Score {(company.lead_score or 0.0):.1f} below minimum threshold {config.scoring.priority_thresholds.reject_below}; queued for enrichment", None
-            else:
-                return "NEEDS_ENRICHMENT", "Shipper contacts pending Google Places / website enrichment", None
+        if not has_phone_or_email:
+            return "NEEDS_ENRICHMENT", "Missing both phone and email; queued for contact enrichment", None
 
         # 6. Verified Contact Channel Check for FINAL Qualification
+        # Rule: QUALIFIED = hard gates pass + Motus property authority ACTIVE + BIPD >= 750k + phone/email present.
+        # Score only ranks leads within QUALIFIED and no longer blocks it.
+        # FINAL still requires a verified channel or a human "reached" outcome.
         has_verified_phone = (
             (company.phone_verification_status == "VERIFIED") or
             any(c.phone_verification_status == "VERIFIED" for c in (company.contacts or []))
@@ -184,22 +189,11 @@ class LeadOrchestrator:
             (has_verified_phone or has_verified_email) and has_named_person
         ) or has_reached_outcome
 
-        is_final_candidate = (
-            has_proven_active_authority and
-            v_status == "VERIFIED" and
-            (company.lead_score or 0.0) >= score_threshold and
-            not is_suppressed and
-            not company.dnc_flag
-        )
-
-        if is_final_candidate and has_verified_contact_for_named_person:
+        if has_verified_contact_for_named_person:
             return "FINAL", f"Qualified: Score {company.lead_score} (Priority {priority}) with active authority & verified contact channel for named decision maker.", None
 
-        if is_final_candidate:
-            ch_reason = "contacts pending provider verification" if not (has_verified_phone or has_verified_email) else "unverified named officer"
-            return "QUALIFIED", f"Verified: Score {company.lead_score} (Priority {priority}, Active Authority), but {ch_reason} (stays QUALIFIED until verified).", None
-
-        return "NEEDS_REVIEW", f"Needs Review: {v_reason}", None
+        ch_reason = "contacts pending provider verification" if not (has_verified_phone or has_verified_email) else "unverified named officer"
+        return "QUALIFIED", f"Qualified: Score {company.lead_score} (Priority {priority}, Active Authority, BIPD ${bipd:,}), but {ch_reason} (stays QUALIFIED until verified).", None
 
     @classmethod
     async def create_run(cls, session: AsyncSession, request: RunCreateRequest) -> Run:

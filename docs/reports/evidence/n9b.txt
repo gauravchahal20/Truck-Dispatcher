@@ -1,0 +1,273 @@
+=== N9b: Authority Gate on Full Pool (312 Stored Carriers) Evidence ===
+Timestamp: 2026-10-26T12:29:56.876774+00:00
+
+1. Total Stored Carriers Evaluated: 312
+   Carriers with USDOT: 297
+   Carriers without USDOT: 15
+
+2. Motus (inys-ebih) Authority Status Counts Across All 312 Stored Carriers:
+   ACTIVE (Property): 86
+   PENDING:          118
+   WITHDRAWN:        2
+   INACTIVE:         0
+   NO_LI_RECORD:     106
+
+3. Table 3.1: Lead Status Before vs After (Separate Table for All 312 Carriers):
+Lead Status            | Before Count | After Count  | Net Change
+--------------------------------------------------------------
+NEEDS_ENRICHMENT       | 278          | 199          | -79
+NEEDS_REVIEW_ICP       | 2            | 2            | +0
+NOT_ICP                | 3            | 3            | +0
+QUALIFIED              | 0            | 79           | +79
+REJECTED               | 29           | 29           | +0
+--------------------------------------------------------------
+TOTAL                  | 312          | 312          | 0
+
+4. Table 3.2: Score Band (Priority) Before vs After (Separate Table for All 312 Carriers):
+Priority Band   | Score Range     | Before Count | After Count  | Net Change
+------------------------------------------------------------------------
+Priority A      | >= 8.0          | 0            | 0            | +0
+Priority B      | 6.0 - 7.9       | 2            | 126          | +124
+Priority C      | 5.0 - 5.9       | 143          | 100          | -43
+Priority NONE   | < 5.0           | 167          | 86           | -81
+------------------------------------------------------------------------
+TOTAL           | -               | 312          | 312          | 0
+
+5. Forensic Explanation: Why the N3 Before/After Tables Were Identical:
+   - In N3, the hard gate strictly required 'score >= 5.0' in addition to active Motus authority.
+   - Among the 104 carriers evaluated in N3, exactly 1 carrier held active property authority
+     (SOPHY'S FRUITS COMPANY, USDOT 2252252, BIPD $750k).
+   - However, SOPHY'S FRUITS had a fit score of 4.2 (< 5.0). Thus, it failed the score threshold.
+   - The other 20 matched carriers were PENDING (19) or WITHDRAWN (1). None passed active authority.
+   - Result: Exactly 0 carriers were promoted in N3, causing the before and after tables to be identical.
+
+6. Score Breakdown for SOPHY'S FRUITS COMPANY (USDOT 2252252) Before vs After:
+   Before N9b: Status=NEEDS_ENRICHMENT, Fit Score=4.25, Total Score=4.2, Priority=NONE
+   After N9b:  Status=QUALIFIED, Fit Score=5.8, Total Score=5.8, Priority=C
+   Component Breakdown (After):
+     - Fleet size 2-10 (4 units):      +2.0
+     - Active Property Authority & Ins: +2.0
+     - Equipment verified (Reefer):     +1.0
+     - Usable contact (Phone present):  +0.75
+     - Decision maker (No contact row): +0.0
+     - Total Score:                     5.75 -> 5.8 (Priority C)
+   Promotion Result: Promoted from NEEDS_ENRICHMENT to QUALIFIED under N9b rule!
+
+7. Detailed Breakdown of the NO_LI_RECORD Carriers (with Empirical Evidence):
+   Total NO_LI_RECORD: 106
+   a. Intrastate Carriers: 50 carriers
+      Evidence: carrier_operation is 'B' or 'C' (Intrastate Non-Hazmat/Hazmat in census MCS-150).
+      Federal L&I filings (inys-ebih) only apply to interstate carriers; intrastate are regulated by state DOTs.
+   b. Exempt For-Hire / Private Carriage: 19 carriers
+      Evidence: operating_status contains 'EXEMPT' or 'PRIVATE' in census MCS-150.
+   c. Interstate For-Hire Awaiting / Inactive L&I: 22 carriers
+      Evidence: carrier_operation is 'A' (Interstate), but no filing record exists on inys-ebih.
+   d. Records without USDOT: 15 carriers
+
+8. List of All Matched Carriers in inys-ebih (from stored pool):
+    1. USDOT: 2252252  | SOPHY'S FRUITS COMPANY         | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    2. USDOT: 4958665  | TORNADO TRUCKING, LLC          | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    3. USDOT: 8850040  | 1129 TRANSPORT LLC             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    4. USDOT: 6776302  | NEWTON TRUCKING LLC            | Auth: WITHDRAWN  | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    5. USDOT: 8731821  | G & R TRANSPORT LOGISTICS LLC  | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    6. USDOT: 7165355  | DAIS                           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 4.8  | Status: REJECTED         | Prio: NONE
+    7. USDOT: 6225917  | BARLEY'S TRUCKING LLC          | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    8. USDOT: 9925997  | K&M LOGISTICS NORTHWEST LLC    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+    9. USDOT: 9026608  | CROSS USA SERVICES             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: REJECTED         | Prio: NONE
+   10. USDOT: 5580259  | REDEMPTN LLC                   | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: REJECTED         | Prio: NONE
+   11. USDOT: 9485527  | TRIPLE RUST TRANSPORT LLC      | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   12. USDOT: 9655205  | GEOFORCE LOGISTICS LLC         | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 4.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   13. USDOT: 8726457  | TALON J LOGISTICS LLC          | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   14. USDOT: 9778424  | PACHECO TRANSPORTATION AND WHO | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: REJECTED         | Prio: NONE
+   15. USDOT: 5428178  | VLC TRANSPORTATION LLC         | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   16. USDOT: 9864043  | HTX TRANSPORT INC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 4.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   17. USDOT: 8493604  | VIAJERO DEL NORTH LLC          | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   18. USDOT: 9474155  | JIN LOGISTICS LLC.             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   19. USDOT: 8845359  | H.E. ALLEN & SON LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   20. USDOT: 8970653  | BUCKEYE HEAVY HAUL AND LOGISTI | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 6.0  | Status: NEEDS_ENRICHMENT | Prio: B
+   21. USDOT: 7254076  | PRIME GLOBAL ENTERPRISES LLC   | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 4.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   22. USDOT: 8040638  | WISEFLOW TRANSPORT INC.        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 2.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   23. USDOT: 8083316  | LUFCAM USA LLC                 | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 2.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   24. USDOT: 6619861  | ATLANTA HOME MOVING LLC        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 2.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   25. USDOT: 8579188  | AVTAR TRUCKING INC             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 2.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   26. USDOT: 9840166  | ROCKSTAR EXCAVATION AND DEMOLI | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 2.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   27. USDOT: 6973130  | BROWN ELECTRIC & TECHNICAL SER | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 2.8  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   28. USDOT: 9127100  | JJBS GRACE LLC                 | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 4.8  | Status: QUALIFIED        | Prio: NONE
+   29. USDOT: 6885821  | SANCHEZ TRUCKING LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   30. USDOT: 9299817  | WILD WEST HEAVY HAUL INC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   31. USDOT: 4808878  | ETL HOLDINGS                   | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   32. USDOT: 9283862  | M&K SCOTT TRUCKING LLC         | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   33. USDOT: 7800476  | 5 TALENT GROUP LLC             | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   34. USDOT: 8653570  | ARTEAGA TRUCKING LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   35. USDOT: 7289900  | TEXAS DROPPINLOADZ HOTSHOTZ LL | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   36. USDOT: 7927066  | PLONA LLC                      | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   37. USDOT: 6625117  | BKI ENTERPRISES LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   38. USDOT: 5228598  | TWIN LEGACY TRUCKING LLC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   39. USDOT: 7943878  | AMINA TRANSITIONALN LIVING     | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   40. USDOT: 5733353  | DAN HD TRUCKING LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   41. USDOT: 8636693  | NAYMEX TRUCKING LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   42. USDOT: 7910625  | BDK TRUCKING LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   43. USDOT: 8725885  | AF TRUCKING TRANSPORT LLC      | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   44. USDOT: 6741088  | SPR TRANSPORTATION, LLC        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   45. USDOT: 8082810  | AVENOR LOGISTICS LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   46. USDOT: 7576750  | PERFORMANCE LOGISTICS L.L.C    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 3.0  | Status: NEEDS_ENRICHMENT | Prio: NONE
+   47. USDOT: 8331771  | HERE WE GO LOGISTICS LLC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   48. USDOT: 7459657  | FOCUS FREIGHT MOVERS LLC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   49. USDOT: 6626200  | UNLIMITED FREIGHT SOLUTIONS LL | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   50. USDOT: 9986151  | HOWARD HAULING SOLUTIONS LLC   | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   51. USDOT: 7817260  | FIVE HEARTS FARMS INC          | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   52. USDOT: 9737844  | JLM HOLDING COMPANY INC        | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   53. USDOT: 5328298  | CLR PRIORITY LLC               | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   54. USDOT: 5397412  | KB PREMIER LOGISTICS LLC       | Auth: ACTIVE     | Ins: PARTIAL  | BIPD: $300,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   55. USDOT: 5624791  | MCCORD PREMIER LOGISTICS       | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   56. USDOT: 9127710  | EMMITT TRUCKING COMPANY LLC    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   57. USDOT: 4626451  | J & A FREIGHT SOLUTIONS LLC    | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   58. USDOT: 8201226  | UNCLE BAYA TRUCKING LLC        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   59. USDOT: 5800824  | NORTHAMPTON LOGISTICS LLC      | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   60. USDOT: 8295005  | LEAPFREIGHT CARRIER GROUP LLC  | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   61. USDOT: 7311877  | LIN VENTURES LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   62. USDOT: 6933041  | R&K FREIGHT SOLUTIONS LLC      | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   63. USDOT: 7286333  | FOX GLOBAL LOGISTICS INC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   64. USDOT: 8982651  | LALOS PRO LOGISTICS LLC        | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   65. USDOT: 5766059  | MAKEWAYSOLUTIONS LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   66. USDOT: 7165439  | VMAX CORP.                     | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   67. USDOT: 9586601  | JAZ JACKSON LLC                | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   68. USDOT: 6868704  | MOVEMAX CO                     | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   69. USDOT: 7187405  | BAREED LOGISTICS LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   70. USDOT: 8288381  | HUSKY SERVICES INC             | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   71. USDOT: 6089086  | KEEP IT EASY LOGISTICS LLC     | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   72. USDOT: 4985079  | SKYPOINT TRANSPORTATION LLC    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   73. USDOT: 5576599  | RFM LOGISTICS LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   74. USDOT: 8220775  | THE HARRIETTE LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   75. USDOT: 9348731  | TL WAY EXPRESS LLC             | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   76. USDOT: 9748539  | JJCK INC                       | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   77. USDOT: 6735933  | MICA 023 LLC                   | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   78. USDOT: 8903053  | TITANIUM TRANSIT INC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   79. USDOT: 7637833  | TC GLOBAL EXPRESS CORP.        | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   80. USDOT: 8972558  | AMERICAN TRUST LOGISTICS INC   | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   81. USDOT: 9340484  | ROUTEX LOGISTICS LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   82. USDOT: 9607661  | OMA GOLD INC.                  | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   83. USDOT: 7924740  | COAST 2 COAST LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   84. USDOT: 8734003  | MM INTERNATIONAL LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   85. USDOT: 6058446  | GARAGE 247 INC                 | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   86. USDOT: 8804536  | C & T RENTAL LLC               | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   87. USDOT: 6354190  | Z & M BROTHERS LLC             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   88. USDOT: 6667339  | CARMEN KAY TRANSPORT LLC       | Auth: ACTIVE     | Ins: PARTIAL  | BIPD: $300,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   89. USDOT: 8403200  | RJ TRANSPORT LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   90. USDOT: 6374637  | THS EXPRESS LLC                | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   91. USDOT: 6913898  | RED STAR FTL INCORPORATION     | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   92. USDOT: 7648877  | GRANDRIDGE FREIGHT LLC         | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   93. USDOT: 4704024  | HAUL VANTAGE TRUCKING INC      | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   94. USDOT: 5483688  | TRUE FIX BUILDERS              | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   95. USDOT: 6812253  | NHS TRANSPORT LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   96. USDOT: 5228371  | WISNEL GW SELECT LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   97. USDOT: 4848049  | FREIGHT MOVES 2, LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   98. USDOT: 8437519  | BISHOP BUILT LOGISTICS LLC     | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   99. USDOT: 5946919  | IBROTRANSPORT LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   100. USDOT: 8125643  | DXB TRUCKING LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   101. USDOT: 7949321  | TRUCKERS PARADISE RANCH LLC    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   102. USDOT: 8995968  | NICK TRANSPORT LLC             | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   103. USDOT: 8758832  | TOP CARGO TRANSPORTATION LLC   | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   104. USDOT: 6230559  | TROPICAL SERVICES LLC          | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   105. USDOT: 9781835  | HOTSHOT PATRIOTS LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   106. USDOT: 9317696  | CIN LOGISTICS LLC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   107. USDOT: 9510721  | RA MOVING LLC                  | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   108. USDOT: 9578261  | A & P TRANSPORTATION LLC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   109. USDOT: 9177788  | PULSE AUTO TRANSPORT LLC       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   110. USDOT: 9781428  | 7RISELOGISTICSLLC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   111. USDOT: 9317505  | ROC EXPRESS INC                | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   112. USDOT: 8211492  | GREGORY GARDNER                | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   113. USDOT: 4987835  | ROADKING TRANSPORTATION LLC    | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   114. USDOT: 8013828  | GRIFFIN DROP INC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   115. USDOT: 6585646  | SABANA EXPRESS LLC             | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   116. USDOT: 7692161  | DOUMBIA TRANSPORTATION SERVICE | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   117. USDOT: 7782758  | GO GETTER LOGISTICS LLC        | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   118. USDOT: 6222306  | I3VONATION LLC                 | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   119. USDOT: 5612031  | DSM LOGISTICS LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   120. USDOT: 9547068  | KARMA LOGISTICS LLC            | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   121. USDOT: 9789924  | KOBA KOBIDZE CORP              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   122. USDOT: 4964339  | GEMANI CORP                    | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   123. USDOT: 6426022  | RISING EMPIRE LOGISTICS LLC    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   124. USDOT: 8279334  | MARCUS MCCLAM                  | Auth: ACTIVE     | Ins: PARTIAL  | BIPD: $300,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   125. USDOT: 5128899  | LVQ TRANSPORTATION LLC         | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   126. USDOT: 5286740  | TRALEI MINI MART LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   127. USDOT: 6510198  | VANTRU LOGISTICS LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   128. USDOT: 5474263  | ONE HORSE TRUCKING LLC         | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   129. USDOT: 9606240  | JM-ROYAL CORP                  | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   130. USDOT: 8497970  | STARUNION LLC                  | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   131. USDOT: 8665787  | HP TRUCKING USA LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   132. USDOT: 6298118  | QUICKSTEP TRANSPORT LLC        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   133. USDOT: 8437869  | A PALLET RECYCLER INC          | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   134. USDOT: 8582256  | DSB TRUCKING INC               | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   135. USDOT: 6939591  | LUNION LOGISTICS GROUP CORP    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   136. USDOT: 9045245  | ALIEM TRANSPORT INC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   137. USDOT: 9400303  | PACIFIC GLASS AND MIRROR LLC   | Auth: ACTIVE     | Ins: PARTIAL  | BIPD: $300,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   138. USDOT: 8718734  | MOREE HAUL LLC                 | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   139. USDOT: 9809775  | EAGLE POINT TRANSPORT CORP     | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   140. USDOT: 4914727  | OMDD FAMILY LLC                | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   141. USDOT: 8040909  | LORENTE TRANSPORTATION LLC     | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   142. USDOT: 5984683  | FG BOYS LLC                    | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   143. USDOT: 5797937  | E TEAM FREIGHT LLC             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   144. USDOT: 6296668  | HOPCO LLC                      | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   145. USDOT: 5161132  | TURN & BURN FREIGHT LLC        | Auth: ACTIVE     | Ins: PARTIAL  | BIPD: $300,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   146. USDOT: 5712917  | ISAAC JOHNSON JR               | Auth: ACTIVE     | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   147. USDOT: 8428200  | DOGG HOUSE TRUCKING LLC        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   148. USDOT: 5364172  | SAFE LINE LLC                  | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   149. USDOT: 5491854  | DIZZPATCH LOGISTICS            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   150. USDOT: 9492480  | HELMS AND SON LLC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   151. USDOT: 7402036  | AES FREIGHT LLC                | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   152. USDOT: 8986345  | AJ & J INVESTMENT GROUP LLC    | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   153. USDOT: 8896555  | KJB TRANSPORTATION, LLC        | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   154. USDOT: 9326023  | TJ GENERAL TRUCKING LLC        | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   155. USDOT: 6789594  | 3 CROSS HEAVY HAULING, LLC     | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   156. USDOT: 4796771  | ANF LOGISTICS, LLC             | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   157. USDOT: 8057333  | CURRY EARTHWORKX LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   158. USDOT: 6355184  | T.A.R.M LOGISTICS INC          | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   159. USDOT: 5406479  | COASTAL MARINE TRANSPORT LLC.  | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   160. USDOT: 5956468  | NATIONAL EXPRESS TRUCKING LLC  | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   161. USDOT: 6612695  | DAVIS INVESTMENT COMPANY LLC   | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   162. USDOT: 9505024  | ON THE GEAUX LOGISTICS, LLC    | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   163. USDOT: 8256586  | V & G CARGO SOLUTIONS LLC      | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   164. USDOT: 8016837  | MANGOYA EXPRESS LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   165. USDOT: 4663307  | SAINGELUS TRANSPORT LLC        | Auth: PENDING    | Ins: ACTIVE   | BIPD: $750,000   | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   166. USDOT: 7338073  | ZHA TRUCKING LLC               | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   167. USDOT: 9753821  | DROP TIME LOGISTICS LLC        | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   168. USDOT: 9249256  | KELLS, LLC                     | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   169. USDOT: 9884889  | F&K CARRIERS LLC               | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   170. USDOT: 8163264  | SLR LOGISTICS, INC.            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   171. USDOT: 6642605  | VICTORY ROAD LOGISTICS LLC     | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   172. USDOT: 4724336  | LZ TRANSPORT LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   173. USDOT: 6913455  | AAH TRUCKING LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   174. USDOT: 7859804  | BUENA ONDA INC                 | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   175. USDOT: 4584212  | TITAN TOWING LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   176. USDOT: 7240161  | KMJ EXPRESS LLC                | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   177. USDOT: 9172724  | ROAD POINT LLC                 | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   178. USDOT: 8969757  | NC TRUCK RENTAL INC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   179. USDOT: 8516921  | JCS LOGISTICS                  | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   180. USDOT: 9952833  | EL JEFE HOLDINGS INC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   181. USDOT: 7099546  | AKA LOGISTICS LLC              | Auth: WITHDRAWN  | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   182. USDOT: 6827716  | PEACHEY'S TRUCKING LLC         | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   183. USDOT: 5285574  | DHD EXPRESS LLC                | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   184. USDOT: 7016455  | MILE 7 LOGISTICS LLC           | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   185. USDOT: 8522691  | BTO TRANSPORT LLC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   186. USDOT: 6218980  | KINGDOM BRIDGE TRANSPORT       | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   187. USDOT: 7076432  | QUESADA TRANSPORT LLC          | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   188. USDOT: 6319621  | ROZE EXPRESS LLC               | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   189. USDOT: 8273154  | DEER TRUCKING LLC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   190. USDOT: 6242735  | SAV EXPEDITE LLC               | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   191. USDOT: 5987458  | AMERICAN CARGO SYSTEMS         | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   192. USDOT: 5280481  | TAHSIN TRANSPORT LLC           | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   193. USDOT: 5700249  | MARIB LOGISTICS LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   194. USDOT: 6283063  | AW PENN TRANSPORT              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   195. USDOT: 9540138  | TITAN GATE LOGISTICS LLC       | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   196. USDOT: 6758365  | AXIOM TRUCKING LLC             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   197. USDOT: 4717116  | EUDAVE LANDSCAPING             | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   198. USDOT: 5365290  | DILIGENT RESOURCES MANAGEMENT  | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   199. USDOT: 5325287  | MARVELOUS FREIGHT LLC          | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   200. USDOT: 6490114  | AAW TRANSPORT LLC              | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   201. USDOT: 5669853  | CNJ HAULIN LLC                 | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   202. USDOT: 9220952  | SMITH-ALLEN LEGECY LLC         | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $750,000   | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   203. USDOT: 7559435  | MAYSAA TRUCKING LLC            | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   204. USDOT: 5551229  | DBY LOGISTICS LLC              | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
+   205. USDOT: 5663552  | TOP QUALITY LOGISTICS          | Auth: PENDING    | Ins: NONE     | BIPD: $0         | Score: 5.0  | Status: NEEDS_ENRICHMENT | Prio: C
+   206. USDOT: 6588757  | MOTOR CITY AUTO HAULERS L.L.C. | Auth: ACTIVE     | Ins: ACTIVE   | BIPD: $1,000,000 | Score: 7.0  | Status: QUALIFIED        | Prio: B
