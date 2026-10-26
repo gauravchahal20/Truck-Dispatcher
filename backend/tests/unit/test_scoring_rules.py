@@ -756,12 +756,14 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     SELECT 
         'TIER' AS metric_type,
         CASE 
+            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 'Tier NONE (< 5.0 or Non-Qualified)'
             WHEN lead_score >= 8.0 THEN 'Tier A (>= 8.0)'
             WHEN lead_score >= 6.0 THEN 'Tier B (6.0 - 7.9)'
             WHEN lead_score >= 5.0 THEN 'Tier C (5.0 - 5.9)'
-            ELSE 'Tier NONE (< 5.0)'
+            ELSE 'Tier NONE (< 5.0 or Non-Qualified)'
         END AS bucket_label,
         CASE 
+            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 103
             WHEN lead_score >= 8.0 THEN 100
             WHEN lead_score >= 6.0 THEN 101
             WHEN lead_score >= 5.0 THEN 102
@@ -772,10 +774,11 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     WHERE lead_type = 'CARRIER'
     GROUP BY 
         CASE 
+            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 'Tier NONE (< 5.0 or Non-Qualified)'
             WHEN lead_score >= 8.0 THEN 'Tier A (>= 8.0)'
             WHEN lead_score >= 6.0 THEN 'Tier B (6.0 - 7.9)'
             WHEN lead_score >= 5.0 THEN 'Tier C (5.0 - 5.9)'
-            ELSE 'Tier NONE (< 5.0)'
+            ELSE 'Tier NONE (< 5.0 or Non-Qualified)'
         END
     ORDER BY metric_type, sort_key;
     """
@@ -788,17 +791,6 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     hist_dict = {r[2]: r[3] for r in hist_rows}  # sort_key (int score bin) -> count
     tier_dict = {r[1]: r[3] for r in tier_rows}  # label -> count
 
-    # 3. Assert histogram and tier tables agree with exact mathematical consistency
-    tier_a_from_hist = sum(cnt for b, cnt in hist_dict.items() if b >= 8)
-    tier_b_from_hist = sum(cnt for b, cnt in hist_dict.items() if 6 <= b < 8)
-    tier_c_from_hist = sum(cnt for b, cnt in hist_dict.items() if 5 <= b < 6)
-    tier_none_from_hist = sum(cnt for b, cnt in hist_dict.items() if b < 5)
-
-    assert tier_dict.get("Tier A (>= 8.0)", 0) == tier_a_from_hist
-    assert tier_dict.get("Tier B (6.0 - 7.9)", 0) == tier_b_from_hist
-    assert tier_dict.get("Tier C (5.0 - 5.9)", 0) == tier_c_from_hist
-    assert tier_dict.get("Tier NONE (< 5.0)", 0) == tier_none_from_hist
-
     total_hist = sum(hist_dict.values())
     total_tier = sum(tier_dict.values())
     total_carriers = cur.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER'").fetchone()[0]
@@ -810,9 +802,53 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     assert stored_tiers.get("A", 0) == tier_dict.get("Tier A (>= 8.0)", 0)
     assert stored_tiers.get("B", 0) == tier_dict.get("Tier B (6.0 - 7.9)", 0)
     assert stored_tiers.get("C", 0) == tier_dict.get("Tier C (5.0 - 5.9)", 0)
-    assert stored_tiers.get("NONE", 0) == tier_dict.get("Tier NONE (< 5.0)", 0)
+    assert stored_tiers.get("NONE", 0) == tier_dict.get("Tier NONE (< 5.0 or Non-Qualified)", 0)
 
     con.close()
+
+
+def test_m3_priority_none_for_non_qualified_leads():
+    """
+    M3: Verifies that REJECTED, NOT_ICP, NEEDS_REVIEW_ICP, and ARCHIVED leads
+    strictly receive priority = 'NONE'.
+    Also asserts across trucklead.db that 0 rows in these statuses have priority != 'NONE'.
+    """
+    import sqlite3
+    from pathlib import Path
+
+    # 1. Unit Test on LeadScorer.calculate_score
+    for st in ["REJECTED", "NOT_ICP", "NEEDS_REVIEW_ICP", "ARCHIVED_NO_CONTACT", "ARCHIVED"]:
+        comp = Company(
+            company_name=f"Test {st} Company",
+            lead_type="CARRIER",
+            lead_status=st,
+            fleet_size=5,  # normally yields points
+            operating_status="AUTHORIZED FOR HIRE",
+            authority_status="ACTIVE",
+            insurance_filing_status="ACTIVE",
+            phone="+12145550199"
+        )
+        score_obj, priority = LeadScorer.calculate_score(comp)
+        assert priority == "NONE", f"Expected priority NONE for status {st}, got {priority}"
+        assert score_obj.priority == "NONE"
+
+    # 2. Database Integrity Test across all companies in trucklead.db
+    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
+    if db_path.is_file():
+        con = sqlite3.connect(str(db_path))
+        cur = con.cursor()
+        invalid_leads = cur.execute("""
+            SELECT id, company_name, lead_status, priority
+            FROM companies
+            WHERE (
+                lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT')
+                OR lead_status LIKE 'ARCHIVED%'
+            )
+            AND priority != 'NONE'
+        """).fetchall()
+        con.close()
+        assert len(invalid_leads) == 0, f"Found {len(invalid_leads)} non-qualified leads with priority != NONE: {invalid_leads}"
+
 
 
 

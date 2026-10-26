@@ -250,7 +250,7 @@ export default function ReadyToContact({ onViewLead }) {
 
         <div className="stat-card" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
-            CALLABLE (+1 E.164)
+            PHONE FORMAT-VALID (+1 E.164)
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--ocean-dark)' }}>
             {callableCount} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>({leads.length ? Math.round(callableCount / leads.length * 100) : 0}%)</span>
@@ -274,7 +274,7 @@ export default function ReadyToContact({ onViewLead }) {
 
         <div className="stat-card" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
-            CALLABLE & MAILABLE
+            PHONE FORMAT-VALID & MAILABLE
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--terracotta-dark)' }}>
             {bothCount}
@@ -300,7 +300,7 @@ export default function ReadyToContact({ onViewLead }) {
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {[
             { id: 'all', label: 'All Leads' },
-            { id: 'callable', label: 'Callable (+1)' },
+            { id: 'callable', label: 'Phone Format-Valid (+1)' },
             { id: 'mailable', label: 'Mailable (Deliverable)' },
             { id: 'both', label: 'Both Channels' },
             { id: 'unproven_authority', label: 'Authority unproven - verify manually' }

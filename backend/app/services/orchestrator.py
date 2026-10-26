@@ -774,16 +774,14 @@ class LeadOrchestrator:
                     candidate_company.qualification_reason = qual_reason
                     candidate_company.rejection_reason = rej_reason
 
-                    if new_status in ("REJECTED", "NOT_ICP"):
+                    if new_status in ("REJECTED", "NOT_ICP", "NEEDS_REVIEW_ICP", "ARCHIVED_NO_CONTACT") or new_status.startswith("ARCHIVED"):
                         candidate_company.priority = "NONE"
                         if score_entity:
                             score_entity.priority = "NONE"
                         if new_status == "REJECTED":
                             run.rejected_count += 1
-                        else:
+                        elif new_status == "NOT_ICP":
                             candidate_company.lead_score = 0.0
-                    elif new_status == "NEEDS_REVIEW_ICP":
-                        candidate_company.priority = priority if priority in ("A", "B", "C") else "NONE"
                     elif new_status == "FINAL":
                         run.final_count += 1
                         run.verified_count += 1

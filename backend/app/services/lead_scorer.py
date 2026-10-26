@@ -285,9 +285,15 @@ class LeadScorer:
         combined_total = round(min(10.0, fit_score + intent_points), 1)
 
         # Determine Priority Tier from config thresholds
-        # K3: Priority is a score band only: A / B / C / NONE (never 'REJECTED')
-        # Hard-gate rejected and NOT_ICP leads get no tier (NONE) and are excluded from tier counts
-        if (getattr(company, "lead_status", None) in ("REJECTED", "NOT_ICP")) or icp_status == "NOT_ICP":
+        # K3/M3: Priority is a score band only: A / B / C / NONE (never 'REJECTED')
+        # M3 rule: Priority NONE for REJECTED, NOT_ICP, NEEDS_REVIEW_ICP and ARCHIVED leads
+        current_st = getattr(company, "lead_status", None)
+        is_non_priority_status = (
+            current_st in ("REJECTED", "NOT_ICP", "NEEDS_REVIEW_ICP", "ARCHIVED_NO_CONTACT", "ARCHIVED") or
+            (current_st and current_st.startswith("ARCHIVED")) or
+            icp_status in ("NOT_ICP", "NEEDS_REVIEW_ICP")
+        )
+        if is_non_priority_status:
             priority = "NONE"
         elif combined_total >= thresholds.priority_a_min:
             priority = "A"

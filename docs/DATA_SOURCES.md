@@ -269,12 +269,17 @@ An audit was conducted across stored carriers, census mirror records, and the 23
 - **Enforcement**: All 14 carriers are strictly retained as `NEEDS_REVIEW` with explicit reason recorded: `"No operating authority or docket filing on file in FMCSA L&I (intrastate or private registrant)"`. Zero ingestion.
 
 ### 5.6 Operator Manual Authority Verification & Sanity Flags (L2i)
-- **Ready-to-Contact Filter**: Added `"Authority unproven - verify manually"` filter mode to `/api/leads/callable-mailable` to expose reachable carriers needing manual SAFER verification.
+- **Ready-to-Contact Filter**: Added `"Authority unproven - verify manually"` filter mode to `/api/leads/callable-mailable` to expose reachable, phone format-valid carriers needing manual SAFER verification.
 - **Manual Verification Form/Endpoint**: `POST /api/leads/{company_id}/verify-authority-manual` allows operators to enter date, MC number, authority status, and insurance filing verification as observed on official SAFER (`https://safer.fmcsa.dot.gov/CompanySnapshot.aspx`). Updates provenance (`method="manual_operator"`), re-scores, and re-evaluates lifecycle status.
 - **Data Sanity Flags**:
   - `fleet_inconsistent`: Flags divergence between power units, truck units, and drivers (42.9% across stored carriers).
   - `hazmat_carrier`: Flags hazardous material haulers via `hm_ind = 'Y'` or explicit hazmat operation/equipment (47.1% across stored carriers; filters out `NON-HAZMAT`).
   - `phone_region_mismatch`: Flags phone area code geocoded US state divergence from business address state (11.8% across stored carriers, e.g. SOPHY'S FRUITS FL address vs 973 NJ phone).
+
+### 5.6.1 Historical Status Transition Audit (61 vs 62 Reconciliation) (M3)
+- An audit of `lead_status_history` and `companies` across all historical discovery runs confirmed that exactly **62 distinct shipper records** were transitioned to `QUALIFIED` (`RESEARCHING -> QUALIFIED`). Subsequently, all 62 (plus 28 un-qualified shippers) were archived to `ARCHIVED_NO_CONTACT`.
+- Why an earlier document cited 61 vs 62: The exact cause of the single-row variation in legacy documentation is **not determined** from immutable SQL database history (likely an off-by-one run boundary or transient deduplication merge in earlier runs).
+- **M3 Data Rule Enforcement**: Priority is strictly `NONE` for `REJECTED`, `NOT_ICP`, `NEEDS_REVIEW_ICP`, and `ARCHIVED` (`ARCHIVED_NO_CONTACT`) leads. The 4 `REJECTED` leads that previously retained priority tiers (`RIDECARE, LLC`, `HERNANDEZ TIRES AUTO CENTER`, `LEGACY LOGISTICS INC`, `PACHECO TRANSPORTATION AND WHOLESALE`) have been migrated to `priority = 'NONE'`.
 
 ### 5.7 Positive Control Audit & Motus Dataset Resolution (M1)
 

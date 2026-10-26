@@ -73,7 +73,7 @@ def run_f8_audit():
     for lt, matches in named_email_counts.items():
         print(f"    {lt}: Named={matches['NAMED']}, Unmatched/Generic={matches['UNMATCHED']}, No Email={matches['NO_EMAIL']}")
 
-    print("\n=== 6. READY TO CONTACT (CALLABLE & CREDIT-SAFE) ===")
+    print("\n=== 6. READY TO CONTACT (PHONE FORMAT-VALID & CREDIT-SAFE) ===")
     r_rows = c.execute("""
         SELECT COALESCE(lead_type, 'UNKNOWN'), COUNT(*)
         FROM companies
