@@ -1,0 +1,60 @@
+================================================================================
+WORKSTREAM P2: REAL OPERATING AUTHORITY GRANT DATES FROM MOTUS HISTORY AUDIT
+================================================================================
+
+[1] MOTUS OPERATING AUTHORITY HISTORY RECORDS (Dataset: wb4f-neki, Total: 382)
+----------------------------------------------------------------------
+A. Operating Authority Order Types:
+  - Operating Authority Involuntary Suspension Notice      :  339 records
+  - Notice Of Operating Authority Voluntary Suspension     :   43 records
+
+B. Operating Authority Serve Date Age Distribution:
+  <30_days_too_fresh              :   67 records ( 17.5%)
+  30_120_days_target_sweet_spot   :  214 records ( 56.0%)
+  120_365_days_mature             :  101 records ( 26.4%)
+  >365_days_aged                  :    0 records (  0.0%)
+
+C. Recent 5 Motus Authority History Dispositions (with real serve_date):
+  USDOT: 2983300    Docket: 15339      Serve Date: 20261024 | Operating Authority Involuntary Suspension Notice
+  USDOT: 1982530    Docket: 811852     Serve Date: 20261022 | Operating Authority Involuntary Suspension Notice
+  USDOT: 2555084    Docket: 890671     Serve Date: 20261022 | Operating Authority Involuntary Suspension Notice
+  USDOT: 2895623    Docket: 973035     Serve Date: 20261022 | Operating Authority Involuntary Suspension Notice
+  USDOT: 2585088    Docket: 905787     Serve Date: 20261021 | Operating Authority Involuntary Suspension Notice
+
+[2] MCMIS MOTOR CARRIER CENSUS REGISTRATIONS (Dataset: az4n-8mr2, Total: 365)
+----------------------------------------------------------------------
+A. MCMIS Registration Add Date Age Distribution:
+  <30_days_too_fresh              :  215 records ( 58.9%)
+  30_120_days_target_sweet_spot   :  149 records ( 40.8%)
+  120_365_days_mature             :    1 records (  0.3%)
+  >365_days_aged                  :    0 records (  0.0%)
+
+B. Recent 5 MCMIS Census Registrations (with add_date):
+  USDOT: 8726457    Docket: None       Add Date: 20261022 | State: GA Fleet: 2
+  USDOT: 6476986    Docket: None       Add Date: 20261021 | State: IL Fleet: 5
+  USDOT: 5354682    Docket: None       Add Date: 20261020 | State: CA Fleet: 1
+  USDOT: 6035255    Docket: None       Add Date: 20261020 | State: AZ Fleet: 1
+  USDOT: 8150477    Docket: None       Add Date: 20261020 | State: TX Fleet: 2
+
+[3] SIGNAL DIFFERENTIATION BENCHMARK (NewAuthorityAdapter.resolve_authority_signal):
+----------------------------------------------------------------------
+Case A: Both census add_date (20260715) and authority serve_date (20260901) present:
+  - Resolved Signal:   NEW_AUTHORITY
+  - Source Dataset:    wb4f-neki (FMCSA Motus Authority History)
+  - Effective Date:    20260901
+  - Provenance Method: official_motus
+  - Description:       Verified operating authority grant/serve date from L&I history
+
+Case B: Only census add_date (20260910) present (no authority order):
+  - Resolved Signal:   NEW_USDOT_REGISTRATION
+  - Source Dataset:    az4n-8mr2 (FMCSA MCMIS Census Mirror)
+  - Effective Date:    20260910
+  - Provenance Method: official_census
+  - Description:       USDOT census addition date from MCMIS registration
+
+Case C: Neither date present:
+  - Resolved Signal:   UNKNOWN
+
+================================================================================
+END OF WORKSTREAM P2 EVIDENCE
+================================================================================

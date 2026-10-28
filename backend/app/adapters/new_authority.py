@@ -1,11 +1,11 @@
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 
 from .base import BaseSourceAdapter, RawLeadRecord
 from ..core.database import AsyncSessionLocal
-from ..models.entities import FMCSACarrierCensus
+from ..models.entities import FMCSACarrierCensus, FMCSAAuthorityHistory
 from ..core.config import config
 from ..services.normalizer import Normalizer
 
@@ -30,6 +30,57 @@ class NewAuthorityAdapter(BaseSourceAdapter):
         """Parses FMCSA grant / add date string (YYYYMMDD, MM/DD/YYYY, or ISO YYYY-MM-DD)."""
         if not date_val:
             return None
+        s = str(date_val).strip()
+        if not s or s.lower() in ("none", "null"):
+            return None
+        for fmt in ("%Y%m%d", "%m/%d/%Y", "%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+            try:
+                dt = datetime.strptime(s[:19] if "T" in s or " " in s else s[:10], fmt)
+                return dt.replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+        return None
+
+    @classmethod
+    def resolve_authority_signal(
+        cls,
+        census_add_date: Optional[str],
+        authority_serve_date: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Differentiates between:
+        - NEW_AUTHORITY: Operating authority grant/serve date from Motus history (wb4f-neki).
+        - NEW_USDOT_REGISTRATION: USDOT registration date from MCMIS census (az4n-8mr2).
+        """
+        auth_dt = cls.parse_grant_date(authority_serve_date)
+        census_dt = cls.parse_grant_date(census_add_date)
+
+        if auth_dt:
+            return {
+                "signal_type": "NEW_AUTHORITY",
+                "grant_date": auth_dt,
+                "grant_date_str": str(authority_serve_date).strip(),
+                "source_dataset": "wb4f-neki",
+                "source_name": "FMCSA Motus Authority History",
+                "description": "Verified operating authority grant/serve date from L&I history"
+            }
+        elif census_dt:
+            return {
+                "signal_type": "NEW_USDOT_REGISTRATION",
+                "grant_date": census_dt,
+                "grant_date_str": str(census_add_date).strip(),
+                "source_dataset": "az4n-8mr2",
+                "source_name": "FMCSA MCMIS Census Mirror",
+                "description": "USDOT census addition date from MCMIS registration"
+            }
+        return {
+            "signal_type": "UNKNOWN",
+            "grant_date": None,
+            "grant_date_str": None,
+            "source_dataset": None,
+            "source_name": None,
+            "description": "No verified grant or registration date available"
+        }
         s = str(date_val).strip()
         if not s or s.lower() in ("none", "null"):
             return None
@@ -103,12 +154,34 @@ class NewAuthorityAdapter(BaseSourceAdapter):
             res = await session.execute(stmt)
             rows = res.scalars().all()
 
+            # Pre-fetch authority history (wb4f-neki) for all candidate census records
+            dot_list = [r.dot_number for r in rows if r.dot_number]
+            docket_list = [r.docket_number for r in rows if r.docket_number]
+            auth_map = {}
+            if dot_list or docket_list:
+                auth_stmt = select(FMCSAAuthorityHistory).where(
+                    or_(
+                        FMCSAAuthorityHistory.dot_number.in_(dot_list),
+                        FMCSAAuthorityHistory.docket_number.in_(docket_list)
+                    )
+                ).order_by(FMCSAAuthorityHistory.serve_date.desc().nullslast())
+                auth_res = await session.execute(auth_stmt)
+                for a_rec in auth_res.scalars().all():
+                    if a_rec.dot_number and a_rec.dot_number not in auth_map:
+                        auth_map[a_rec.dot_number] = a_rec
+                    if a_rec.docket_number and a_rec.docket_number not in auth_map:
+                        auth_map[a_rec.docket_number] = a_rec
+
         candidates: List[RawLeadRecord] = []
         for rec in rows:
-            if not rec.add_date:
+            if not rec.add_date and not (auth_map.get(rec.dot_number) or auth_map.get(rec.docket_number)):
                 continue
 
-            grant_dt = self.parse_grant_date(rec.add_date)
+            auth_rec = auth_map.get(rec.dot_number) or auth_map.get(rec.docket_number)
+            auth_serve = auth_rec.serve_date if auth_rec else None
+
+            sig_info = self.resolve_authority_signal(rec.add_date, auth_serve)
+            grant_dt = sig_info["grant_date"]
             if not grant_dt:
                 continue
 
@@ -195,6 +268,23 @@ class NewAuthorityAdapter(BaseSourceAdapter):
             if rec.company_officer_2:
                 prov["company_officer_2"] = {"source": self.name, "url": source_url, "retrieved_at": now_iso, "method": "official"}
 
+            if sig_info["signal_type"] == "NEW_AUTHORITY":
+                prov["authority_grant_date"] = {
+                    "source": "wb4f-neki",
+                    "url": "https://data.transportation.gov/resource/wb4f-neki",
+                    "serve_date": sig_info["grant_date_str"],
+                    "method": "official_motus"
+                }
+                notes_text = f"NEW_AUTHORITY: Real operating authority granted {int(age_days)} days ago (serve_date: {sig_info['grant_date_str']}, MC Docket: {canon_docket})"
+            else:
+                prov["census_add_date"] = {
+                    "source": "az4n-8mr2",
+                    "url": source_url,
+                    "add_date": sig_info["grant_date_str"],
+                    "method": "official_census"
+                }
+                notes_text = f"NEW_USDOT_REGISTRATION: USDOT census registration recorded {int(age_days)} days ago in MCMIS (add_date: {sig_info['grant_date_str']}, MC Docket: {canon_docket})"
+
             record = RawLeadRecord(
                 company_name=rec.legal_name or rec.dba_name or f"Carrier USDOT {canon_dot}",
                 legal_name=rec.legal_name,
@@ -211,6 +301,8 @@ class NewAuthorityAdapter(BaseSourceAdapter):
                 fleet_size=rec.power_units,
                 driver_count=rec.total_drivers,
                 operating_status=op_status,
+                authority_status="ACTIVE" if sig_info["signal_type"] == "NEW_AUTHORITY" else "UNKNOWN",
+                authority_status_source="wb4f-neki" if sig_info["signal_type"] == "NEW_AUTHORITY" else "census_docket",
                 safety_rating=safety_label,
                 carrier_operation=op_label,
                 mcs_150_date=rec.mcs150_date,
@@ -218,7 +310,7 @@ class NewAuthorityAdapter(BaseSourceAdapter):
                 source_name=self.name,
                 source_url=source_url,
                 field_provenance=prov,
-                notes=f"New USDOT census registration recorded {int(age_days)} days ago in MCMIS (add_date: {rec.add_date}, MC Docket: {canon_docket})",
+                notes=notes_text,
                 needs_reverification=False
             )
             candidates.append(record)
