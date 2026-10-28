@@ -45,8 +45,10 @@ class LogOutcomeRequest(BaseModel):
     company_id: str
     contact_id: Optional[str] = None
     channel: str = Field(..., description="PHONE or EMAIL")
-    outcome: str = Field(..., description="no_answer, wrong_number, voicemail, interested, not_interested, do_not_contact, bounced")
+    outcome: str = Field(..., description="no_answer, wrong_number, voicemail, interested, not_interested, do_not_contact, bounced, callback_requested")
     notes: Optional[str] = None
+    follow_up_date: Optional[str] = Field(None, description="ISO datetime for scheduled follow-up")
+    follow_up_notes: Optional[str] = Field(None, description="Notes for scheduled follow-up")
 
 
 @router.post("/outcome", dependencies=[Depends(require_api_key)])
@@ -73,6 +75,13 @@ async def log_lead_outcome(request: LogOutcomeRequest, session: AsyncSession = D
     now = datetime.now(timezone.utc)
 
     # 1. Record Outcome Entity
+    fu_dt = None
+    if request.follow_up_date:
+        try:
+            fu_dt = datetime.fromisoformat(request.follow_up_date.replace("Z", "+00:00"))
+        except Exception:
+            fu_dt = None
+
     record = LeadOutcome(
         company_id=company.id,
         contact_id=contact.id if contact else None,
@@ -80,9 +89,15 @@ async def log_lead_outcome(request: LogOutcomeRequest, session: AsyncSession = D
         outcome=outcome_clean,
         target_value=target_val,
         notes=request.notes,
+        follow_up_date=fu_dt,
+        follow_up_notes=request.follow_up_notes,
         created_at=now
     )
     session.add(record)
+
+    if fu_dt:
+        company.follow_up_date = fu_dt
+        company.follow_up_notes = request.follow_up_notes
 
     # 2. Automated Compliance Suppression on 'do_not_contact' or 'bounced'
     suppressed_applied = False
@@ -789,3 +804,57 @@ async def get_outcomes_weekly_summary(
         "top_converting_source": top_src
     }
 
+
+
+@router.get("/follow-up-queue", dependencies=[Depends(require_api_key)])
+async def get_follow_up_queue(
+    session: AsyncSession = Depends(get_db),
+    include_completed: bool = Query(False, description="Whether to include past/completed follow-ups"),
+    limit: int = Query(50, ge=1, le=200)
+):
+    """
+    Operator follow-up queue returning leads with scheduled follow-ups.
+    Ordered by follow_up_date ASC (overdue first).
+    """
+    now = datetime.now(timezone.utc)
+    stmt = (
+        select(Company)
+        .where(Company.follow_up_date.isnot(None))
+        .order_by(Company.follow_up_date.asc())
+        .limit(limit)
+    )
+    res = await session.execute(stmt)
+    leads = res.scalars().all()
+
+    items = []
+    for c in leads:
+        fu_dt = c.follow_up_date
+        is_overdue = False
+        if fu_dt:
+            if fu_dt.tzinfo is None:
+                fu_dt_aware = fu_dt.replace(tzinfo=timezone.utc)
+            else:
+                fu_dt_aware = fu_dt
+            is_overdue = fu_dt_aware < now
+
+        items.append({
+            "company_id": c.id,
+            "company_name": c.company_name or c.legal_name,
+            "usdot": c.usdot,
+            "phone": c.phone,
+            "phone_e164": c.phone_e164,
+            "email": c.email,
+            "state": c.state,
+            "fleet_size": c.fleet_size,
+            "lead_status": c.lead_status,
+            "priority": c.priority or "NONE",
+            "follow_up_date": fu_dt.isoformat() if fu_dt else None,
+            "follow_up_notes": c.follow_up_notes,
+            "is_overdue": is_overdue
+        })
+
+    return {
+        "status": "success",
+        "count": len(items),
+        "items": items
+    }

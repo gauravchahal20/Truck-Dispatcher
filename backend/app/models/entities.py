@@ -131,6 +131,8 @@ class Company(Base):
     segment = Column(String(50), nullable=True, index=True)  # recent_registration, national_census, etc.
     geo_region = Column(String(10), nullable=True, index=True)  # SE, MW, NE, SW, W, OTHER
     capacity_segment = Column(String(20), nullable=True, index=True)  # single_unit, small_fleet, mid_fleet, large_fleet
+    follow_up_date = Column(DateTime, nullable=True, index=True)
+    follow_up_notes = Column(Text, nullable=True)
 
     # Data Sanity Flags (L2i)
     fleet_inconsistent = Column(Boolean, default=False, index=True)
@@ -494,6 +496,8 @@ class LeadOutcome(Base):
     outcome = Column(String(50), nullable=False)  # "no_answer", "wrong_number", "voicemail", "interested", "not_interested", "do_not_contact", "bounced"
     target_value = Column(String(255), nullable=True)  # phone number or email address reached
     notes = Column(Text, nullable=True)
+    follow_up_date = Column(DateTime, nullable=True, index=True)
+    follow_up_notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=utc_now)
 
     company = relationship("Company", back_populates="outcomes")
