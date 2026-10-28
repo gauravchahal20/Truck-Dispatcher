@@ -1,0 +1,41 @@
+================================================================================
+WORKSTREAM N9f: HYGIENE & COMPLIANCE PREREQUISITES AUDIT
+================================================================================
+
+[1] DOCUMENTATION & SPECIFICATION HYGIENE CHECKS:
+  - 61-vs-62 inquiry marked 'Closed & Dropped' in N7 report: True
+  - 61-vs-62 inquiry marked 'Dropped' in DATA_SOURCES.md: True
+  - Unverified claim '22 carriers awaiting L&I insurance posting' present in DATA_SOURCES.md: False (Expected: False)
+  - Unverified claim '22 carriers awaiting L&I insurance posting' present in N9B report: False (Expected: False)
+
+[2] SYSTEM CONFIGURATION ENDPOINT (GET /api/config):
+  Case A: Both Prerequisites Unset:
+    - call_script_status:     'hidden: sender_identity not set'
+    - email_readiness_status: 'blocked: postal_address not set'
+  Case B: Both Prerequisites Configured:
+    - call_script_status:     'active'
+    - email_readiness_status: 'ready_for_outreach'
+
+[3] CALL SCRIPT GATING (GET /api/leads/verify-and-call-queue):
+  When sender_identity is UNSET (Queue count: 30):
+    - script_status: 'hidden: sender_identity not set'
+    - call_script is None: True
+  When sender_identity is CONFIGURED (Queue count: 30):
+    - script_status: 'active'
+    - call_script present: True
+
+[4] EMAIL READINESS GATING (GET /api/compliance/email-ready-leads):
+  When postal_address is UNSET:
+    - readiness_status: 'blocked: address not set'
+    - is_blocked: True
+    - postal_address_configured: False
+    - total_email_eligible: 284
+  When postal_address is CONFIGURED:
+    - readiness_status: 'ready_for_outreach'
+    - is_blocked: False
+    - postal_address_configured: True
+    - total_email_eligible: 284
+
+================================================================================
+END OF N9f EVIDENCE
+================================================================================

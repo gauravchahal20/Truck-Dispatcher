@@ -27,20 +27,10 @@ To ensure absolute clarity across pipeline documentation, the data hygiene valid
 
 ---
 
-## 3. Forensic Reconciliation: The "61 vs 62" Qualified Question
+## 3. The "61 vs 62" Qualified Question (Closed & Dropped)
 
-### Empirical Evidence from `lead_status_history` & `companies`:
-A direct SQL audit of transition history (`SELECT c.lead_type, count(distinct h.company_id), count(h.id) FROM lead_status_history h JOIN companies c ON h.company_id = c.id WHERE h.to_status = 'QUALIFIED' GROUP BY c.lead_type`) reveals:
-
-1. **The 62 Figure**:
-   - Exactly **62 unique companies** transitioned to `to_status = 'QUALIFIED'` are **SHIPPERS** (`lead_type = 'SHIPPER'`).
-   - Each of the 62 shippers had exactly 1 transition event to `QUALIFIED`.
-2. **The 61 Figure**:
-   - In earlier workstream J reports, the carrier candidate pool entering the qualification stage was **61 raw carriers**.
-   - After applying strict suppression lists, DNC checks, and hard gate deduplication, exactly 5 records were eliminated, leaving **56 unique carriers** that reached `QUALIFIED`.
-3. **Forensic Reconciliation**:
-   - The discrepancy arose because a previous progress summary conflated the **62 qualified direct shippers** with the **61 carrier candidate pool**.
-   - **Conclusion**: There are **62 distinct shippers** and **56 distinct carriers** that ever transitioned to `QUALIFIED` in `lead_status_history`. The number 62 belongs entirely to the shipper cohort.
+> **Status**: **Officially Dropped & Closed** (Workstream N9f).  
+> The historical discrepancy is resolved and retired: exactly **62 unique shippers** reached `QUALIFIED` in `lead_status_history`, while **61** referred to the historical raw carrier candidate cohort prior to suppression deduplication (which yielded 56 qualified carriers). The inquiry is closed.
 
 ---
 

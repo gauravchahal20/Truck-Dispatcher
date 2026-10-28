@@ -459,6 +459,13 @@ async def verify_authority_manual(
     company.authority_status = auth_status
     company.authority_status_source = "manual_operator"
     company.insurance_filing_status = "ACTIVE" if request.insurance_on_file else "INACTIVE"
+    if request.insurance_amount is not None:
+        try:
+            company.bipd_insurance_on_file = float(request.insurance_amount)
+        except (ValueError, TypeError):
+            pass
+    elif request.insurance_on_file and (company.bipd_insurance_on_file is None or company.bipd_insurance_on_file == 0):
+        company.bipd_insurance_on_file = 750000.0
     company.verification_date = v_date
 
     if request.mc_number:

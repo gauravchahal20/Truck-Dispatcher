@@ -20,6 +20,10 @@ async def get_system_config() -> Dict[str, Any]:
         except Exception as e:
             yaml_text = f"# Failed to read config file: {e}"
 
+    compliance_cfg = getattr(config, "compliance", None)
+    postal_addr = (getattr(compliance_cfg, "postal_address", "") or "").strip()
+    sender_ident = (getattr(compliance_cfg, "sender_identity", "") or "").strip()
+
     return {
         "yaml_content": yaml_text,
         "icp": config.icp.model_dump(),
@@ -28,7 +32,13 @@ async def get_system_config() -> Dict[str, Any]:
         "security": config.security.model_dump(),
         "sheets": config.sheets.model_dump(),
         "decision_makers": config.decision_makers,
-        "sources": {k: v.model_dump() for k, v in config.sources.items()}
+        "sources": {k: v.model_dump() for k, v in config.sources.items()},
+        "compliance": {
+            "postal_address": postal_addr,
+            "sender_identity": sender_ident,
+            "call_script_status": "active" if sender_ident else "hidden: sender_identity not set",
+            "email_readiness_status": "ready_for_outreach" if postal_addr else "blocked: postal_address not set"
+        }
     }
 
 

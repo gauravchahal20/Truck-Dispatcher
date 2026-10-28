@@ -259,7 +259,7 @@ An audit was conducted across stored carriers, census mirror records, and the 23
    - **Agreement Rate**: In a comparison across 50 USDOTs appearing in both `az4n-8mr2` and `nakq-58th`, **docket number agreement was 88.0% (44/50)**, but **status agreement was only 44.0% (22/50)**.
    - **HYPOTHESIS**: The status disagreement occurs because census `docket1_status_code` reflects historical grant status or monthly batch synchronization lag, whereas `nakq-58th` reflects real-time operating authority status following revocations or insurance cancellations.
 3. **Authority Gate Enforcement (L&I ACTIVE + Active Insurance)**:
-   - Re-running the strict authority gate across stored carriers drops `QUALIFIED` from 62 to 0, routing 85 carriers to `NEEDS_ENRICHMENT` awaiting L&I/insurance synchronization or manual operator verification.
+   - Re-running the strict authority gate across stored carriers drops `QUALIFIED` from 62 to 0, routing 85 carriers to `NEEDS_ENRICHMENT` for L&I/insurance synchronization or manual operator verification.
    - Provenance records `authority_status_source` as `li_dataset`, `census_docket`, or `manual_operator`.
 
 ### 5.5 Inspection of 14 No-Docket Target-State Candidates (L2d)
@@ -276,7 +276,7 @@ An audit was conducted across stored carriers, census mirror records, and the 23
   - `hazmat_carrier`: Flags hazardous material haulers via `hm_ind = 'Y'` or explicit hazmat operation/equipment (47.1% across stored carriers; filters out `NON-HAZMAT`).
   - `phone_region_mismatch`: Flags phone area code geocoded US state divergence from business address state (11.8% across stored carriers, e.g. SOPHY'S FRUITS FL address vs 973 NJ phone).
 
-### 5.6.1 Historical Status Transition Audit (61 vs 62 Reconciliation) (M3)
+### 5.6.1 Historical Status Transition Audit (61 vs 62 Inquiry Dropped) (M3/N9f)
 - An audit of `lead_status_history` and `companies` across all historical discovery runs confirmed that exactly **62 distinct shipper records** were transitioned to `QUALIFIED` (`RESEARCHING -> QUALIFIED`). Subsequently, all 62 (plus 28 un-qualified shippers) were archived to `ARCHIVED_NO_CONTACT`.
 - Why an earlier document cited 61 vs 62: The exact cause of the single-row variation in legacy documentation is **not determined** from immutable SQL database history (likely an off-by-one run boundary or transient deduplication merge in earlier runs).
 - **M3 Data Rule Enforcement**: Priority is strictly `NONE` for `REJECTED`, `NOT_ICP`, `NEEDS_REVIEW_ICP`, and `ARCHIVED` (`ARCHIVED_NO_CONTACT`) leads. The 4 `REJECTED` leads that previously retained priority tiers (`RIDECARE, LLC`, `HERNANDEZ TIRES AUTO CENTER`, `LEGACY LOGISTICS INC`, `PACHECO TRANSPORTATION AND WHOLESALE`) have been migrated to `priority = 'NONE'`.

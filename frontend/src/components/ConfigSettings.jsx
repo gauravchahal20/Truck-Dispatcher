@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Sliders, Save, RefreshCw, CheckCircle2, FileCode } from 'lucide-react';
+import { Sliders, Save, RefreshCw, CheckCircle2, FileCode, ShieldAlert, PhoneCall, Mail } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function ConfigSettings() {
   const [yamlContent, setYamlContent] = useState('');
+  const [compliance, setCompliance] = useState({
+    postal_address: '',
+    sender_identity: '',
+    call_script_status: 'hidden: sender_identity not set',
+    email_readiness_status: 'blocked: postal_address not set'
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -13,6 +19,9 @@ export default function ConfigSettings() {
     try {
       const data = await api.getConfig();
       setYamlContent(data.yaml_content || '');
+      if (data.compliance) {
+        setCompliance(data.compliance);
+      }
     } catch (err) {
       console.error('Failed to fetch config:', err);
     } finally {
@@ -66,6 +75,50 @@ export default function ConfigSettings() {
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             <span>Reload</span>
           </button>
+        </div>
+      </div>
+
+      {/* Compliance & Outreach Status Bento Card (N9f) */}
+      <div className="bento-card" style={{ padding: '20px 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+          <ShieldAlert size={16} color="var(--primary)" />
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Outreach & Compliance Prerequisites (CAN-SPAM / TCPA)</h3>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Call Script Status */}
+          <div style={{ padding: '14px 16px', backgroundColor: '#F8F9FA', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <PhoneCall size={14} /> Call Script Status
+              </span>
+              <span className={`badge ${compliance.call_script_status === 'active' ? 'badge-status-final' : 'badge-status-rejected'}`}>
+                {compliance.call_script_status === 'active' ? 'Active' : 'Hidden'}
+              </span>
+            </div>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              {compliance.call_script_status === 'active'
+                ? `Sender Identity: "${compliance.sender_identity}" (Active in Verify-and-Call Queue)`
+                : 'Call script hidden until sender_identity is configured in compliance settings.'}
+            </p>
+          </div>
+
+          {/* Email Outreach Readiness */}
+          <div style={{ padding: '14px 16px', backgroundColor: '#F8F9FA', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Mail size={14} /> Email Outreach Status
+              </span>
+              <span className={`badge ${compliance.email_readiness_status === 'ready_for_outreach' ? 'badge-status-final' : 'badge-status-rejected'}`}>
+                {compliance.email_readiness_status === 'ready_for_outreach' ? 'Ready for Outreach' : 'Blocked'}
+              </span>
+            </div>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              {compliance.email_readiness_status === 'ready_for_outreach'
+                ? `Physical Address: "${compliance.postal_address}" (Ready to contact)`
+                : 'Email-ready list blocked until postal_address is configured in compliance settings.'}
+            </p>
+          </div>
         </div>
       </div>
 

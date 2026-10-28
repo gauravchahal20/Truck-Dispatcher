@@ -147,7 +147,9 @@ def run_n9e():
         sig_exists = cur.fetchone()
         if not sig_exists:
             sig_id = str(uuid.uuid4())
-            obs_dt = add_date if add_date else now_iso
+            obs_dt = str(add_date) if add_date else now_iso
+            if obs_dt and len(obs_dt) == 8 and obs_dt.isdigit():
+                obs_dt = f"{obs_dt[0:4]}-{obs_dt[4:6]}-{obs_dt[6:8]} 00:00:00"
             cur.execute("""
                 INSERT INTO intent_signals (id, company_id, signal_type, title, description, source_url, confidence, strength, observed_at, half_life_days, is_sensitive)
                 VALUES (?, ?, 'NEW_USDOT_REGISTRATION', 'Recent USDOT Registration', 'Fresh USDOT census filing within 30-120 days', 'https://data.transportation.gov/resource/az4n-8mr2', 1.0, 1.0, ?, 60.0, 0)

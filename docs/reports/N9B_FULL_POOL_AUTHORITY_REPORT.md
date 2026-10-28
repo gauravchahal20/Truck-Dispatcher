@@ -110,7 +110,7 @@ The 106 carriers without an `inys-ebih` record were audited against their FMCSA 
 | :--- | :--- | :--- |
 | **Intrastate Carriers** | **50** | `carrier_operation` is `'B'` (Intrastate Non-Hazmat) or `'C'` (Intrastate Hazmat). Federal FMCSA L&I authority is strictly required for interstate commerce. Intrastate carriers operate under state DOT authorities (e.g. WUTC in WA, CPUC in CA) and do not file federal BMC-91X/inys-ebih. |
 | **Exempt For-Hire / Private Carriage** | **19** | `operating_status` contains `'EXEMPT FOR-HIRE'` or `'PRIVATE'`. Private carriers haul their own goods and are exempt from federal commercial operating authority filings. |
-| **Interstate For-Hire Awaiting / Inactive L&I** | **22** | `carrier_operation` is `'A'` (Interstate), but no filing record exists on `inys-ebih`. These carriers registered a USDOT number but have not yet completed OP-1 authority filings with FMCSA. |
+| **Interstate For-Hire without Federal L&I Record** | **22** | `carrier_operation` is `'A'` (Interstate), but 0 filing records exist on `inys-ebih`. Empirical evidence confirms no active docket or insurance filing on federal record; no speculative claim of awaiting insurance posting is made without evidence. |
 | **Records without USDOT** | **15** | Historical test or shipper entries lacking USDOT identifiers. |
 | **TOTAL** | **106** | **100% accounted for with empirical database evidence.** |
 
