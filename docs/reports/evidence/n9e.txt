@@ -1,0 +1,78 @@
+=== N9e: Candidate Ingestion & Status Resolution Evidence ===
+Timestamp: 2026-10-28T13:15:44.357360+00:00
+
+1. Candidate Ingestion Execution Summary:
+   - Total Watchlist Candidates Evaluated: 23
+   - Successfully Ingested to QUALIFIED:  22 carriers (Passed hard gates, active Motus property authority, BIPD >= $750k)
+   - Routed to NEEDS_REVIEW:              1 carrier (KB PREMIER LOGISTICS LLC - BIPD $300k < $750k and inconsistent fleet)
+   - Segment Assigned:                    'recent_registration'
+   - Intent Signal Attached:              'NEW_USDOT_REGISTRATION' (weight: 0.5, half-life: 60 days)
+
+2. Candidate Pool Status Distribution Before vs After (23 Watchlist Candidates):
+Lead Status            | Before Count   | After Count    | Net Change  
+--------------------------------------------------------------------
+NEEDS_ENRICHMENT       | 1              | 0              | -1          
+NEEDS_REVIEW           | 0              | 1              | +1          
+QUALIFIED              | 22             | 22             | 0           
+--------------------------------------------------------------------
+TOTAL                  | 23             | 23             | +0
+
+3. Candidate Pool Priority Band Distribution Before vs After (23 Candidates):
+Priority Band          | Before Count   | After Count    | Net Change  
+--------------------------------------------------------------------
+A                      | 3              | 0              | -3          
+B                      | 19             | 22             | +3          
+C                      | 1              | 0              | -1          
+NONE                   | 0              | 1              | +1          
+--------------------------------------------------------------------
+TOTAL                  | 23             | 23             | +0
+
+4. Full Carrier Pool Lead Status Distribution Before vs After (All Stored Carriers):
+Lead Status            | Before Count   | After Count    | Net Change  
+--------------------------------------------------------------------
+NEEDS_ENRICHMENT       | 202            | 201            | -1          
+NEEDS_REVIEW           | 0              | 1              | +1          
+NEEDS_REVIEW_ICP       | 2              | 2              | 0           
+NOT_ICP                | 3              | 3              | 0           
+QUALIFIED              | 78             | 78             | 0           
+REJECTED               | 30             | 30             | 0           
+--------------------------------------------------------------------
+TOTAL                  | 315            | 315            | +0
+
+5. Full Carrier Pool Priority Distribution Before vs After (All Stored Carriers):
+Priority Band          | Before Count   | After Count    | Net Change  
+--------------------------------------------------------------------
+A                      | 4              | 1              | -3          
+B                      | 122            | 125            | +3          
+C                      | 100            | 99             | -1          
+NONE                   | 89             | 90             | +1          
+--------------------------------------------------------------------
+TOTAL                  | 315            | 315            | +0
+
+6. Detailed Roster of All 23 Watchlist Candidates Post-Ingestion:
+#   | USDOT     | Legal Name                       | Status           | Score  | Prio  | BIPD        | Notes
+-------------------------------------------------------------------------------------------------------------------
+1   | 4626451   | J & A FREIGHT SOLUTIONS LLC      | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+2   | 5397412   | KB PREMIER LOGISTICS LLC         | NEEDS_REVIEW     | 5.0    | NONE  | $300,000    | BIPD $300k < $750k and inconsistent fleet
+3   | 5576599   | RFM LOGISTICS LLC                | QUALIFIED        | 6.1    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+4   | 5624791   | MCCORD PREMIER LOGISTICS         | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+5   | 5800824   | NORTHAMPTON LOGISTICS LLC        | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+6   | 6089086   | KEEP IT EASY LOGISTICS LLC       | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+7   | 6933041   | R&K FREIGHT SOLUTIONS LLC        | QUALIFIED        | 6.1    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+8   | 7311877   | LIN VENTURES LLC                 | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+9   | 7637833   | TC GLOBAL EXPRESS CORP.          | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+10  | 7924740   | COAST 2 COAST LLC                | QUALIFIED        | 6.3    | B     | $1,000,000  | Passed hard gates, active Motus authority & BIPD
+11  | 8040909   | LORENTE TRANSPORTATION LLC       | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+12  | 8220775   | THE HARRIETTE LLC                | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+13  | 8288381   | HUSKY SERVICES INC               | QUALIFIED        | 6.3    | B     | $1,000,000  | Passed hard gates, active Motus authority & BIPD
+14  | 8295005   | LEAPFREIGHT CARRIER GROUP LLC    | QUALIFIED        | 6.5    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+15  | 8718734   | MOREE HAUL LLC                   | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+16  | 8734003   | MM INTERNATIONAL LLC             | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+17  | 8903053   | TITANIUM TRANSIT INC             | QUALIFIED        | 6.1    | B     | $1,000,000  | Passed hard gates, active Motus authority & BIPD
+18  | 8972558   | AMERICAN TRUST LOGISTICS INC     | QUALIFIED        | 6.2    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+19  | 9340484   | ROUTEX LOGISTICS LLC             | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+20  | 9348731   | TL WAY EXPRESS LLC               | QUALIFIED        | 6.3    | B     | $1,000,000  | Passed hard gates, active Motus authority & BIPD
+21  | 9607661   | OMA GOLD INC.                    | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+22  | 9737844   | JLM HOLDING COMPANY INC          | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+23  | 9748539   | JJCK INC                         | QUALIFIED        | 6.3    | B     | $750,000    | Passed hard gates, active Motus authority & BIPD
+-------------------------------------------------------------------------------------------------------------------

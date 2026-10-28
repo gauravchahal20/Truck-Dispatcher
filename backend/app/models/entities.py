@@ -128,6 +128,7 @@ class Company(Base):
     bipd_insurance_on_file = Column(Float, default=0.0, nullable=True)  # Active BIPD insurance coverage on file
     safety_rating = Column(String(100), nullable=True)
     mcs_150_date = Column(String(50), nullable=True)
+    segment = Column(String(50), nullable=True, index=True)  # recent_registration, national_census, etc.
 
     # Data Sanity Flags (L2i)
     fleet_inconsistent = Column(Boolean, default=False, index=True)
