@@ -1,0 +1,37 @@
+================================================================================
+WORKSTREAM P9: INBOUND & REFERRAL LEAD INTAKE PIPELINE AUDIT
+================================================================================
+
+[1] NET-NEW INBOUND SUBMISSION (POST /api/leads/intake/inbound):
+  HTTP Status:       200
+  Intake Action:     created_new_lead
+  Company Name:      APEX PEAK LOGISTICS LLC (USDOT: 9988101)
+  MC Docket:         198810
+  Normalized Phone:  +12145550911 | Email: dispatch@apexpeaklogistics.com
+  Lead Lifecycle:    NEEDS_ENRICHMENT (Tier: NONE, Score: 3.8)
+  Qual Reason:       Operating authority unproven (L&I: UNKNOWN, Insurance: UNKNOWN); queued for L&I verification
+
+[2] CARRIER REFERRAL INTAKE (POST /api/leads/intake/referral):
+  HTTP Status:       200
+  Intake Action:     created_new_lead
+  Company Name:      BLUE RIDGE HAULING LLC (USDOT: 9988102)
+  MC Docket:         198812
+  Normalized Phone:  +14045550922 | Email: john.driver@blueridgehaul.com
+  Lead Lifecycle:    NEEDS_ENRICHMENT (Tier: NONE, Score: 4.0)
+  Qual Reason:       Operating authority unproven (L&I: UNKNOWN, Insurance: UNKNOWN); queued for L&I verification
+
+[3] DEDUPLICATION ON INTAKE (Duplicate USDOT 9988101):
+  HTTP Status:       200
+  Intake Status:     deduplicated
+  Intake Action:     merged_into_existing
+  Matched ID:        a69bfe6d-b356-40f0-80c5-a28637a49abe
+  Is Merged ID == Inbound 1 ID: True
+
+[4] COMPLIANCE SCREENING ON INTAKE (Suppressed Contact):
+  HTTP Status:       200
+  Lead Status:       REJECTED
+  Rejection Reason:  Suppressed: DNC requested via opt-out webform
+
+================================================================================
+END OF WORKSTREAM P9 EVIDENCE
+================================================================================
