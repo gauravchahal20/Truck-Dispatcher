@@ -252,6 +252,9 @@ class LeadScorer:
             elif tier == "departmental":
                 email_weight = role_cfg.departmental
                 email_label = "Departmental inbox"
+            elif tier == "personal_webmail":
+                email_weight = getattr(role_cfg, "personal_webmail", 0.7)
+                email_label = "Personal webmail"
             else:
                 email_weight = role_cfg.named_person
                 email_label = "Named individual"

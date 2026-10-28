@@ -1,0 +1,54 @@
+=== N9c: Email Tiers & Coverage Reconciliation Evidence ===
+Timestamp: 2026-10-28T13:05:16.485301+00:00
+
+1. Configurable Personal Webmail Credit:
+   named_person:      1.0 (Full credit)
+   personal_webmail:  0.7 (Default credit for named local-part on free webmail)
+   departmental:      0.5 (Medium credit)
+   generic_inbox:     0.2 (Lowest credit)
+
+2. Email Tier Distribution Before vs After (312 Stored Carriers Pool):
+Tier                 | Before Count   | After Count    | Net Change  
+------------------------------------------------------------------
+personal_webmail     | 0              | 218            | +218        
+named                | 17             | 36             | +19         
+departmental         | 1              | 9              | +8          
+generic              | 2              | 21             | +19         
+None (Untiered)      | 264            | 0              | -264        
+------------------------------------------------------------------
+Total with Email     | 284            | 284            | +0
+
+3. Contact Email Tier Distribution Before vs After (All Carrier Contacts):
+Tier                 | Before Count   | After Count    | Net Change  
+------------------------------------------------------------------
+personal_webmail     | 0              | 242            | +242        
+named                | 53             | 56             | +3          
+departmental         | 1              | 10             | +9          
+generic              | 85             | 31             | -54         
+None (Untiered)      | 200            | 0              | -200        
+------------------------------------------------------------------
+Total with Email     | 339            | 339            | +0
+
+4. Email Coverage Reconciliation: 70 of 119 -> 284 of 312 Stored Carriers:
+   a. Original 119 Stored Carriers Pool:
+      - Initial email coverage (Pre-L2h):        70 / 119 (58.8%)
+      - Net carriers gaining email in L2h:       +35 carriers
+      - Current email coverage for 119 pool:     105 / 119 (88.2%)
+      - Source breakdown of gained emails:
+        * FMCSA Census Mirror (fmcsa_official):  43 carriers
+        * Company Website Enrichment:            4 carriers
+        * Baseline Seed / Legacy:                58 carriers
+   b. Net-New Stored Carriers Ingested in N5 (193 Census Records):
+      - Ingested carriers with email:            179 / 193 (92.7%)
+      - Source for all 179 emails:               FMCSA Census Mirror (fmcsa_official az4n-8mr2)
+   c. Combined 312 Stored Carriers Pool:
+      - Total carriers with valid email:         284 / 312 (91.0%)
+      - Carriers without email:                  28 / 312 (9.0%)
+
+5. Sample of Re-Tiered Emails (Personal Webmail vs Generic):
+   - john.doe@gmail.com             -> personal_webmail   (Expected: personal_webmail)
+   - fastfreight88@gmail.com        -> personal_webmail   (Expected: personal_webmail)
+   - dispatch@carrier.com           -> departmental       (Expected: departmental)
+   - info@truckingllc.com           -> generic            (Expected: generic)
+   - admin@logistics.org            -> generic            (Expected: generic)
+   - sarah@primefreight.com         -> named              (Expected: named)

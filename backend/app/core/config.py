@@ -66,6 +66,7 @@ class ScoringThresholds(BaseModel):
 
 class RoleAccountWeights(BaseModel):
     named_person: float = 1.0       # Full credit (+1.0)
+    personal_webmail: float = 0.7   # Configurable credit (default 0.7) for free webmail with personal local part
     departmental: float = 0.5       # Medium credit (+0.5 for sales@, dispatch@, ops@)
     generic_inbox: float = 0.2      # Lowest credit (+0.2 for info@, admin@, support@)
 

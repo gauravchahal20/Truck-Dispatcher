@@ -320,14 +320,22 @@ class Normalizer:
             pass
         return None
 
+    FREE_WEBMAIL_DOMAINS = {
+        "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
+        "icloud.com", "mail.com", "zoho.com", "protonmail.com", "proton.me",
+        "live.com", "msn.com", "yandex.com", "gmx.com", "comcast.net",
+        "sbcglobal.net", "att.net", "verizon.net", "cox.net", "charter.net",
+        "bellsouth.net", "rocketmail.com", "aim.com"
+    }
+
     GENERIC_INBOX_PREFIXES = {
-        "info", "support", "contact", "admin", "billing", "help",
-        "careers", "jobs", "team", "office", "general", "inquiries"
+        "info", "support", "contact", "admin", "administrator", "billing", "help",
+        "careers", "jobs", "team", "office", "general", "inquiries", "inquiry"
     }
 
     DEPARTMENTAL_PREFIXES = {
         "sales", "dispatch", "operations", "ops", "logistics", "freight",
-        "brokerage", "service", "load", "booking"
+        "brokerage", "service", "load", "loads", "booking"
     }
 
     ROLE_ACCOUNT_PREFIXES = GENERIC_INBOX_PREFIXES | DEPARTMENTAL_PREFIXES
@@ -335,19 +343,31 @@ class Normalizer:
     @classmethod
     def classify_email_tier(cls, email: Optional[str]) -> str:
         """
-        Classifies an email address into:
-        - 'named': individual decision maker (highest value)
-        - 'departmental': sales, dispatch, ops (medium value)
-        - 'generic': info, support, admin, billing (lowest value)
+        Classifies an email address by local part and domain:
+        - 'generic': role/generic inbox (info, admin, support, billing, office)
+        - 'departmental': departmental role account (sales, dispatch, operations)
+        - 'personal_webmail': free webmail provider with a personal/named local part
+        - 'named': individual named person on a custom / company domain
         """
         if not email or "@" not in email:
             return "generic"
-        username = email.split("@")[0].strip().lower()
+        parts = email.strip().lower().split("@")
+        username = parts[0].strip()
+        domain = parts[1].strip() if len(parts) > 1 else ""
+
         base_user = re.split(r"[._+-]", username)[0]
-        if base_user in cls.GENERIC_INBOX_PREFIXES:
+        if base_user in cls.GENERIC_INBOX_PREFIXES or username in cls.GENERIC_INBOX_PREFIXES:
             return "generic"
-        if base_user in cls.DEPARTMENTAL_PREFIXES:
+        if base_user in cls.DEPARTMENTAL_PREFIXES or username in cls.DEPARTMENTAL_PREFIXES:
             return "departmental"
+
+        # Check if domain is free webmail
+        is_free_webmail = domain in cls.FREE_WEBMAIL_DOMAINS or any(
+            domain.endswith("." + fwd) for fwd in cls.FREE_WEBMAIL_DOMAINS
+        )
+        if is_free_webmail:
+            return "personal_webmail"
+
         return "named"
 
     @classmethod

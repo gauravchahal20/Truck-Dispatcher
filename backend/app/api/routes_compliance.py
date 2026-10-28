@@ -1,3 +1,4 @@
+from ..services.normalizer import Normalizer
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -167,12 +168,7 @@ async def get_email_ready_leads(
         em = (c.email or "").lower().strip()
         tier = c.email_role_tier
         if not tier or tier == "None":
-            if any(em.startswith(r) for r in ["info@", "dispatch@", "office@", "admin@", "support@", "safety@", "contact@"]):
-                tier = "role"
-            elif any(em.endswith(d) for d in ["@gmail.com", "@yahoo.com", "@outlook.com", "@hotmail.com", "@aol.com", "@icloud.com"]):
-                tier = "generic"
-            else:
-                tier = "named"
+            tier = Normalizer.classify_email_tier(em)
         tier_counts[tier] = tier_counts.get(tier, 0) + 1
         st = c.email_verification_status or "UNVERIFIED"
         status_counts[st] = status_counts.get(st, 0) + 1
@@ -184,12 +180,7 @@ async def get_email_ready_leads(
         em = (c.email or "").lower().strip()
         tier = c.email_role_tier
         if not tier or tier == "None":
-            if any(em.startswith(r) for r in ["info@", "dispatch@", "office@", "admin@", "support@", "safety@", "contact@"]):
-                tier = "role"
-            elif any(em.endswith(d) for d in ["@gmail.com", "@yahoo.com", "@outlook.com", "@hotmail.com", "@aol.com", "@icloud.com"]):
-                tier = "generic"
-            else:
-                tier = "named"
+            tier = Normalizer.classify_email_tier(em)
 
         items.append({
             "id": c.id,
