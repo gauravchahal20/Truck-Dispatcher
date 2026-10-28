@@ -296,25 +296,37 @@ class Normalizer:
 
     @classmethod
     def get_state_for_phone(cls, phone: Optional[str]) -> Optional[str]:
-        """Resolves the US 2-letter state postal abbreviation from a phone number using NANP geocoding or area code tables."""
+        """Resolves the US 2-letter state postal abbreviation from a phone number using canonical NANP area-code table."""
         if not phone:
             return None
+        from ..core.nanp_data import NANP_AREA_CODES
+        digits = re.sub(r"\D", "", str(phone))
+        if len(digits) == 11 and digits.startswith("1"):
+            area_code = digits[1:4]
+        elif len(digits) == 10:
+            area_code = digits[0:3]
+        else:
+            return None
+
+        # 1. Primary: Direct lookup in canonical NANP area-code table
+        if area_code in NANP_AREA_CODES:
+            return NANP_AREA_CODES[area_code]
+
+        # 2. Secondary fallback via phonenumbers geocoder for newly issued overlays
         try:
             import phonenumbers
             from phonenumbers import geocoder
-            digits = re.sub(r"\D", "", str(phone))
-            if len(digits) == 10:
-                e164 = f"+1{digits}"
-            elif len(digits) == 11 and digits.startswith("1"):
-                e164 = f"+{digits}"
-            else:
-                return None
+            e164 = f"+1{digits[-10:]}"
             parsed = phonenumbers.parse(e164)
             desc = geocoder.description_for_number(parsed, "en")
             if desc:
                 desc_lower = desc.lower().strip()
+                if "d.c." in desc_lower or "district of columbia" in desc_lower:
+                    return "DC"
                 for s_name, s_code in US_STATE_ABBRS.items():
-                    if s_name == desc_lower or desc.endswith(f", {s_code}") or f", {s_code}" in desc or s_name in desc_lower:
+                    if s_name == "district of columbia":
+                        continue
+                    if s_name == desc_lower or desc.endswith(f", {s_code}") or f", {s_code}" in desc:
                         return s_code
         except Exception:
             pass
