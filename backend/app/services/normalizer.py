@@ -17,6 +17,14 @@ US_STATE_ABBRS = {
     "district of columbia": "DC"
 }
 
+US_GEO_REGIONS = {
+    "SE": {"AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN", "VA", "WV"},
+    "MW": {"IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"},
+    "NE": {"CT", "DE", "ME", "MD", "MA", "NH", "NJ", "NY", "PA", "RI", "VT", "DC"},
+    "SW": {"AZ", "NM", "OK", "TX"},
+    "W":  {"AK", "CA", "CO", "HI", "ID", "MT", "NV", "OR", "UT", "WA", "WY"},
+}
+
 LEGAL_SUFFIXES = [
     r"\bllc\b", r"\bl\.l\.c\.\b", r"\binc\b", r"\bi\.n\.c\.\b", r"\bincorporated\b",
     r"\bcorp\b", r"\bcorporation\b", r"\bco\b", r"\bcompany\b", r"\bltd\b", r"\blimited\b",
@@ -293,6 +301,64 @@ class Normalizer:
             if name.startswith(s) or s in name:
                 return code
         return state.strip().upper() if len(state.strip()) == 2 else None
+
+    @staticmethod
+    def get_geographic_region(state: Optional[str]) -> str:
+        """Returns geographic region code: SE, MW, NE, SW, W, or OTHER."""
+        if not state:
+            return "OTHER"
+        st = state.strip().upper()
+        for region, states in US_GEO_REGIONS.items():
+            if st in states:
+                return region
+        return "OTHER"
+
+    @staticmethod
+    def get_fleet_capacity_segment(power_units: Optional[int]) -> str:
+        """Categorizes fleet size into capacity segment: single_unit, small_fleet, mid_fleet, large_fleet, unknown."""
+        if power_units is None or power_units <= 0:
+            return "unknown"
+        if power_units == 1:
+            return "single_unit"
+        elif 2 <= power_units <= 5:
+            return "small_fleet"
+        elif 6 <= power_units <= 10:
+            return "mid_fleet"
+        else:
+            return "large_fleet"
+
+    @staticmethod
+    def get_carrier_operation_segment(carrier_operation: Optional[str]) -> str:
+        """Categorizes carrier operation: interstate, intrastate, exempt_private, other."""
+        if not carrier_operation:
+            return "unknown"
+        op = str(carrier_operation).strip().lower()
+        if op in ("a", "interstate") or "interstate" in op:
+            return "interstate"
+        elif op in ("b", "c", "intrastate") or "intrastate" in op:
+            return "intrastate"
+        elif "exempt" in op or "private" in op:
+            return "exempt_private"
+        return "other"
+
+    @classmethod
+    def get_census_segment(
+        cls,
+        state: Optional[str],
+        power_units: Optional[int],
+        carrier_operation: Optional[str] = None
+    ) -> Dict[str, str]:
+        """Returns structured national census segmentation dictionary."""
+        geo = cls.get_geographic_region(state)
+        cap = cls.get_fleet_capacity_segment(power_units)
+        op = cls.get_carrier_operation_segment(carrier_operation)
+        segment_code = f"{geo}_{cap}"
+        return {
+            "geo_region": geo,
+            "capacity_segment": cap,
+            "operation_segment": op,
+            "composite_segment": segment_code
+        }
 
     @classmethod
     def get_state_for_phone(cls, phone: Optional[str]) -> Optional[str]:

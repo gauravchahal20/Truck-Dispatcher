@@ -1,0 +1,74 @@
+================================================================================
+WORKSTREAM P1: NATIONAL CENSUS SEGMENTATION AUDIT & CLASSIFICATION
+================================================================================
+
+[1] FMCSA CARRIER CENSUS MIRROR (Total Rows: 365)
+------------------------------------------------------------
+A. By Geographic Region:
+  SE    :  102 carriers ( 27.9%)
+  MW    :  143 carriers ( 39.2%)
+  NE    :   25 carriers (  6.8%)
+  SW    :   52 carriers ( 14.2%)
+  W     :   43 carriers ( 11.8%)
+  OTHER :    0 carriers (  0.0%)
+
+B. By Fleet Capacity Segment:
+  single_unit   :   29 carriers (  7.9%)
+  small_fleet   :  308 carriers ( 84.4%)
+  mid_fleet     :   25 carriers (  6.8%)
+  large_fleet   :    1 carriers (  0.3%)
+  unknown       :    2 carriers (  0.5%)
+
+C. By Operation Type Segment:
+  interstate          :  246 carriers ( 67.4%)
+  intrastate          :  119 carriers ( 32.6%)
+  exempt_private      :    0 carriers (  0.0%)
+  other               :    0 carriers (  0.0%)
+  unknown             :    0 carriers (  0.0%)
+
+D. Top 10 Composite Segments (Geo x Capacity):
+  MW_small_fleet      :  118 carriers ( 32.3%)
+  SE_small_fleet      :   91 carriers ( 24.9%)
+  SW_small_fleet      :   44 carriers ( 12.1%)
+  W_small_fleet       :   32 carriers (  8.8%)
+  NE_small_fleet      :   23 carriers (  6.3%)
+  MW_single_unit      :   15 carriers (  4.1%)
+  MW_mid_fleet        :   10 carriers (  2.7%)
+  SE_mid_fleet        :    7 carriers (  1.9%)
+  W_single_unit       :    6 carriers (  1.6%)
+  SW_single_unit      :    4 carriers (  1.1%)
+
+[2] STORED CARRIERS POOL (Total Carriers: 315)
+------------------------------------------------------------
+A. Stored Carriers by Geographic Region:
+  SE    :   85 carriers ( 27.0%)
+  MW    :  129 carriers ( 41.0%)
+  NE    :   26 carriers (  8.3%)
+  SW    :   50 carriers ( 15.9%)
+  W     :   25 carriers (  7.9%)
+  OTHER :    0 carriers (  0.0%)
+
+B. Stored Carriers by Fleet Capacity:
+  single_unit   :    5 carriers (  1.6%)
+  small_fleet   :  259 carriers ( 82.2%)
+  mid_fleet     :   27 carriers (  8.6%)
+  large_fleet   :    6 carriers (  1.9%)
+  unknown       :   18 carriers (  5.7%)
+
+C. Stored Carriers Top 10 Composite Segments:
+  MW_small_fleet      :  112 carriers ( 35.6%)
+  SE_small_fleet      :   76 carriers ( 24.1%)
+  SW_small_fleet      :   29 carriers (  9.2%)
+  NE_small_fleet      :   23 carriers (  7.3%)
+  W_small_fleet       :   19 carriers (  6.0%)
+  SW_unknown          :   12 carriers (  3.8%)
+  MW_mid_fleet        :   11 carriers (  3.5%)
+  SW_mid_fleet        :    7 carriers (  2.2%)
+  SE_mid_fleet        :    5 carriers (  1.6%)
+  SE_single_unit      :    3 carriers (  1.0%)
+
+Carriers with segment = 'recent_registration': 23
+
+================================================================================
+END OF WORKSTREAM P1 EVIDENCE
+================================================================================

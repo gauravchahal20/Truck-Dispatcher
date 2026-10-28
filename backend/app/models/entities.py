@@ -129,6 +129,8 @@ class Company(Base):
     safety_rating = Column(String(100), nullable=True)
     mcs_150_date = Column(String(50), nullable=True)
     segment = Column(String(50), nullable=True, index=True)  # recent_registration, national_census, etc.
+    geo_region = Column(String(10), nullable=True, index=True)  # SE, MW, NE, SW, W, OTHER
+    capacity_segment = Column(String(20), nullable=True, index=True)  # single_unit, small_fleet, mid_fleet, large_fleet
 
     # Data Sanity Flags (L2i)
     fleet_inconsistent = Column(Boolean, default=False, index=True)
@@ -377,6 +379,9 @@ class FMCSACarrierCensus(Base):
     raw_checksum = Column(String(64), nullable=True)  # SHA256 of raw data for incremental sync
     synced_at = Column(DateTime, default=utc_now)
     source_url = Column(String(500), nullable=True)
+    segment = Column(String(50), nullable=True, index=True)
+    geo_region = Column(String(10), nullable=True, index=True)
+    capacity_segment = Column(String(20), nullable=True, index=True)
 
 
 class SourceHealthMetric(Base):
