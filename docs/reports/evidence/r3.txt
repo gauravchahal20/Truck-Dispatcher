@@ -1,0 +1,83 @@
+=== WORKSTREAM R3: CARRIER INTEGRITY AUDIT & PIPELINE SYNC ===
+Timestamp (UTC): 2026-10-29T16:55:05.381712+00:00
+Pre-sync Backup: trucklead_20261029_165505.db
+
+=== BEFORE DISTRIBUTION TABLES (CARRIER POOL: 498) ===
+Status Distribution (Before):
+  QUALIFIED           : 228
+  NEEDS_ENRICHMENT    : 215
+  REJECTED            : 40
+  NEEDS_REVIEW_ICP    : 9
+  NEEDS_REVIEW        : 6
+Priority Distribution (Before):
+  NONE                : 268
+  C                   : 124
+  B                   : 106
+
+=== AFTER DISTRIBUTION TABLES (CARRIER POOL: 498) ===
+Status Distribution (After):
+  QUALIFIED           : 228 (delta=+0)
+  NEEDS_ENRICHMENT    : 215 (delta=+0)
+  REJECTED            : 40 (delta=+0)
+  NEEDS_REVIEW_ICP    : 9 (delta=+0)
+  NEEDS_REVIEW        : 6 (delta=+0)
+Priority Distribution (After):
+  NONE                : 269 (delta=+1)
+  C                   : 123 (delta=-1)
+  B                   : 106 (delta=+0)
+
+=== SYNCHRONIZATION OPERATIONS APPLIED ===
+  Inserted lead_scores rows:          0
+  Inserted sources rows:              0
+  Inserted verification_records rows: 0
+  Inserted contacts rows:             0
+
+=== CARRIER COUNTS PER LEAD_SOURCE ===
+  fmcsa_official           : 217
+  fmcsa_carrier_census     : 195
+  fmcsa_safer              : 33
+  pending_applications     : 25
+  google_maps              : 12
+  fmcsa_li                 : 8
+  manual_csv               : 3
+  google_search            : 3
+  referral                 : 2
+
+=== CARRIER COUNTS PER RUN_ID ===
+  6ae158fd-c507-4397-91a2-02ac66b30ed6    : 195
+  NULL/UNASSIGNED                         : 180
+  39b3ba1d-5b45-4bab-81de-7f24ee670d57    : 26
+  33dcf26c-c9e6-4a2e-bbd7-525622a0dd27    : 19
+  2df209d9-5d1c-4325-a874-89afc1e3d2c7    : 13
+  fa65b5c8-3e9a-4e74-9421-777e48852b28    : 12
+  c82f3cd4-0fcf-4adf-8f1d-3316edd359b5    : 12
+  2cc9e3b8-9111-464a-8be3-4daf5d1846a0    : 11
+  ef19e0c3-19e1-4e0d-8f72-9b9d5adece44    : 10
+  cd551a03-c9e5-485b-8130-516f92439a69    : 6
+  abbfb866-9936-43de-9d30-b633a88eab50    : 5
+  d6f64563-7aaf-45aa-8c2f-a4e189fe2ee7    : 3
+  d5cfa10f-d3fa-44fb-b4ba-b7b8eba43e81    : 2
+  e511ba00-46d0-4a2e-ad8c-ff69c4199765    : 1
+  cef26928-6b28-4ca7-8f13-417a978b443b    : 1
+  87a3eb0d-ac06-4c8b-8fd5-a5d989ac9fe7    : 1
+  5e388a51-ee40-4c92-8212-ce33a4dc0d37    : 1
+
+=== SUMMARY OF MISSING RELATIONS PRIOR TO SYNC (TOTAL CARRIERS WITH GAPS: 14) ===
+  legacy seed / Step A-E pipelines                       : 14 carriers
+
+=== EXPLANATION: WHY QUALIFIED WENT FROM 78 TO 228 ===
+Prior to Workstream Q2, the stored carrier pool had 78 QUALIFIED carriers (N9e baseline).
+Workstream Q2 ingested the top 150 candidates from the census_candidates reservoir into companies.
+Every candidate in the reservoir satisfied the 3 mandatory N9b qualification criteria:
+  1. Motus Property Authority: op_auth_status = 'Active' (verified via SODA endpoint inys-ebih)
+  2. BIPD Insurance on file:   bipd_file >= $750,000 (verified via SODA endpoint inys-ebih)
+  3. Contact presence:         valid telephone or email present from FMCSA census (az4n-8mr2)
+Of the 150 ingested Q2 carriers, 149 passed all ICP rules (1 routed to NEEDS_REVIEW_ICP for towing keyword).
+Additionally, Q8 public registries and referral intake added 5 verified leads (3 manual CSV + 2 referrals).
+Evidence from database breakdown of the 228 QUALIFIED carriers:
+  - fmcsa_official           : 149 leads
+  - fmcsa_carrier_census     : 73 leads
+  - manual_csv               : 3 leads
+  - referral                 : 2 leads
+  - fmcsa_safer              : 1 leads
+  SUM TOTAL = 74 (clean census pool) + 149 (Q2 reservoir) + 3 (manual CSV) + 2 (referral) = 228.
