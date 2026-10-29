@@ -547,4 +547,49 @@ class CandidateWatchlist(Base):
     created_at = Column(DateTime, default=utc_now)
 
 
+class CensusCandidate(Base):
+    """
+    Q1: Reservoir staging table for licensing-first discovery candidates.
+    Stores pre-filtered, verified candidates from inys-ebih (Motus master) joined with az4n-8mr2 (Census).
+    Isolated from companies table until on-demand ingestion (Q2).
+    """
+    __tablename__ = "census_candidates"
+
+    usdot = Column(String(50), primary_key=True)
+    docket = Column(String(50), nullable=True, index=True)
+    legal_name = Column(String(255), nullable=True)
+    dba_name = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
+    phone_e164 = Column(String(50), nullable=True)
+    email = Column(String(255), nullable=True)
+    email_role_tier = Column(String(50), nullable=True)
+    officer_name = Column(String(255), nullable=True)
+    phy_street = Column(String(255), nullable=True)
+    phy_city = Column(String(100), nullable=True)
+    phy_state = Column(String(10), nullable=True, index=True)
+    phy_zip = Column(String(20), nullable=True)
+    power_units = Column(Integer, nullable=True)
+    total_drivers = Column(Integer, nullable=True)
+    carrier_operation = Column(String(50), nullable=True)
+    classdef = Column(String(100), nullable=True)
+    op_auth_type = Column(String(100), nullable=True)
+    op_auth_status = Column(String(50), nullable=True)
+    bipd_file = Column(Float, nullable=True)
+    mcs150_date = Column(String(20), nullable=True)
+    hazmat_carrier = Column(Boolean, default=False)
+    cargo_classes = Column(JSON, default=list)
+    equipment_class = Column(String(50), nullable=True)
+    fleet_band = Column(String(20), nullable=True)
+    contactability_score = Column(Float, default=0.0)
+    fit_score = Column(Float, default=0.0)
+    composite_rank_score = Column(Float, default=0.0)
+    prefilter_status = Column(String(50), default="PASS")
+    prefilter_reason = Column(String(255), nullable=True)
+    is_ingested = Column(Boolean, default=False, index=True)
+    ingested_at = Column(DateTime, nullable=True)
+    checksum = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now)
+
+
 
