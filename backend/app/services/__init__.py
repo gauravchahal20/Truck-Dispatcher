@@ -8,6 +8,7 @@ from .sheets_service import GoogleSheetsService, sheets_service
 from .compliance import ComplianceService
 from .census_paging_service import CensusPagingService
 from .activity_signals_service import ActivitySignalsService
+from .free_contact_enricher import FreeContactEnricherService
 
 __all__ = [
     "Normalizer",
@@ -21,4 +22,5 @@ __all__ = [
     "ComplianceService",
     "CensusPagingService",
     "ActivitySignalsService",
+    "FreeContactEnricherService",
 ]
