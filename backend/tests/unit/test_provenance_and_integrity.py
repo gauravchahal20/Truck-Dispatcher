@@ -403,7 +403,7 @@ def test_k2_provenance_method_and_official_share(session_fixture_db):
           AND field_provenance LIKE '%"method": "official"%'
           AND field_provenance NOT LIKE '%usdotlookup.com%'
     """).fetchone()[0]
-    assert official_cnt in (217, 242)  # 217 carriers post-Q2 (67 + 150), 242 post-Q4 (+25 pending)
+    assert official_cnt in (217, 242, 392)  # 217 carriers post-Q2 (67 + 150), 242 post-Q4 (+25 pending), 392 post-scaled ingestion
 
     # Assert carriers without census match are flagged needs_reverification = 1 (56 total)
     unmatched_flagged = cur.execute("""

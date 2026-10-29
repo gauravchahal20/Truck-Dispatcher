@@ -6,9 +6,10 @@ from datetime import datetime, timezone
 from sqlalchemy import select, and_, or_, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.entities import Company, Contact, IntentSignal, LeadScore, CensusCandidate, LeadStatusHistory
+from ..models.entities import Company, Contact, IntentSignal, LeadScore, CensusCandidate, LeadStatusHistory, VerificationRecord, SourceRecord
 from ..services.lead_scorer import LeadScorer
 from ..services.normalizer import Normalizer
+from ..services.verifier import Verifier
 from ..core.config import config
 
 logger = logging.getLogger("trucklead.reservoir_service")
@@ -251,6 +252,42 @@ class ReservoirService:
             company.fit_score = score_obj.fit_score
             company.intent_score = score_obj.intent_score
             company.priority = assigned_tier
+
+            # Attach LeadScore entity record
+            lead_score_entry = LeadScore(
+                company_id=comp_id,
+                total_score=score_obj.total_score,
+                fit_score=score_obj.fit_score,
+                intent_score=score_obj.intent_score,
+                priority=assigned_tier,
+                scoring_version="2.0",
+                target_fleet_size_score=score_obj.target_fleet_size_score,
+                verified_active_carrier_score=score_obj.verified_active_carrier_score,
+                decision_maker_score=score_obj.decision_maker_score,
+                equipment_verified_score=score_obj.equipment_verified_score,
+                usable_contact_score=score_obj.usable_contact_score,
+                intent_signal_score=score_obj.intent_signal_score,
+                tech_business_event_score=score_obj.tech_business_event_score
+            )
+            company.lead_score_detail = lead_score_entry
+
+            # Attach Source Record
+            src_record = SourceRecord(
+                company_id=comp_id,
+                source_name="fmcsa_official",
+                source_url=src_url,
+                raw_payload={"usdot": dot_clean, "source": "inys-ebih", "census": "az4n-8mr2"},
+                extraction_confidence=1.0,
+                discovered_at=now
+            )
+            company.sources.append(src_record)
+
+            # Generate 10-step Verification Records
+            v_status, v_conf, v_recs, v_reason = Verifier.verify_company(company)
+            company.verification_status = v_status
+            company.verification_confidence = v_conf
+            company.verification_date = now
+            company.verification_records = v_recs
 
             # Status history audit
             hist = LeadStatusHistory(

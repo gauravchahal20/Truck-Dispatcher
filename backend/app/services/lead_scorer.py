@@ -292,7 +292,7 @@ class LeadScorer:
         # M3 rule: Priority NONE for REJECTED, NOT_ICP, NEEDS_REVIEW_ICP and ARCHIVED leads
         current_st = getattr(company, "lead_status", None)
         is_non_priority_status = (
-            current_st in ("REJECTED", "NOT_ICP", "NEEDS_REVIEW_ICP", "ARCHIVED_NO_CONTACT", "ARCHIVED") or
+            current_st in ("REJECTED", "NOT_ICP", "NEEDS_REVIEW_ICP", "NEEDS_REVIEW", "ARCHIVED_NO_CONTACT", "ARCHIVED") or
             (current_st and current_st.startswith("ARCHIVED")) or
             icp_status in ("NOT_ICP", "NEEDS_REVIEW_ICP")
         )
