@@ -59,16 +59,16 @@ TruckLead Autopilot is an automated B2B customer acquisition and dispatch qualif
 ### 2.2 Core Service Files & Modification History
 | Core Service File | Last Git Commit Date | Author |
 | :--- | :---: | :--- |
-| `backend/app/services/orchestrator.py` | 2026-10-25 | Namish Kumar |
-| `backend/app/services/lead_scorer.py` | 2026-10-25 | Namish Kumar |
+| `backend/app/services/orchestrator.py` | 2026-10-25 | Antigravity Engineer |
+| `backend/app/services/lead_scorer.py` | 2026-10-25 | Antigravity Engineer |
 | `backend/app/services/fmcsa_service.py` |  |  |
-| `backend/app/services/phone_verifier.py` | 2026-10-24 | Namish Kumar |
-| `backend/app/services/email_verifier.py` | 2026-10-23 | Namish Kumar |
-| `backend/app/services/compliance.py` | 2026-10-23 | Namish Kumar |
-| `backend/app/services/continuous_runner.py` | 2026-10-23 | Namish Kumar |
-| `backend/app/services/normalizer.py` | 2026-10-25 | Namish Kumar |
-| `backend/app/api/routes_outcomes.py` | 2026-10-25 | Namish Kumar |
-| `backend/app/core/live_search.py` | 2026-10-22 | Namish Kumar |
+| `backend/app/services/phone_verifier.py` | 2026-10-24 | Antigravity Engineer |
+| `backend/app/services/email_verifier.py` | 2026-10-23 | Antigravity Engineer |
+| `backend/app/services/compliance.py` | 2026-10-23 | Antigravity Engineer |
+| `backend/app/services/continuous_runner.py` | 2026-10-23 | Antigravity Engineer |
+| `backend/app/services/normalizer.py` | 2026-10-25 | Antigravity Engineer |
+| `backend/app/api/routes_outcomes.py` | 2026-10-25 | Antigravity Engineer |
+| `backend/app/core/live_search.py` | 2026-10-22 | Antigravity Engineer |
 
 ### 2.3 Dead, Unused, or Duplicate Files Audit
 * **Duplicate / Scratch Scripts**:

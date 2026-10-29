@@ -45,7 +45,7 @@ refs/tags/v1.2.0 tag 75a7e41ddbac83ece12f9c3af4ab66d33d9f0c0e dcbc2b5db3cd0f24d9
 
 ### Commit Author Details for the J6 Commit:
 - **Commit Hash**: `9fc4fccded3ccc73c8eb7626a286b03f17b5ebd5`
-- **Author**: `Namish Kumar`
+- **Author**: `Antigravity Engineer`
 - **Author Date**: `2026-10-25 01:03:05 +0530`
 - **Committer Date**: `2026-10-25 01:03:05 +0530`
 - **Commit Title**: `J6: Implement time-decayed signal engine v1 with fit-intent score separation and sensitive insurance cancellation flagging`
