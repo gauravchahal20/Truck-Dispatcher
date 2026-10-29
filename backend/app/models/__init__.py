@@ -9,7 +9,9 @@ from .entities import (
     LeadStatusHistory,
     ErrorLog,
     CensusCandidate,
-    ChangeLog
+    ChangeLog,
+    CensusFleetSnapshot,
+    FMCSAInspection
 )
 
 __all__ = [
@@ -23,5 +25,7 @@ __all__ = [
     "LeadStatusHistory",
     "ErrorLog",
     "CensusCandidate",
-    "ChangeLog"
+    "ChangeLog",
+    "CensusFleetSnapshot",
+    "FMCSAInspection"
 ]

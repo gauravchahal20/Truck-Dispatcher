@@ -1,0 +1,34 @@
+=== WORKSTREAM Q6: ACTIVITY & GROWTH SIGNALS (P4 & P5) EVIDENCE ===
+Timestamp: 2026-10-29T14:43:35.738195+00:00
+
+1. Monthly Census Fleet Growth Snapshot (P4):
+  - Snapshot Table:                    census_fleet_snapshots
+  - Active Snapshot Month:             2026-10
+  - Total Carrier Entities Evaluated:  1510
+  - Snapshots Created:                 1510
+  - Cumulative Snapshots in Database:  1510
+  - Fleet Growth Signals Generated:    0
+  - Total POWER_UNITS_GROWTH Signals:  0
+
+2. Commercial Vehicle Inspections (fx4q-ay7w) (P5):
+  - Inspection SODA Resource Endpoint: https://data.transportation.gov/resource/fx4q-ay7w.json
+  - Carrier Pool Sample Evaluated:     185
+  - Inspections Found (Last 12mo):     275
+  - Inspections Cached in Mirror:      275
+  - Cumulative Inspections in Mirror:  275
+  - Reservoir Candidates Enriched:     74
+  - Clean Inspection Signals Emitted:  1
+  - Total CLEAN_INSPECTION Signals:    1
+  - Policy Rules Enforced:
+      * Unknown inspection history:    CLEAN / NOT REJECTED (unknown is never a rejection)
+      * Violation data:                INTERNAL ONLY (never used in outreach messaging)
+
+3. Sample Clean Inspection Carriers (Activity Evidence):
+USDOT      | Inspections (12m)  | Last Inspection  | OOS Violations 
+----------------------------------------------------------------------
+2252252    | 1                  | 20260910         | 0              
+
+4. Spend & External Requests:
+  - Total Spend: $0.00 (FREE-ONLY federal SODA API)
+  - Hosts Contacted: data.transportation.gov
+

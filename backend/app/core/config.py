@@ -212,6 +212,7 @@ class SignalHalfLifeConfig(BaseModel):
     power_units_growth: float = 90.0
     generic_intent: float = 30.0
     pending_authority: float = 90.0
+    clean_inspection: float = 90.0
 
 
 class SignalWeightsConfig(BaseModel):
@@ -222,6 +223,7 @@ class SignalWeightsConfig(BaseModel):
     generic_intent: float = 1.0
     new_usdot_registration: float = 0.5
     pending_authority: float = 0.5
+    clean_inspection: float = 0.5
 
 
 class SignalWindowConfig(BaseModel):

@@ -268,8 +268,10 @@ class SignalEngine:
                 w = getattr(weights_cfg, "insurance_cancel_pending", 1.5)
             elif "MCS150" in sig_type:
                 w = getattr(weights_cfg, "mcs150_recent_update", 1.0)
-            elif "POWER_UNITS" in sig_type or "EXPANSION" in sig_type:
+            elif "POWER_UNITS" in sig_type or "EXPANSION" in sig_type or "GROWTH" in sig_type:
                 w = getattr(weights_cfg, "power_units_growth", 1.5)
+            elif "CLEAN_INSPECTION" in sig_type or "INSPECTION" in sig_type:
+                w = getattr(weights_cfg, "clean_inspection", 0.5)
             else:
                 w = getattr(weights_cfg, "generic_intent", 1.0)
 

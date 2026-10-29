@@ -333,12 +333,14 @@ signals:
       generic_intent: 30
       new_usdot_registration: 60
       pending_authority: 90
+      clean_inspection: 90
     weights:
       new_authority: 2.0
       insurance_cancel_pending: 1.5
       mcs150_recent_update: 0.5 # Small capped weight for recent updates within 60 days
       new_usdot_registration: 0.5 # Small config weight for fresh registrations
       pending_authority: 0.5 # Small weight for pending authority applications
+      clean_inspection: 0.5 # Small weight for clean roadside inspection activity
       power_units_growth: 1.5
       generic_intent: 1.0
     new_authority_window:

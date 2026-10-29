@@ -23,6 +23,7 @@
 | `2emp-mxtb` | **BOC3 - All With History** | `https://data.transportation.gov/resource/2emp-mxtb.json` | **Process Agent Filings** (Designation of process agents in all 50 states). | Daily | 2026-10-22 | `DOT_NUMBER`, `DOCKET_NUMBER`, `PROCESS_AGENT_NAME`, `FILED_DATE` |
 | `e67p-xyd5` | **Motus RevokeSuspend (Active Revocations)** | `https://data.transportation.gov/resource/e67p-xyd5.json` | **Real-Time Revocation Screening** (Hard suppression filter for revoked operating authorities). | Daily | 2026-10-22 | `USDOT_NUMBER`, `DOCKET_NUMBER`, `OP_AUTH_TYPE`, `ORDER1_SERVE_DATE`, `ORDER1_TYPE_DESC` |
 | `p2mt-9ige` | **OUT OF SERVICE ORDERS** | `https://data.transportation.gov/resource/p2mt-9ige.json` | **Federal Safety Out-of-Service Screening** (Disqualifies carriers under active federal OOS orders). | Weekly | 2026-10-22 | `DOT_NUMBER`, `LEGAL_NAME`, `DBA_NAME`, `OOS_DATE`, `OOS_REASON`, `STATUS`, `RESCIND_DATE` |
+| `fx4q-ay7w` | **Vehicle Inspection File** | `https://data.transportation.gov/resource/fx4q-ay7w.json` | **Commercial Vehicle Inspection & Activity Records** (Tracks roadside inspections, clean activity, and violation totals for carriers). | Monthly | 2026-10-29 | `DOT_NUMBER`, `INSP_DATE`, `REPORT_STATE`, `INSP_LEVEL_ID`, `VIOL_TOTAL`, `OOS_TOTAL`, `DRIVER_VIOL_TOTAL`, `VEHICLE_VIOL_TOTAL` |
 
 ---
 

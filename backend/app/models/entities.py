@@ -139,6 +139,11 @@ class Company(Base):
     hazmat_carrier = Column(Boolean, default=False, index=True)
     phone_region_mismatch = Column(Boolean, default=False, index=True)
 
+    # Q6 Activity & Inspection Signals
+    inspections_12m = Column(Integer, default=0)
+    last_inspection_date = Column(String(50), nullable=True)
+    internal_violations_count = Column(Integer, default=0)
+
     # Lead Lifecycle Status
     lead_status = Column(String(50), nullable=False, default="RAW", index=True)
     # Statuses: RAW, RESEARCHING, VERIFIED, ENRICHED, QUALIFIED, FINAL, REJECTED, NEEDS_REVIEW
@@ -583,6 +588,9 @@ class CensusCandidate(Base):
     contactability_score = Column(Float, default=0.0)
     fit_score = Column(Float, default=0.0)
     composite_rank_score = Column(Float, default=0.0)
+    inspections_12m = Column(Integer, default=0)
+    last_inspection_date = Column(String(50), nullable=True)
+    internal_violations_count = Column(Integer, default=0)
     prefilter_status = Column(String(50), default="PASS")
     prefilter_reason = Column(String(255), nullable=True)
     is_ingested = Column(Boolean, default=False, index=True)
@@ -613,5 +621,39 @@ class ChangeLog(Base):
 
     company = relationship("Company")
 
+class CensusFleetSnapshot(Base):
+    """
+    Q6 / P4: Monthly census snapshot table for tracking fleet growth.
+    Stores monthly power units and driver counts to detect expansion signals.
+    """
+    __tablename__ = "census_fleet_snapshots"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    usdot = Column(String(50), nullable=False, index=True)
+    power_units = Column(Integer, nullable=True)
+    total_drivers = Column(Integer, nullable=True)
+    snapshot_date = Column(String(50), nullable=False, index=True)  # YYYY-MM
+    created_at = Column(DateTime, default=utc_now)
 
 
+class FMCSAInspection(Base):
+    """
+    Q6 / P5: Local cache of FMCSA commercial vehicle inspections (SODA fx4q-ay7w).
+    Tracks inspection dates, levels, and violation counts for reservoir candidates.
+    Violation details remain strictly internal and are never used in outreach.
+    """
+    __tablename__ = "fmcsa_inspections"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    inspection_id = Column(String(50), nullable=True, unique=True, index=True)
+    dot_number = Column(String(50), nullable=False, index=True)
+    insp_date = Column(String(50), nullable=True, index=True)
+    report_state = Column(String(10), nullable=True)
+    insp_level_id = Column(String(10), nullable=True)
+    viol_total = Column(Integer, default=0)
+    oos_total = Column(Integer, default=0)
+    driver_viol_total = Column(Integer, default=0)
+    vehicle_viol_total = Column(Integer, default=0)
+    hazmat_viol_total = Column(Integer, default=0)
+    raw_checksum = Column(String(64), nullable=True)
+    synced_at = Column(DateTime, default=utc_now)
