@@ -201,6 +201,24 @@ class SignalEngine:
                 "is_sensitive": False
             })
 
+        # 6. PENDING_AUTHORITY (Form OP-1 application pending; not yet operating)
+        if getattr(company, "segment", None) == "pending_authority" or "not yet operating" in notes:
+            detected.append({
+                "signal_type": "PENDING_AUTHORITY",
+                "title": "Pending Operating Authority Application",
+                "description": "Carrier filed Form OP-1 operating authority application awaiting grant (not yet operating).",
+                "source_url": "https://data.transportation.gov/resource/inys-ebih",
+                "confidence": 0.85,
+                "strength": 1.0,
+                "observed_at": now,
+                "half_life_days": getattr(hl_cfg, "pending_authority", 90.0),
+                "evidence": {
+                    "dataset_id": "inys-ebih",
+                    "row_reference": {"dot_number": company.usdot, "segment": "pending_authority", "flag": "not yet operating"}
+                },
+                "is_sensitive": False
+            })
+
         return detected
 
     @classmethod
@@ -244,6 +262,8 @@ class SignalEngine:
                 w = getattr(weights_cfg, "new_authority", 2.0)
             elif "NEW_USDOT_REGISTRATION" in sig_type or "REGISTRATION" in sig_type:
                 w = getattr(weights_cfg, "new_usdot_registration", 0.5)
+            elif "PENDING_AUTHORITY" in sig_type or "PENDING" in sig_type:
+                w = getattr(weights_cfg, "pending_authority", 0.5)
             elif "INSURANCE_CANCEL" in sig_type:
                 w = getattr(weights_cfg, "insurance_cancel_pending", 1.5)
             elif "MCS150" in sig_type:

@@ -1,0 +1,44 @@
+=== WORKSTREAM Q4: PENDING APPLICATIONS (P3) EVIDENCE ===
+Timestamp: 2026-10-29T14:26:38.185926+00:00
+
+1. Discovery & Ingestion Funnel Metrics:
+  - Motus Pending Property Rows Scanned (inys-ebih): 100
+  - Non-Rejected Candidates (clean in 96tg-4mhf):    100
+  - Joined to Census File (az4n-8mr2):               99
+  - Passed ICP Filters (fleet 2-10, interstate):     27
+  - Net-New Unique Candidates (after dedup):         27
+  - Ingested Candidates (segment='pending_authority'): 25
+
+2. Database Totals Post-Q4:
+  - Total Carrier Pool:                             493 (was 468)
+  - Stored Carriers with Pending Authority:         135 (was 110)
+  - Total Carriers in 'pending_authority' Segment:  25
+  - PENDING_AUTHORITY Intent Signals Attached:       25
+
+3. Ingested Pending Authority Candidates (Sample):
+USDOT      | Docket      | Fleet | State | Lead Status      | Authority | Flag / Notes
+-----------------------------------------------------------------------------------------------
+9999980    | MC94072228  | 2     | CA    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9999675    | MC59322851  | 2     | TX    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9998275    | MC83978766  | 6     | AZ    | NEEDS_REVIEW_ICP | PENDING   | not yet operating
+9997232    | MC54321011  | 2     | IL    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9996889    | MC70783294  | 2     | FL    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9996844    | MC75960685  | 9     | IL    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9996443    | MC83331847  | 2     | PA    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9994842    | MC90456419  | 4     | OH    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9993454    | MC97220535  | 2     | NJ    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9993302    | MC88980362  | 2     | TX    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9993049    | MC89417133  | 2     | NY    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9992849    | MC48413617  | 2     | FL    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9991732    | MC76378201  | 2     | TX    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9989812    | MC66139446  | 2     | GA    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+9988448    | MC61403744  | 2     | TX    | NEEDS_ENRICHMENT | PENDING   | not yet operating
+
+4. Q3 Change Monitor Integration:
+  - Stored Pending Carriers Scanned by Q3:          260
+  - Recurring Weekly Recheck Active:                 True (rechecked weekly under operator control)
+
+5. Spend & External Requests:
+  - Total Spend: $0.00 (FREE-ONLY federal SODA API)
+  - Hosts Contacted: data.transportation.gov
+

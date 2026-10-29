@@ -211,6 +211,7 @@ class SignalHalfLifeConfig(BaseModel):
     mcs150_recent_update: float = 60.0
     power_units_growth: float = 90.0
     generic_intent: float = 30.0
+    pending_authority: float = 90.0
 
 
 class SignalWeightsConfig(BaseModel):
@@ -219,6 +220,8 @@ class SignalWeightsConfig(BaseModel):
     mcs150_recent_update: float = 0.5
     power_units_growth: float = 1.5
     generic_intent: float = 1.0
+    new_usdot_registration: float = 0.5
+    pending_authority: float = 0.5
 
 
 class SignalWindowConfig(BaseModel):
