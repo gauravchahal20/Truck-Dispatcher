@@ -1,0 +1,43 @@
+=== WORKSTREAM R5: BACKUPS AND ROTATION AUDIT ===
+
+Fresh Backup Created: trucklead_20261029_170018.db
+Size:                 8,937,472 bytes
+SHA-256 Checksum:     EF9582DF8C1A4BD69CA3E5A90181A2F30377D02B4D5DBAA158944BBC8EB62046
+
+=== BACKUPS FOLDER LISTING ===
+  trucklead.db.bak_stepA                        | Size:  2,875,392 bytes | SHA-256: 83CD3799B771C1EEB8BB8D1D5767AE99ACAC6669054C37E15398926466077505
+  trucklead.db.bak_stepA-shm                    | Size:     32,768 bytes | SHA-256: N/A
+  trucklead.db.bak_stepA-wal                    | Size:          0 bytes | SHA-256: N/A
+  trucklead.db.bak_stepE                        | Size:  3,481,600 bytes | SHA-256: B91E3E6B16B9D7DA2D231E34114D25A96F6A05134CC7E06E7AA0AC64D60B9925
+  trucklead.db.bak_stepE-shm                    | Size:     32,768 bytes | SHA-256: N/A
+  trucklead.db.bak_stepE-wal                    | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_152830.db                  | Size:  7,151,616 bytes | SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+  trucklead_20261029_152830.db-shm              | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_152830.db-wal              | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_165046.db                  | Size:  7,151,616 bytes | SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+  trucklead_20261029_165046.db-shm              | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_165046.db-wal              | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_165157.db                  | Size:  7,151,616 bytes | SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+  trucklead_20261029_165157.db-shm              | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_165157.db-wal              | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_165222.db                  | Size:  7,151,616 bytes | SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+  trucklead_20261029_165222.db-shm              | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_165222.db-wal              | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_165249.db                  | Size:  7,151,616 bytes | SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+  trucklead_20261029_165249.db-shm              | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_165249.db-wal              | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_165505.db                  | Size:  8,937,472 bytes | SHA-256: BDF49C2D48D5CBD6C0B6177DFA7DB709DD52CA9AB12509086066F13E428BF16F
+  trucklead_20261029_165505.db-shm              | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_165505.db-wal              | Size:          0 bytes | SHA-256: N/A
+  trucklead_20261029_170018.db                  | Size:  8,937,472 bytes | SHA-256: EF9582DF8C1A4BD69CA3E5A90181A2F30377D02B4D5DBAA158944BBC8EB62046
+  trucklead_20261029_205450_before_restore.db   | Size:  7,151,616 bytes | SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+  trucklead_20261029_205450_before_restore.db-shm | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_20261029_205450_before_restore.db-wal | Size:          0 bytes | SHA-256: N/A
+  trucklead_backup_pre_cleanup.db               | Size:  3,559,424 bytes | SHA-256: A99677EF8FC2A359CCF95BE837905B3AD3A4140DE934B5AECA78D36A1665A6AE
+  trucklead_backup_pre_cleanup.db-shm           | Size:     32,768 bytes | SHA-256: N/A
+  trucklead_backup_pre_cleanup.db-wal           | Size:          0 bytes | SHA-256: N/A
+
+=== ROTATION POLICY VERIFICATION ===
+Pattern enforced: ^trucklead_\d{8}_\d{6}\.db$
+Protected patterns preserved: before_restore, pre_cleanup, bak_, manual_export
+Test file: backend/tests/unit/test_backup_rotation_r5.py (PASSED)
