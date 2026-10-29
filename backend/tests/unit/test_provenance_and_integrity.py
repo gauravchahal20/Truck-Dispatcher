@@ -355,7 +355,7 @@ def test_provenance_validation_official_scraped_require_url_and_timestamp():
     })
 
 
-def test_k2_provenance_method_and_official_share():
+def test_k2_provenance_method_and_official_share(session_fixture_db):
     """
     K2: Verifies that usdotlookup.com sources are strictly classified as 'scraped',
     true official share is computed by provenance method (not adapter name),
@@ -384,35 +384,33 @@ def test_k2_provenance_method_and_official_share():
     # 3. Database verification on stored carrier pool
     import sqlite3
     from pathlib import Path
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if db_path.is_file():
-        conn = sqlite3.connect(str(db_path))
-        cur = conn.cursor()
+    conn = sqlite3.connect(str(session_fixture_db))
+    cur = conn.cursor()
 
-        # Assert no usdotlookup record has method 'official'
-        usdotlookup_official_cnt = cur.execute("""
-            SELECT COUNT(*) FROM companies
-            WHERE lead_type = 'CARRIER'
-              AND field_provenance LIKE '%usdotlookup.com%'
-              AND field_provenance LIKE '%"method": "official"%'
-        """).fetchone()[0]
-        assert usdotlookup_official_cnt == 0, f"Found {usdotlookup_official_cnt} usdotlookup leads with method='official'"
+    # Assert no usdotlookup record has method 'official'
+    usdotlookup_official_cnt = cur.execute("""
+        SELECT COUNT(*) FROM companies
+        WHERE lead_type = 'CARRIER'
+          AND field_provenance LIKE '%usdotlookup.com%'
+          AND field_provenance LIKE '%"method": "official"%'
+    """).fetchone()[0]
+    assert usdotlookup_official_cnt == 0, f"Found {usdotlookup_official_cnt} usdotlookup leads with method='official'"
 
-        # Assert true official share is 217 / 468 post-Q2 (was 67 / 318)
-        official_cnt = cur.execute("""
-            SELECT COUNT(*) FROM companies
-            WHERE lead_type = 'CARRIER'
-              AND field_provenance LIKE '%"method": "official"%'
-              AND field_provenance NOT LIKE '%usdotlookup.com%'
-        """).fetchone()[0]
-        assert official_cnt in (217, 242)  # 217 carriers post-Q2 (67 + 150), 242 post-Q4 (+25 pending)
+    # Assert true official share is 217 / 468 post-Q2 (was 67 / 318)
+    official_cnt = cur.execute("""
+        SELECT COUNT(*) FROM companies
+        WHERE lead_type = 'CARRIER'
+          AND field_provenance LIKE '%"method": "official"%'
+          AND field_provenance NOT LIKE '%usdotlookup.com%'
+    """).fetchone()[0]
+    assert official_cnt in (217, 242)  # 217 carriers post-Q2 (67 + 150), 242 post-Q4 (+25 pending)
 
-        # Assert carriers without census match are flagged needs_reverification = 1 (56 total)
-        unmatched_flagged = cur.execute("""
-            SELECT COUNT(*) FROM companies
-            WHERE lead_type = 'CARRIER' AND needs_reverification = 1
-        """).fetchone()[0]
-        assert unmatched_flagged == 56
+    # Assert carriers without census match are flagged needs_reverification = 1 (56 total)
+    unmatched_flagged = cur.execute("""
+        SELECT COUNT(*) FROM companies
+        WHERE lead_type = 'CARRIER' AND needs_reverification = 1
+    """).fetchone()[0]
+    assert unmatched_flagged == 56
 
-        conn.close()
+    conn.close()
 

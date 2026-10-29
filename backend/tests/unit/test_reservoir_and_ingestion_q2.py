@@ -23,7 +23,7 @@ def test_q2_icp_widening_configuration():
     assert widening.fleet_11_15_mid_size.priority_weight == 0.7
 
 
-def test_q2_reservoir_ingestion_and_provenance_integrity():
+def test_q2_reservoir_ingestion_and_provenance_integrity(session_fixture_db):
     """
     Q2: Verifies that:
     1. Exactly 150 reservoir candidates were ingested into companies.
@@ -31,11 +31,7 @@ def test_q2_reservoir_ingestion_and_provenance_integrity():
     3. Stored total carrier pool is >= 468 carriers.
     4. Dedup prevented redundant companies insertions.
     """
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if not db_path.is_file():
-        pytest.skip("trucklead.db not found")
-
-    con = sqlite3.connect(str(db_path))
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
 
     # 1. Total carriers post-ingestion

@@ -719,7 +719,7 @@ def test_k3_scoring_rules_priority_and_officer_corroboration():
     assert priority_low != "REJECTED"
 
 
-def test_l2g_unified_sql_histogram_and_tier_agreement():
+def test_l2g_unified_sql_histogram_and_tier_agreement(session_fixture_db):
     """
     L2g: Verifies restored thresholds (A >= 8.0, B 6.0-7.9, C 5.0-5.9, Reject < 5.0),
     and validates that a single unified SQL query produces both the score histogram
@@ -735,12 +735,8 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     assert th.priority_c_min == 5.0
     assert th.reject_below == 5.0
 
-    # 2. Run Unified SQL Query on trucklead.db
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if not db_path.is_file():
-        pytest.skip("trucklead.db not found")
-
-    con = sqlite3.connect(str(db_path))
+    # 2. Run Unified SQL Query on isolated test fixture
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
 
     unified_query = """
@@ -810,7 +806,7 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     con.close()
 
 
-def test_m3_priority_none_for_non_qualified_leads():
+def test_m3_priority_none_for_non_qualified_leads(session_fixture_db):
     """
     M3: Verifies that REJECTED, NOT_ICP, NEEDS_REVIEW_ICP, and ARCHIVED leads
     strictly receive priority = 'NONE'.
@@ -835,22 +831,20 @@ def test_m3_priority_none_for_non_qualified_leads():
         assert priority == "NONE", f"Expected priority NONE for status {st}, got {priority}"
         assert score_obj.priority == "NONE"
 
-    # 2. Database Integrity Test across all companies in trucklead.db
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if db_path.is_file():
-        con = sqlite3.connect(str(db_path))
-        cur = con.cursor()
-        invalid_leads = cur.execute("""
-            SELECT id, company_name, lead_status, priority
-            FROM companies
-            WHERE (
-                lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT')
-                OR lead_status LIKE 'ARCHIVED%'
-            )
-            AND priority != 'NONE'
-        """).fetchall()
-        con.close()
-        assert len(invalid_leads) == 0, f"Found {len(invalid_leads)} non-qualified leads with priority != NONE: {invalid_leads}"
+    # 2. Database Integrity Test across all companies in isolated test fixture
+    con = sqlite3.connect(str(session_fixture_db))
+    cur = con.cursor()
+    invalid_leads = cur.execute("""
+        SELECT id, company_name, lead_status, priority
+        FROM companies
+        WHERE (
+            lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT')
+            OR lead_status LIKE 'ARCHIVED%'
+        )
+        AND priority != 'NONE'
+    """).fetchall()
+    con.close()
+    assert len(invalid_leads) == 0, f"Found {len(invalid_leads)} non-qualified leads with priority != NONE: {invalid_leads}"
 
 
 

@@ -3,18 +3,15 @@ from pathlib import Path
 import pytest
 from app.models.entities import CandidateWatchlist, Company
 
-def test_m5_candidate_watchlist_isolation_and_schema():
+
+def test_m5_candidate_watchlist_isolation_and_schema(session_fixture_db):
     """
     M5: Reference Watchlist Integrity & Boundary Test:
     - 23 candidates are stored in candidate_watchlist table with full census & motus fields.
     - Zero contamination of companies (lead pool remains 119 carriers, 90 archived shippers).
     - Watchlist records are excluded from scoring, exports, and outreach.
     """
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if not db_path.is_file():
-        pytest.skip("trucklead.db not found")
-
-    con = sqlite3.connect(str(db_path))
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
 
     # 1. Verify candidate_watchlist count for original M5 reference candidates

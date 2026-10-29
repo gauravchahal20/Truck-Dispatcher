@@ -5,15 +5,11 @@ from backend.app.services.change_monitor_service import ChangeMonitorService
 from backend.app.models.entities import ChangeLog, IntentSignal
 
 
-def test_q3_change_log_schema_and_persistence():
+def test_q3_change_log_schema_and_persistence(session_fixture_db):
     """
     Q3: Verifies that change_logs table exists and stores transitions detected by the monitor.
     """
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if not db_path.is_file():
-        pytest.skip("trucklead.db not found")
-
-    con = sqlite3.connect(str(db_path))
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
 
     # 1. Verify change_logs table exists and has entries
@@ -57,4 +53,3 @@ def test_q3_sensitive_insurance_cancel_handling():
     )
     assert signal.is_sensitive is True
     assert signal.half_life_days == 14.0
-

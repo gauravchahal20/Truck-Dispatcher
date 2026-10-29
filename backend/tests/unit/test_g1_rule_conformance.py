@@ -4,10 +4,6 @@ from pathlib import Path
 from app.api.routes_outcomes import compute_contact_confidence
 from app.services.email_verifier import EmailVerifier
 
-from app.core.config import PROJECT_ROOT
-
-DB_PATH = PROJECT_ROOT / "data" / "trucklead.db"
-
 
 def test_format_only_phone_never_ready_high():
     """Asserts that format-only phone is never assigned ready-HIGH confidence."""
@@ -23,12 +19,9 @@ def test_format_only_phone_never_ready_high():
 
 
 @pytest.mark.live
-def test_rejected_only_for_hard_gates():
+def test_rejected_only_for_hard_gates(session_fixture_db):
     """Regression test: REJECTED status is strictly reserved for hard gates; low score => NEEDS_ENRICHMENT."""
-    if not DB_PATH.is_file():
-        pytest.skip("trucklead.db not found for live db validation")
-
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(str(session_fixture_db))
     c = conn.cursor()
 
     # Query all rejected leads
@@ -66,18 +59,14 @@ def test_rejected_only_for_hard_gates():
           AND lead_status NOT IN ('NEEDS_ENRICHMENT', 'NOT_ICP')
     """).fetchone()[0]
 
-
     assert low_score_clean == 0, f"Found {low_score_clean} low-score leads outside NEEDS_ENRICHMENT"
     conn.close()
 
 
 @pytest.mark.live
-def test_final_requires_verified_contact_or_reached():
+def test_final_requires_verified_contact_or_reached(session_fixture_db):
     """Regression test: with no providers and no outreach outcomes, FINAL must be 0."""
-    if not DB_PATH.is_file():
-        pytest.skip("trucklead.db not found")
-
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(str(session_fixture_db))
     c = conn.cursor()
 
     final_count = c.execute("SELECT COUNT(*) FROM companies WHERE lead_status = 'FINAL'").fetchone()[0]
@@ -86,7 +75,7 @@ def test_final_requires_verified_contact_or_reached():
 
 
 @pytest.mark.live
-def test_population_distributions_sum_to_totals():
+def test_population_distributions_sum_to_totals(session_fixture_db):
     """
     Asserts that every distribution across carriers and shippers
     sums exactly to its population:
@@ -96,10 +85,7 @@ def test_population_distributions_sum_to_totals():
     - contact confidence tiers
     - named-person email matching
     """
-    if not DB_PATH.is_file():
-        pytest.skip("trucklead.db not found")
-
-    conn = sqlite3.connect(str(DB_PATH))
+    conn = sqlite3.connect(str(session_fixture_db))
     c = conn.cursor()
 
     TOTAL_CARRIERS = c.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER'").fetchone()[0]
@@ -131,7 +117,6 @@ def test_population_distributions_sum_to_totals():
 
     shipper_em = dict(c.execute("SELECT email_verification_status, COUNT(*) FROM companies WHERE lead_type = 'SHIPPER' GROUP BY email_verification_status").fetchall())
     assert sum(shipper_em.values()) == TOTAL_SHIPPERS
-
 
     # 4. Confidence Tiers & Named-Person Email Matches
     rows = c.execute("""
@@ -177,4 +162,3 @@ def test_population_distributions_sum_to_totals():
     assert sum(shipper_named.values()) == TOTAL_SHIPPERS
 
     conn.close()
-

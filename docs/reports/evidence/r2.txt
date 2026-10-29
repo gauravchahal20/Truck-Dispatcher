@@ -1,0 +1,275 @@
+=== R2 TEST ISOLATION EVIDENCE ===
+Pre-Test SHA-256:  6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+Post-Test SHA-256: 6C68258E67E90AE639663E7C494804471D5A300B359551A6517E855CD12B8255
+Pre-Test Size:     7151616 bytes
+Post-Test Size:    7151616 bytes
+Integrity Status:  MATCH (100% UNCHANGED)
+
+=== TABLE ROW COUNTS BEFORE / AFTER ===
+  alembic_version: pre=1, post=1 (delta=0)
+  autopilot_run_logs: pre=0, post=0 (delta=0)
+  candidate_watchlist: pre=31, post=31 (delta=0)
+  census_candidates: pre=1182, post=1182 (delta=0)
+  census_fleet_snapshots: pre=1510, post=1510 (delta=0)
+  change_logs: pre=2, post=2 (delta=0)
+  companies: pre=588, post=588 (delta=0)
+  contacts: pre=488, post=488 (delta=0)
+  errors: pre=0, post=0 (delta=0)
+  fmcsa_authority_history: pre=42, post=42 (delta=0)
+  fmcsa_carrier_census: pre=371, post=371 (delta=0)
+  fmcsa_inspections: pre=275, post=275 (delta=0)
+  fmcsa_insurance_active_pending: pre=48, post=48 (delta=0)
+  fmcsa_motus_carrier: pre=1120, post=1120 (delta=0)
+  fmcsa_new_applications: pre=46, post=46 (delta=0)
+  intent_signals: pre=206, post=206 (delta=0)
+  lead_outcomes: pre=0, post=0 (delta=0)
+  lead_scores: pre=213, post=213 (delta=0)
+  lead_status_history: pre=1079, post=1079 (delta=0)
+  phone_verification_cache: pre=0, post=0 (delta=0)
+  runs: pre=22, post=22 (delta=0)
+  source_health_metrics: pre=2, post=2 (delta=0)
+  sources: pre=416, post=416 (delta=0)
+  suppression_list: pre=0, post=0 (delta=0)
+  verification_records: pre=3220, post=3220 (delta=0)
+
+=== WRITE CHECK ON 8 TEST FILES ===
+All 8 test files analyzed for write queries:
+  1. test_candidate_ingestion_n9e.py: SELECT only (0 writes)
+  2. test_candidate_watchlist.py: SELECT only (0 writes)
+  3. test_change_monitor_q3.py: SELECT only (0 writes)
+  4. test_g1_rule_conformance.py: SELECT only (0 writes)
+  5. test_licensing_discovery_q1.py: SELECT only (0 writes)
+  6. test_provenance_and_integrity.py: SELECT only (0 writes)
+  7. test_reservoir_and_ingestion_q2.py: SELECT only (0 writes)
+  8. test_scoring_rules.py: SELECT only (0 writes)
+
+=== PYTEST RAW OUTPUT & DURATIONS ===
+============================= test session starts =============================
+platform win32 -- Python 3.13.11, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\MSII\GENLEAD\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\MSII\GENLEAD
+configfile: pytest.ini
+testpaths: backend/tests/unit, backend/tests/integration, backend/tests/live
+plugins: anyio-4.15.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 212 items / 12 deselected / 200 selected
+
+backend/tests/unit/test_activity_signals_q6.py::test_q6_fleet_growth_snapshot_and_signal_generation PASSED [  0%]
+backend/tests/unit/test_activity_signals_q6.py::test_q6_inspections_sync_and_clean_activity_signal PASSED [  1%]
+backend/tests/unit/test_activity_signals_q6.py::test_q6_signal_engine_clean_inspection_weight PASSED [  1%]
+backend/tests/unit/test_auth.py::test_auth_outcomes_endpoint PASSED      [  2%]
+backend/tests/unit/test_auth.py::test_auth_compliance_suppress_endpoint PASSED [  2%]
+backend/tests/unit/test_auth.py::test_auth_autopilot_toggle_and_kill PASSED [  3%]
+backend/tests/unit/test_auth.py::test_auth_runs_endpoint PASSED          [  3%]
+backend/tests/unit/test_authority_gate_n3.py::test_no_li_record_does_not_reject PASSED [  4%]
+backend/tests/unit/test_authority_gate_n3.py::test_active_authority_with_full_insurance_and_score_gate PASSED [  4%]
+backend/tests/unit/test_authority_gate_n3.py::test_pending_authority_fails_active_gate PASSED [  5%]
+backend/tests/unit/test_authority_gate_n9b.py::test_n9b_authority_gate_qualified PASSED [  5%]
+backend/tests/unit/test_authority_gate_n9b.py::test_n9b_bipd_below_threshold_needs_review PASSED [  6%]
+backend/tests/unit/test_authority_gate_n9b.py::test_n9b_pending_authority_needs_enrichment PASSED [  6%]
+backend/tests/unit/test_authority_gate_n9b.py::test_n9b_missing_contacts_needs_enrichment PASSED [  7%]
+backend/tests/unit/test_authority_gate_n9b.py::test_n9b_verified_channel_reaches_final PASSED [  7%]
+backend/tests/unit/test_autopilot.py::test_autopilot_initialization PASSED [  8%]
+backend/tests/unit/test_autopilot.py::test_autopilot_pause_and_resume PASSED [  8%]
+backend/tests/unit/test_autopilot.py::test_autopilot_interval_config PASSED [  9%]
+backend/tests/unit/test_autopilot.py::test_host_rate_limiter PASSED      [  9%]
+backend/tests/unit/test_autopilot.py::test_autopilot_kill_switch PASSED  [ 10%]
+backend/tests/unit/test_autopilot.py::test_autopilot_kill_and_audit_report_endpoints PASSED [ 10%]
+backend/tests/unit/test_autopilot.py::test_k5_autopilot_ingestion_cap_enforcement PASSED [ 11%]
+backend/tests/unit/test_autopilot.py::test_k5_orchestrator_candidate_ingestion_cap PASSED [ 11%]
+backend/tests/unit/test_autopilot.py::test_m2_manual_and_benchmark_runs_not_capped PASSED [ 12%]
+backend/tests/unit/test_call_queue.py::test_m6_verify_and_call_queue_endpoint PASSED [ 12%]
+backend/tests/unit/test_call_queue.py::test_m6_verify_and_call_queue_limit PASSED [ 13%]
+backend/tests/unit/test_call_queue.py::test_m6_operator_verify_and_log_call_promotion PASSED [ 13%]
+backend/tests/unit/test_callable_mailable.py::test_e164_formatting_and_pretty_display PASSED [ 14%]
+backend/tests/unit/test_callable_mailable.py::test_timezone_and_kolkata_call_window PASSED [ 14%]
+backend/tests/unit/test_callable_mailable.py::test_dst_transition_november_2026 PASSED [ 15%]
+backend/tests/unit/test_callable_mailable.py::test_phone_verifier_unknown_when_no_key PASSED [ 15%]
+backend/tests/unit/test_callable_mailable.py::test_phone_verifier_caching_and_cost_cap PASSED [ 16%]
+backend/tests/unit/test_callable_mailable.py::test_sole_proprietor_mobile_call_guidance PASSED [ 16%]
+backend/tests/unit/test_callable_mailable.py::test_email_verifier_syntax_disposable_and_tiering PASSED [ 17%]
+backend/tests/unit/test_callable_mailable.py::test_scorer_awards_authority_only_when_proven PASSED [ 17%]
+backend/tests/unit/test_callable_mailable.py::test_final_requires_verified_contact_channel_for_named_person PASSED [ 18%]
+backend/tests/unit/test_callable_mailable.py::test_ready_to_contact_excludes_suppressed_and_dnc PASSED [ 18%]
+backend/tests/unit/test_callable_mailable.py::test_log_outcome_auto_suppresses_lead PASSED [ 19%]
+backend/tests/unit/test_callable_mailable.py::test_status_consistency_and_hard_gates PASSED [ 19%]
+backend/tests/unit/test_callable_mailable.py::test_draft_email_requires_can_spam_postal_address_and_sender_identity PASSED [ 20%]
+backend/tests/unit/test_callable_mailable.py::test_honest_verification_labels_and_corroboration PASSED [ 20%]
+backend/tests/unit/test_callable_mailable.py::test_shipper_contact_enrichment_mock_and_offline PASSED [ 21%]
+backend/tests/unit/test_callable_mailable.py::test_pause_shipper_discovery_safeguard PASSED [ 21%]
+backend/tests/unit/test_callable_mailable.py::test_outcome_analytics_and_weekly_summary PASSED [ 22%]
+backend/tests/unit/test_callable_mailable.py::test_l2i_unproven_authority_filter_and_checklist PASSED [ 22%]
+backend/tests/unit/test_callable_mailable.py::test_l2i_manual_authority_verification_endpoint PASSED [ 23%]
+backend/tests/unit/test_callable_mailable.py::test_l2i_data_sanity_flags_evaluation PASSED [ 23%]
+backend/tests/unit/test_callable_mailable.py::test_l2e_dual_call_windows_and_area_code_geocoding PASSED [ 24%]
+backend/tests/unit/test_candidate_ingestion_n9e.py::test_n9e_kb_premier_routed_to_needs_review PASSED [ 24%]
+backend/tests/unit/test_candidate_ingestion_n9e.py::test_n9e_22_candidates_ingested_and_qualified PASSED [ 25%]
+backend/tests/unit/test_candidate_watchlist.py::test_m5_candidate_watchlist_isolation_and_schema PASSED [ 25%]
+backend/tests/unit/test_capacity_planner_q9.py::test_q9_call_window_mapping_and_timezones PASSED [ 26%]
+backend/tests/unit/test_capacity_planner_q9.py::test_q9_todays_plan_prioritizes_follow_ups PASSED [ 26%]
+backend/tests/unit/test_capacity_planner_q9.py::test_q9_capacity_comparison_and_api_endpoints PASSED [ 27%]
+backend/tests/unit/test_census_paging_q5.py::test_q5_checkpoint_save_and_load PASSED [ 27%]
+backend/tests/unit/test_census_paging_q5.py::test_q5_page_state_stages_into_reservoir_not_companies PASSED [ 28%]
+backend/tests/unit/test_census_paging_q5.py::test_q5_rate_limit_and_429_backoff PASSED [ 28%]
+backend/tests/unit/test_census_segments_p1.py::test_geographic_regions_mapping PASSED [ 29%]
+backend/tests/unit/test_census_segments_p1.py::test_fleet_capacity_segments PASSED [ 29%]
+backend/tests/unit/test_census_segments_p1.py::test_carrier_operation_segments PASSED [ 30%]
+backend/tests/unit/test_census_segments_p1.py::test_composite_census_segment PASSED [ 30%]
+backend/tests/unit/test_change_monitor_q3.py::test_q3_change_log_schema_and_persistence PASSED [ 31%]
+backend/tests/unit/test_change_monitor_q3.py::test_q3_sensitive_insurance_cancel_handling PASSED [ 31%]
+backend/tests/unit/test_compliance_and_signals.py::test_suppression_detection_by_email_phone_domain_usdot PASSED [ 32%]
+backend/tests/unit/test_compliance_and_signals.py::test_screen_and_apply_sets_dnc_flags PASSED [ 32%]
+backend/tests/unit/test_compliance_and_signals.py::test_suppressed_leads_never_appear_in_final_export PASSED [ 33%]
+backend/tests/unit/test_compliance_and_signals.py::test_d5_signal_tables_checksum_persistence PASSED [ 33%]
+backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline PASSED [ 34%]
+backend/tests/unit/test_compliance_and_signals.py::test_j4_signal_coverage_and_config_caps PASSED [ 34%]
+backend/tests/unit/test_compliance_and_signals.py::test_k4_signals_canonical_join_and_new_authority_discovery PASSED [ 35%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_name_normalization_case_insensitivity PASSED [ 35%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_legal_and_industry_suffix_stripping PASSED [ 36%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_phone_format_variations PASSED [ 36%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_domain_normalization_and_path_stripping PASSED [ 37%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_aggregator_domains_excluded_from_dedup PASSED [ 37%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_dedup_by_usdot PASSED [ 38%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_dedup_by_phone PASSED [ 38%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_dedup_by_name_and_state PASSED [ 39%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_dedup_intra_run_isolation PASSED [ 39%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_merge_records_preserves_higher_quality_and_merges_provenance PASSED [ 40%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_partial_unique_index_enforces_carrier_usdot_uniqueness PASSED [ 40%]
+backend/tests/unit/test_deduplication_edge_cases.py::test_survivorship_merging_rule PASSED [ 41%]
+backend/tests/unit/test_email_readiness.py::test_n8_email_ready_leads_blocking_and_coverage PASSED [ 41%]
+backend/tests/unit/test_email_tiers_n9c.py::test_n9c_classify_email_tier_local_part_and_domain PASSED [ 42%]
+backend/tests/unit/test_email_tiers_n9c.py::test_n9c_is_role_account_email PASSED [ 42%]
+backend/tests/unit/test_email_tiers_n9c.py::test_n9c_scorer_personal_webmail_credit PASSED [ 43%]
+backend/tests/unit/test_email_tiers_n9c.py::test_n9c_configurable_credit_override PASSED [ 43%]
+backend/tests/unit/test_fmcsa_motus_aggregator.py::test_single_active_property_carrier PASSED [ 44%]
+backend/tests/unit/test_fmcsa_motus_aggregator.py::test_multiple_rows_property_active_and_household_goods_withdrawn PASSED [ 44%]
+backend/tests/unit/test_fmcsa_motus_aggregator.py::test_pending_property_carrier PASSED [ 45%]
+backend/tests/unit/test_fmcsa_motus_aggregator.py::test_broker_only_exclusion PASSED [ 45%]
+backend/tests/unit/test_fmcsa_motus_aggregator.py::test_empty_rows PASSED [ 46%]
+backend/tests/unit/test_fmcsa_motus_aggregator.py::test_partial_insurance PASSED [ 46%]
+backend/tests/unit/test_follow_up_queue_p8.py::test_follow_up_outcome_logging_and_queue PASSED [ 47%]
+backend/tests/unit/test_free_contact_enrichment_q7.py::test_q7_derive_website_from_business_email PASSED [ 47%]
+backend/tests/unit/test_free_contact_enrichment_q7.py::test_q7_match_officer_to_email_local_part PASSED [ 48%]
+backend/tests/unit/test_free_contact_enrichment_q7.py::test_q7_corroborate_contacts_via_crawler PASSED [ 48%]
+backend/tests/unit/test_g1_rule_conformance.py::test_format_only_phone_never_ready_high PASSED [ 49%]
+backend/tests/unit/test_grant_dates_p2.py::test_parse_grant_date_formats PASSED [ 49%]
+backend/tests/unit/test_grant_dates_p2.py::test_resolve_authority_signal_precedence PASSED [ 50%]
+backend/tests/unit/test_hygiene.py::test_j5_mock_providers_import_boundary PASSED [ 50%]
+backend/tests/unit/test_hygiene.py::test_j5_git_secret_and_env_hygiene PASSED [ 51%]
+backend/tests/unit/test_hygiene.py::test_j5_api_key_auth_refuses_startup_in_non_dev_without_configured_key PASSED [ 51%]
+backend/tests/unit/test_hygiene.py::test_k1_release_integrity PASSED     [ 52%]
+backend/tests/unit/test_hygiene.py::test_k7_security_basics PASSED       [ 52%]
+backend/tests/unit/test_hygiene_n9f.py::test_settings_endpoint_exposes_compliance_prerequisites PASSED [ 53%]
+backend/tests/unit/test_hygiene_n9f.py::test_call_script_hidden_when_sender_identity_not_set PASSED [ 53%]
+backend/tests/unit/test_hygiene_n9f.py::test_email_readiness_blocked_when_postal_address_not_set PASSED [ 54%]
+backend/tests/unit/test_intake_p9.py::test_inbound_intake_pipeline PASSED [ 54%]
+backend/tests/unit/test_intake_p9.py::test_referral_intake_pipeline PASSED [ 55%]
+backend/tests/unit/test_intake_p9.py::test_intake_suppression_screening PASSED [ 55%]
+backend/tests/unit/test_licensing_discovery_q1.py::test_q1_licensing_discovery_helpers PASSED [ 56%]
+backend/tests/unit/test_licensing_discovery_q1.py::test_q1_reservoir_isolation_and_evidence PASSED [ 56%]
+backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations PASSED [ 57%]
+backend/tests/unit/test_normalizer.py::test_normalize_company_name PASSED [ 57%]
+backend/tests/unit/test_normalizer.py::test_normalize_domain PASSED      [ 58%]
+backend/tests/unit/test_normalizer.py::test_normalize_phone PASSED       [ 58%]
+backend/tests/unit/test_normalizer.py::test_format_phone_display PASSED  [ 59%]
+backend/tests/unit/test_normalizer.py::test_normalize_usdot PASSED       [ 59%]
+backend/tests/unit/test_normalizer.py::test_normalize_docket PASSED      [ 60%]
+backend/tests/unit/test_normalizer.py::test_normalize_email PASSED       [ 60%]
+backend/tests/unit/test_normalizer.py::test_normalize_state PASSED       [ 61%]
+backend/tests/unit/test_pending_applications_q4.py::test_q4_rejection_screening_excludes_rejected_carriers PASSED [ 61%]
+backend/tests/unit/test_pending_applications_q4.py::test_q4_pending_applications_ingestion_and_segmentation PASSED [ 62%]
+backend/tests/unit/test_pending_applications_q4.py::test_q4_signal_engine_weight_and_half_life PASSED [ 62%]
+backend/tests/unit/test_phone_region_n9d.py::test_n9d_northampton_logistics_202_maps_to_dc_never_wa PASSED [ 63%]
+backend/tests/unit/test_phone_region_n9d.py::test_n9d_nanp_table_sample_states PASSED [ 63%]
+backend/tests/unit/test_phone_region_n9d.py::test_n9d_candidate_phone_region_mismatch_eval PASSED [ 64%]
+backend/tests/unit/test_priority_thresholds_alignment.py::test_priority_thresholds_config_and_scorer_alignment PASSED [ 64%]
+backend/tests/unit/test_provenance_and_integrity.py::test_google_search_no_unextracted_fields PASSED [ 65%]
+backend/tests/unit/test_provenance_and_integrity.py::test_industry_directories_no_unextracted_fields PASSED [ 65%]
+backend/tests/unit/test_provenance_and_integrity.py::test_indeed_jobs_no_unextracted_fields PASSED [ 66%]
+backend/tests/unit/test_provenance_and_integrity.py::test_procurement_news_no_unextracted_fields PASSED [ 66%]
+backend/tests/unit/test_provenance_and_integrity.py::test_google_maps_no_unextracted_fields PASSED [ 67%]
+backend/tests/unit/test_provenance_and_integrity.py::test_specialized_verticals_no_unextracted_fields PASSED [ 67%]
+backend/tests/unit/test_provenance_and_integrity.py::test_fmcsa_safer_no_unextracted_fields PASSED [ 68%]
+backend/tests/unit/test_provenance_and_integrity.py::test_fmcsa_li_no_unextracted_fields PASSED [ 68%]
+backend/tests/unit/test_provenance_and_integrity.py::test_provenance_structure_and_methods PASSED [ 69%]
+backend/tests/unit/test_provenance_and_integrity.py::test_deduplicator_merges_provenance PASSED [ 69%]
+backend/tests/unit/test_provenance_and_integrity.py::test_provenance_validation_official_scraped_require_url_and_timestamp PASSED [ 70%]
+backend/tests/unit/test_provenance_and_integrity.py::test_k2_provenance_method_and_official_share PASSED [ 70%]
+backend/tests/unit/test_public_registries_q8.py::test_q8_usaspending_matching_and_watchlist_isolation PASSED [ 71%]
+backend/tests/unit/test_public_registries_q8.py::test_q8_state_registry_matching_and_watchlist PASSED [ 71%]
+backend/tests/unit/test_public_registries_q8.py::test_q8_manual_csv_import_pipeline PASSED [ 72%]
+backend/tests/unit/test_reservoir_and_ingestion_q2.py::test_q2_icp_widening_configuration PASSED [ 72%]
+backend/tests/unit/test_reservoir_and_ingestion_q2.py::test_q2_reservoir_ingestion_and_provenance_integrity PASSED [ 73%]
+backend/tests/unit/test_scoring_rules.py::test_scorer_all_criteria_maximum_score PASSED [ 73%]
+backend/tests/unit/test_scoring_rules.py::test_scorer_none_and_unknown_safety PASSED [ 74%]
+backend/tests/unit/test_scoring_rules.py::test_scorer_priority_tiers PASSED [ 74%]
+backend/tests/unit/test_scoring_rules.py::test_priority_thresholds_from_config PASSED [ 75%]
+backend/tests/unit/test_scoring_rules.py::test_scorer_direct_shipper_scoring PASSED [ 75%]
+backend/tests/unit/test_scoring_rules.py::test_scorer_contactability_role_account_tiers PASSED [ 76%]
+backend/tests/unit/test_scoring_rules.py::test_icp_prefilter_requires_second_signal_for_name_keywords PASSED [ 76%]
+backend/tests/unit/test_scoring_rules.py::test_icp_prefilter_whole_word_matching PASSED [ 77%]
+backend/tests/unit/test_scoring_rules.py::test_icp_prefilter_car_haulers_not_excluded_by_default PASSED [ 77%]
+backend/tests/unit/test_scoring_rules.py::test_icp_prefilter_configurable_household_goods PASSED [ 78%]
+backend/tests/unit/test_scoring_rules.py::test_icp_prefilter_excludes_non_freight_by_carrier_operation PASSED [ 78%]
+backend/tests/unit/test_scoring_rules.py::test_icp_prefilter_allows_legitimate_freight_carriers PASSED [ 79%]
+backend/tests/unit/test_scoring_rules.py::test_h3_fleet_scoring_icp_range PASSED [ 79%]
+backend/tests/unit/test_scoring_rules.py::test_h3_fleet_scoring_partial_credit PASSED [ 80%]
+backend/tests/unit/test_scoring_rules.py::test_h3_fleet_scoring_far_outside_and_unknown PASSED [ 80%]
+backend/tests/unit/test_scoring_rules.py::test_h3_shippers_receive_no_automatic_fleet_points PASSED [ 81%]
+backend/tests/unit/test_scoring_rules.py::test_j1_unproven_authority_routes_to_needs_enrichment_never_rejected PASSED [ 81%]
+backend/tests/unit/test_scoring_rules.py::test_j1_rejected_strictly_for_confirmed_hard_gates PASSED [ 82%]
+backend/tests/unit/test_scoring_rules.py::test_j2_name_keyword_only_routes_to_needs_review_icp PASSED [ 82%]
+backend/tests/unit/test_scoring_rules.py::test_j3_mcs150_24_month_rolling_recency_config_default PASSED [ 83%]
+backend/tests/unit/test_scoring_rules.py::test_k3_scoring_rules_priority_and_officer_corroboration PASSED [ 83%]
+backend/tests/unit/test_scoring_rules.py::test_l2g_unified_sql_histogram_and_tier_agreement PASSED [ 84%]
+backend/tests/unit/test_scoring_rules.py::test_m3_priority_none_for_non_qualified_leads PASSED [ 84%]
+backend/tests/unit/test_services.py::test_decision_maker_ranking PASSED  [ 85%]
+backend/tests/unit/test_services.py::test_intent_signal_detection PASSED [ 85%]
+backend/tests/unit/test_services.py::test_verifier_qualification PASSED  [ 86%]
+backend/tests/unit/test_services.py::test_verifier_hard_rejection_passenger PASSED [ 86%]
+backend/tests/unit/test_services.py::test_lead_scorer_priority_a PASSED  [ 87%]
+backend/tests/unit/test_signal_engine.py::test_j6_decay_math PASSED      [ 87%]
+backend/tests/unit/test_signal_engine.py::test_j6_no_signal_means_zero_intent_points PASSED [ 88%]
+backend/tests/unit/test_signal_engine.py::test_j6_signal_to_score_effects_hot_vs_stale PASSED [ 88%]
+backend/tests/unit/test_signal_engine.py::test_j6_insurance_cancellation_sensitive_flag PASSED [ 89%]
+backend/tests/unit/test_socket_blocker.py::test_external_socket_fails_in_offline_suite PASSED [ 89%]
+backend/tests/unit/test_socket_blocker.py::test_external_dns_fails_in_offline_suite PASSED [ 90%]
+backend/tests/unit/test_socket_blocker.py::test_loopback_socket_allowed PASSED [ 90%]
+backend/tests/unit/test_socket_blocker.py::test_external_udp_sendto_fails_in_offline_suite PASSED [ 91%]
+backend/tests/unit/test_socket_blocker.py::test_external_dnspython_resolve_fails_in_offline_suite PASSED [ 91%]
+backend/tests/unit/test_validators.py::test_ssrf_blocks_private_ips PASSED [ 92%]
+backend/tests/unit/test_validators.py::test_ssrf_blocks_ipv6_loopback_and_local PASSED [ 92%]
+backend/tests/unit/test_validators.py::test_ssrf_blocks_ipv4_mapped_ipv6 PASSED [ 93%]
+backend/tests/unit/test_validators.py::test_ssrf_blocks_loopback_and_internal_hostnames PASSED [ 93%]
+backend/tests/unit/test_validators.py::test_ssrf_blocks_cloud_metadata_ip PASSED [ 94%]
+backend/tests/unit/test_validators.py::test_ssrf_blocks_non_http_schemes PASSED [ 94%]
+backend/tests/unit/test_validators.py::test_ssrf_allows_public_urls PASSED [ 95%]
+backend/tests/unit/test_validators.py::test_role_account_tiered_classification PASSED [ 95%]
+backend/tests/unit/test_validators.py::test_email_normalization_edge_cases PASSED [ 96%]
+backend/tests/unit/test_validators.py::test_nanp_phone_validation PASSED [ 96%]
+backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_blocks_redirect_to_private_ip PASSED [ 97%]
+backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count PASSED [ 97%]
+backend/tests/integration/test_fmcsa_official.py::test_fmcsa_official_adapter_init PASSED [ 98%]
+backend/tests/integration/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental PASSED [ 98%]
+backend/tests/integration/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance PASSED [ 99%]
+backend/tests/integration/test_fmcsa_official.py::test_circuit_breaker_trips_after_failures PASSED [ 99%]
+backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline PASSED [100%]
+
+============================ slowest 15 durations =============================
+5.53s call     backend/tests/unit/test_autopilot.py::test_k5_orchestrator_candidate_ingestion_cap
+2.20s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
+2.01s call     backend/tests/unit/test_census_paging_q5.py::test_q5_rate_limit_and_429_backoff
+1.43s call     backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
+0.82s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
+0.74s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
+0.68s setup    backend/tests/unit/test_auth.py::test_auth_outcomes_endpoint
+0.66s call     backend/tests/integration/test_fmcsa_official.py::test_socrata_sync_and_checksum_incremental
+0.63s call     backend/tests/unit/test_pending_applications_q4.py::test_q4_pending_applications_ingestion_and_segmentation
+0.54s setup    backend/tests/integration/test_fmcsa_official.py::test_circuit_breaker_trips_after_failures
+0.54s call     backend/tests/unit/test_hygiene.py::test_j5_git_secret_and_env_hygiene
+0.53s call     backend/tests/integration/test_fmcsa_official.py::test_fmcsa_official_discovery_maps_official_provenance
+0.53s setup    backend/tests/unit/test_public_registries_q8.py::test_q8_usaspending_matching_and_watchlist_isolation
+0.52s setup    backend/tests/unit/test_public_registries_q8.py::test_q8_state_registry_matching_and_watchlist
+0.52s setup    backend/tests/unit/test_callable_mailable.py::test_shipper_contact_enrichment_mock_and_offline
+===================== 200 passed, 12 deselected in 48.00s =====================
+

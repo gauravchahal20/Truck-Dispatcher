@@ -44,16 +44,12 @@ def test_q1_licensing_discovery_helpers():
     assert fit_high == 1.0
 
 
-def test_q1_reservoir_isolation_and_evidence():
+def test_q1_reservoir_isolation_and_evidence(session_fixture_db):
     """
     Q1: Verifies that census_candidates reservoir table holds pre-filtered candidates,
     while companies table remains strictly untouched at 318 carriers.
     """
-    db_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "trucklead.db"
-    if not db_path.is_file():
-        pytest.skip("trucklead.db not found")
-
-    con = sqlite3.connect(str(db_path))
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
 
     # 1. Reservoir count should be >= 180
@@ -100,4 +96,3 @@ def test_q1_reservoir_isolation_and_evidence():
     assert null_checksums == 0, f"Found {null_checksums} candidates with invalid checksums"
 
     con.close()
-

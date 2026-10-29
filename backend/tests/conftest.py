@@ -1,6 +1,9 @@
 import os
 import sys
 import socket
+import shutil
+import tempfile
+import sqlite3
 from pathlib import Path
 from typing import Any
 import pytest
@@ -10,9 +13,81 @@ backend_dir = Path(__file__).resolve().parent.parent
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
-# Configure isolated test database
-test_db_path = backend_dir.parent / "data" / "test_trucklead.db"
+# Configure isolated test database in tmp directory before app imports
+_test_tmp_dir = Path(tempfile.gettempdir()) / "trucklead_test_session"
+_test_tmp_dir.mkdir(parents=True, exist_ok=True)
+test_db_path = _test_tmp_dir / "test_trucklead.db"
 os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{test_db_path.as_posix()}"
+
+
+# =====================================================================
+# R2: Strict Production Database Guard (Blocks any open of data/trucklead.db)
+# =====================================================================
+def _is_production_db(database: Any) -> bool:
+    if not database:
+        return False
+    s = str(database).replace("\\", "/")
+    if s.startswith("file:"):
+        s = s[5:].lstrip("/")
+    if "?" in s:
+        s = s.split("?")[0]
+    s = s.lower().strip()
+
+    if "test_trucklead" in s or "fixture_trucklead" in s:
+        return False
+    if s.endswith("/data/trucklead.db") or s.endswith("data/trucklead.db") or s == "data/trucklead.db":
+        return True
+    try:
+        p = Path(s).resolve()
+        prod = (backend_dir.parent / "data" / "trucklead.db").resolve()
+        if p == prod:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+_orig_sqlite_connect = sqlite3.connect
+
+def _guarded_sqlite_connect(database, *args, **kwargs):
+    if _is_production_db(database):
+        raise RuntimeError(
+            f"SAFETY GUARD TRIGGERED: Direct connection to production database is strictly forbidden in test suite: {database}. "
+            "Tests must use tmp_path or session_fixture_db fixture."
+        )
+    return _orig_sqlite_connect(database, *args, **kwargs)
+
+sqlite3.connect = _guarded_sqlite_connect
+
+try:
+    import aiosqlite
+    _orig_aiosqlite_connect = aiosqlite.connect
+
+    def _guarded_aiosqlite_connect(database, *args, **kwargs):
+        if _is_production_db(database):
+            raise RuntimeError(
+                f"SAFETY GUARD TRIGGERED: Direct aiosqlite connection to production database is strictly forbidden: {database}. "
+                "Tests must use tmp_path or test_trucklead.db."
+            )
+        return _orig_aiosqlite_connect(database, *args, **kwargs)
+
+    aiosqlite.connect = _guarded_aiosqlite_connect
+except ImportError:
+    pass
+
+
+@pytest.fixture(scope="session")
+def session_fixture_db():
+    """
+    R2 Fixture: Provides an isolated copy of data/trucklead.db located in tmp_path
+    for tests asserting pipeline outputs, ensuring zero access to production DB.
+    """
+    fixture_path = _test_tmp_dir / "fixture_trucklead.db"
+    prod_path = backend_dir.parent / "data" / "trucklead.db"
+    if prod_path.is_file():
+        # Copy raw file bytes to tmp once per test session without sqlite connection
+        shutil.copy2(prod_path, fixture_path)
+    return fixture_path
 
 
 class SocketBlockedError(RuntimeError):

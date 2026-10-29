@@ -2,11 +2,9 @@ import pytest
 import sqlite3
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
-
-def test_n9e_kb_premier_routed_to_needs_review():
-    con = sqlite3.connect(ROOT / "data" / "trucklead.db")
+def test_n9e_kb_premier_routed_to_needs_review(session_fixture_db):
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
     row = cur.execute("""
         SELECT lead_status, rejection_reason, priority, segment, bipd_insurance_on_file
@@ -24,8 +22,8 @@ def test_n9e_kb_premier_routed_to_needs_review():
     assert bipd == 300000.0
 
 
-def test_n9e_22_candidates_ingested_and_qualified():
-    con = sqlite3.connect(ROOT / "data" / "trucklead.db")
+def test_n9e_22_candidates_ingested_and_qualified(session_fixture_db):
+    con = sqlite3.connect(str(session_fixture_db))
     cur = con.cursor()
     watchlist_dots = [r[0] for r in cur.execute("""
         SELECT usdot FROM candidate_watchlist
