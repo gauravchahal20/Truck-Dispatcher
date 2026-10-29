@@ -3,6 +3,7 @@ import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -15,6 +16,7 @@ from ..services.deduplicator import Deduplicator
 from ..services.compliance import ComplianceService
 from ..services.lead_scorer import LeadScorer
 from ..services.orchestrator import LeadOrchestrator
+from ..services.public_registries_service import PublicRegistriesService
 
 logger = logging.getLogger("trucklead.api.intake")
 router = APIRouter(prefix="/api/leads/intake", tags=["Lead Intake"])
@@ -295,4 +297,76 @@ async def intake_referral_lead(request: ReferralIntakeRequest, session: AsyncSes
         custom_provenance=custom_prov,
         notes=request.notes
     )
+
+
+class USAspendingAwardRequest(BaseModel):
+    award_id: Optional[str] = None
+    recipient_name: str = Field(..., description="Legal name of federal contract recipient")
+    recipient_state: str = Field(..., description="2-letter US state code")
+    naics_code: Optional[str] = Field("484110", description="Freight trucking NAICS (484110/484121/484)")
+    award_amount: Optional[float] = Field(0.0, description="Obligated federal contract amount")
+    action_date: Optional[str] = None
+    usdot: Optional[str] = Field(None, description="USDOT number if available from award metadata")
+
+
+class StateRegistryFilingRequest(BaseModel):
+    filing_number: Optional[str] = None
+    entity_name: str = Field(..., description="Corporate or LLC entity name from state registry")
+    state: str = Field(..., description="2-letter US state code")
+    entity_type: Optional[str] = Field("LLC", description="LLC, Corporation, Partnership")
+    status: Optional[str] = Field("ACTIVE", description="Filing standing: ACTIVE, GOOD_STANDING, etc.")
+    filing_date: Optional[str] = None
+
+
+class CSVIntakeRequest(BaseModel):
+    csv_text: str = Field(..., description="Raw CSV string content with headers")
+
+
+@router.post("/usaspending", dependencies=[Depends(require_api_key)])
+async def intake_usaspending_award(request: USAspendingAwardRequest, session: AsyncSession = Depends(get_db)):
+    """
+    P7: Match USAspending freight contract awardee (NAICS 484) to FMCSA census.
+    Fuzzy match by name + state (ratio >= 0.90) or USDOT.
+    Strict rule: Unmatched entities route to candidate_watchlist, NEVER leads.
+    """
+    return await PublicRegistriesService.match_usaspending_award(session, request.model_dump())
+
+
+@router.post("/state-registries", dependencies=[Depends(require_api_key)])
+async def intake_state_registry_filing(request: StateRegistryFilingRequest, session: AsyncSession = Depends(get_db)):
+    """
+    P6: Match state corporation/LLC registry public filing to FMCSA carriers.
+    Fuzzy match by name + state (ratio >= 0.90).
+    Strict rule: Unmatched entities route to candidate_watchlist, NEVER leads.
+    """
+    return await PublicRegistriesService.match_state_registry_record(session, request.model_dump())
+
+
+@router.post("/manual-csv", dependencies=[Depends(require_api_key)])
+async def intake_manual_csv(request: CSVIntakeRequest, session: AsyncSession = Depends(get_db)):
+    """
+    P10: Operator drops a CSV file.
+    Validates USDOT/MC, verifies authority, runs dedup, suppression, prefilter, scoring.
+    Invalid or unverified entities route to candidate_watchlist, NEVER leads.
+    """
+    return await PublicRegistriesService.process_manual_csv(session, request.csv_text)
+
+
+@router.post("/referral-csv", dependencies=[Depends(require_api_key)])
+async def intake_referral_csv(request: CSVIntakeRequest, session: AsyncSession = Depends(get_db)):
+    """
+    P9 List: Batch partner/referral CSV intake.
+    Preserves referrer details, verifies authority, routes invalid to candidate_watchlist.
+    """
+    return await PublicRegistriesService.process_referral_csv(session, request.csv_text)
+
+
+@router.get("/referral-template", dependencies=[Depends(require_api_key)])
+async def get_referral_csv_template():
+    """
+    Generates standard partner/referral CSV template for manual lead imports.
+    """
+    content = PublicRegistriesService.generate_referral_csv_template()
+    return PlainTextResponse(content, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=referral_template.csv"})
+
 

@@ -27,7 +27,10 @@ def test_n9e_kb_premier_routed_to_needs_review():
 def test_n9e_22_candidates_ingested_and_qualified():
     con = sqlite3.connect(ROOT / "data" / "trucklead.db")
     cur = con.cursor()
-    watchlist_dots = [r[0] for r in cur.execute("SELECT usdot FROM candidate_watchlist WHERE usdot != '5397412'").fetchall()]
+    watchlist_dots = [r[0] for r in cur.execute("""
+        SELECT usdot FROM candidate_watchlist
+        WHERE reason LIKE '%Awaiting manual SAFER verification%' AND usdot != '5397412'
+    """).fetchall()]
     placeholders = ",".join("?" for _ in watchlist_dots)
     rows = cur.execute(f"""
         SELECT usdot, lead_status, priority, segment, bipd_insurance_on_file
@@ -53,4 +56,3 @@ def test_n9e_22_candidates_ingested_and_qualified():
     con.close()
 
     assert sig_cnt == 22, f"Expected 22 signals attached, found {sig_cnt}"
-

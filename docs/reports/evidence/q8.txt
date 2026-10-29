@@ -1,0 +1,77 @@
+================================================================================
+WORKSTREAM Q8: PUBLIC REGISTRIES, MANUAL CSV & REFERRAL INTAKE AUDIT
+Execution Timestamp (UTC): 2026-10-29T15:07:12.428906+00:00
+================================================================================
+
+--- [1] USASPENDING FREIGHT CONTRACT AWARDEE INTAKE (P7) ---
+  [MATCHED] Award CONT-DOD-2026-001 (M&K SCOTT TRUCKING) -> USDOT 9283862 (Ratio: 1.00) - enriched_existing_carrier
+  [MATCHED] Award CONT-DOT-2026-002 (JJBS GRACE) -> USDOT 9127100 (Ratio: 1.00) - enriched_existing_carrier
+  [WATCHLIST] Award CONT-GSA-2026-003 (DEFENSE FREIGHT SPECIALISTS LLC) -> Routed to Watchlist: USAspending awardee CONT-GSA-2026-003 NAICS 484122 - no FMCSA census match (best ratio 0.52)
+  [WATCHLIST] Award CONT-VA-2026-004 (AEROSPACE EXPEDITED LOGISTICS) -> Routed to Watchlist: USAspending awardee CONT-VA-2026-004 NAICS 484110 - no FMCSA census match (best ratio 0.62)
+
+USAspending Awards Processed: 4
+USAspending Matched Count:     2 (50.0%)
+USAspending Enriched Carriers: 2
+USAspending Net-New Leads:     0
+USAspending Watchlist Added:   2
+
+--- [2] STATE BUSINESS REGISTRIES FILING INTAKE (P6) ---
+  [MATCHED] Filing #TX-SOS-080123456 (TEXAS DROPPINLOADZ HOTSHOTZ) -> USDOT 7289900 (Ratio: 1.00) - enriched_carrier_corporate_standing
+  [MATCHED] Filing #CA-SOS-C4920192 (BDK TRUCKING) -> USDOT 7910625 (Ratio: 1.00) - enriched_carrier_corporate_standing
+  [WATCHLIST] Filing #TX-SOS-080999999 (AUSTIN METRO FREIGHT BROKERS INC) -> Routed to Watchlist: State business registry TX #TX-SOS-080999999 - no FMCSA match (best ratio 0.53)
+  [WATCHLIST] Filing #FL-SUNBIZ-L220001 (ORLANDO EXPEDITED CARGO GROUP) -> Routed to Watchlist: State business registry FL #FL-SUNBIZ-L220001 - no FMCSA match (best ratio 0.53)
+
+State Registry Filings Processed: 4
+State Registry Matched Count:     2 (50.0%)
+State Registry Watchlist Added:   2
+
+--- [3] MANUAL-CHANNEL OPERATOR CSV IMPORT (P10) ---
+Manual CSV Total Rows:         4
+Manual CSV Net-New Leads:      0
+Manual CSV Deduplicated Leads: 3
+Manual CSV Suppressed Leads:   0
+Manual CSV Watchlist Added:    1
+  Row: 9881101 -> Status: deduplicated
+  Row: 9881102 -> Status: deduplicated
+  Row: 9881103 -> Status: deduplicated
+  Row: INVALID DOCKET MISSING DOT -> Status: watchlist_no_usdot
+
+--- [4] PARTNER & REFERRAL CSV INTAKE (P9 LIST) ---
+Referral CSV Total Rows:         3
+Referral CSV Net-New Leads:      0
+Referral CSV Deduplicated Leads: 2
+Referral CSV Watchlist Added:    1
+  Row: 9881104 -> Status: deduplicated
+  Row: 9881105 -> Status: deduplicated
+  Row: INVALID REFERRAL NO DOT -> Status: watchlist_no_usdot
+
+Referral CSV Template Generated (3 lines, header + sample rows)
+
+--- [5] STRICT WATCHLIST RULE VERIFICATION & POOL TOTALS ---
+Total Companies in Database:  588
+  - Stored Carriers:          498
+  - Stored Shippers:          90
+Total Watchlist Candidates:   31
+  - Original M5 Candidates:   23
+  - Q8 Watchlist Additions:   8
+
+Carrier Status Breakdown:
+  QUALIFIED              228
+  NEEDS_ENRICHMENT       220
+  REJECTED                46
+  NEEDS_REVIEW_ICP         3
+  NEEDS_REVIEW             1
+
+Carrier Priority Breakdown:
+  B                      103
+  C                      300
+  NONE                    95
+
+Government Contract Intent Signals: 6
+
+================================================================================
+COMPLIANCE & INTEGRITY CONFIRMATION:
+- FREE-ONLY Rule: $0.00 spent. Public APIs and standard CSV intake used.
+- Strict Watchlist Boundary: 100% of unmatched/unverified entities routed to candidate_watchlist.
+- Contamination Check: Zero unmatched entities ingested into companies.
+================================================================================
