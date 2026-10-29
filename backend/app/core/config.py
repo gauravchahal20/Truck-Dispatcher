@@ -160,11 +160,17 @@ class ComplianceConfig(BaseModel):
     unsubscribe_url: str = "http://localhost:8000/api/compliance/opt-out"
 
 
+class DailyCapacityConfig(BaseModel):
+    calls_per_day: int = 30
+    emails_per_day: int = 30
+
+
 class OutreachConfig(BaseModel):
     physical_address: Optional[str] = None
     sender_name: Optional[str] = None
     sender_email: Optional[str] = "dispatch@trucklead-autopilot.internal"
     enable_continuous_autopilot: bool = False
+    daily_capacity: DailyCapacityConfig = Field(default_factory=DailyCapacityConfig)
 
 
 class PhoneVerificationSettings(BaseModel):

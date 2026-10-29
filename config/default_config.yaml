@@ -295,6 +295,9 @@ compliance:
 # Compliant Outreach Settings
 outreach:
   enable_continuous_autopilot: false
+  daily_capacity:
+    calls_per_day: 30
+    emails_per_day: 30
 
 # Contact Channel Verification Configuration
 contact_verification:

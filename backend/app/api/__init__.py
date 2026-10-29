@@ -10,6 +10,7 @@ from .routes_outcomes import router as outcomes_router
 from .routes_intake import router as intake_router
 from .routes_reservoir import router as reservoir_router
 from .routes_monitor import router as monitor_router
+from .routes_capacity import router as capacity_router
 
 api_router = APIRouter()
 api_router.include_router(stats_router)
@@ -23,5 +24,6 @@ api_router.include_router(outcomes_router)
 api_router.include_router(intake_router)
 api_router.include_router(reservoir_router)
 api_router.include_router(monitor_router)
+api_router.include_router(capacity_router)
 
 __all__ = ["api_router"]

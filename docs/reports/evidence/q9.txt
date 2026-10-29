@@ -1,0 +1,91 @@
+================================================================================
+WORKSTREAM Q9: CAPACITY PLANNER & DAILY OUTREACH AUDIT
+Execution Timestamp (UTC): 2026-10-29T15:19:35.649864+00:00
+================================================================================
+
+--- [1] RESERVOIR VS WORKING SET VS CAPACITY COMPARISON ---
+Daily Capacity Configuration:
+  Calls per Day:            30
+  Emails per Day:           30
+  Total Daily Touches:      60
+
+Working Set Inventory:
+  Total Stored Carriers:    498
+  Active Qualified Leads:   228
+  Qualified Call Runway:    7.6 operational days
+  Assessment:               228 qualified leads provide 7.6 days of outbound call capacity at 30 calls/day.
+
+Reservoir Staged Inventory:
+  Total Candidates:         1182
+  Reservoir Call Runway:    39.4 operational days
+  Assessment:               1182 reservoir candidates provide 39.4 operational days of staged inventory.
+
+Operational Strategy:
+  Batching Recommendation:  Ingest 50-150 reservoir candidates every 2-5 days to maintain a continuous, fresh qualified working set without lead staleness.
+  Clutter Protection:       Staging in the reservoir protects the active companies pool from clutter while preserving prefiltered candidates for on-demand operator ingestion.
+
+--- [2] SOURCE DASHBOARD & CHANNEL METRICS ---
+Total Stored Carriers Tracked: 498
+Discovery Channels Active:     8
+
+Source Channel          Leads  Net-New   % Phone   % Email  % Auth Proven  Outcomes
+--------------------------------------------------------------------------------
+census                    191      191    100.0%     92.1%          36.6%         0
+direct_intake              56       56     73.2%      1.8%           1.8%         0
+licensing                 217      217    100.0%     94.0%          69.1%         0
+manual_csv                  3        3    100.0%    100.0%         100.0%         0
+pending_applications       25       25    100.0%    100.0%           0.0%         0
+referral                    2        2    100.0%    100.0%         100.0%         0
+state_registries            2        2    100.0%    100.0%         100.0%         0
+usaspending                 2        2    100.0%    100.0%         100.0%         0
+--------------------------------------------------------------------------------
+
+--- [3] TODAY'S CALL & EMAIL OUTREACH PLAN ---
+Plan Date:              2026-10-29
+Total Call Targets:     30 / 30
+  - Follow-ups Due (P8):0
+  - Fresh Outbound:     30
+Total Email Targets:    30 / 30
+
+Top Call Queue (Scheduled Follow-Ups First, Then High-Ranked Qualified):
+#   USDOT    Carrier Name                   State Score Tier  Action             Local Window       IST Window
+------------------------------------------------------------------------------------------------------------------------
+1   9127100  JJBS GRACE LLC                 OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+2   9283862  M&K SCOTT TRUCKING LLC         TX      7.0 B     initial_call       09:00 - 17:00 CT   19:30 - 03:30 IST
+3   7289900  TEXAS DROPPINLOADZ HOTSHOTZ    TX      7.0 B     initial_call       09:00 - 17:00 CT   19:30 - 03:30 IST
+4   7910625  BDK TRUCKING LLC               CA      7.0 B     initial_call       09:00 - 17:00 PT   21:30 - 05:30 IST
+5   9986151  HOWARD HAULING SOLUTIONS LLC   GA      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+6   8403200  RJ TRANSPORT LLC               OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+7   6374637  THS EXPRESS LLC                OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+8   4704024  HAUL VANTAGE TRUCKING INC      OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+9   6812253  NHS TRANSPORT LLC              OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+10  5946919  IBROTRANSPORT LLC              OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+11  8125643  DXB TRUCKING LLC               OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+12  8995968  NICK TRANSPORT LLC             OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+13  8758832  TOP CARGO TRANSPORTATION LLC   OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+14  6230559  TROPICAL SERVICES LLC          OH      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+15  4987835  ROADKING TRANSPORTATION LLC    PA      7.0 B     initial_call       09:00 - 17:00 ET   18:30 - 02:30 IST
+------------------------------------------------------------------------------------------------------------------------
+
+Top Email Queue (High-Ranked Qualified):
+#   USDOT    Carrier Name                   State Score Email Address                    Role Tier
+----------------------------------------------------------------------------------------------------
+1   9127100  JJBS GRACE LLC                 OH      7.0 jjbsgracellc@gmail.com           personal_webmail
+2   9283862  M&K SCOTT TRUCKING LLC         TX      7.0 rese6924@gmail.com               personal_webmail
+3   7289900  TEXAS DROPPINLOADZ HOTSHOTZ    TX      7.0 texasdroppinloadzhotshotz@gmai   personal_webmail
+4   7910625  BDK TRUCKING LLC               CA      7.0 info@bdktrucking.com             generic
+5   9986151  HOWARD HAULING SOLUTIONS LLC   GA      7.0 avero@howardhaulingsolutions.c   named
+6   8403200  RJ TRANSPORT LLC               OH      7.0 rjtransport.dispatch@gmail.com   personal_webmail
+7   6374637  THS EXPRESS LLC                OH      7.0 thsexpressllc@gmail.com          personal_webmail
+8   4704024  HAUL VANTAGE TRUCKING INC      OH      7.0 haulvantage01@gmail.com          personal_webmail
+9   6812253  NHS TRANSPORT LLC              OH      7.0 nhsohio@gmail.com                personal_webmail
+10  5946919  IBROTRANSPORT LLC              OH      7.0 ibrotransportllc@gmail.com       personal_webmail
+----------------------------------------------------------------------------------------------------
+
+================================================================================
+OPERATIONAL AUDIT SUMMARY:
+- FREE-ONLY Compliance: $0.00 spent. Public APIs and local algorithms only.
+- Outbound Execution Safety: Strictly manual queueing. Zero automated emails/SMS/calls.
+- Follow-up Ordering: P8 follow-ups strictly placed at head of calling queue.
+- Timezone Protection: Every phone lead bounded by TCPA 09:00-17:00 local window.
+================================================================================
