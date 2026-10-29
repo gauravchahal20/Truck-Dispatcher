@@ -1,0 +1,22 @@
+=== WORKSTREAM Q3: DAILY/WEEKLY CHANGE MONITOR EVIDENCE ===
+Timestamp: 2026-10-29T14:04:30.354758+00:00
+
+1. Change Monitor Execution Metrics:
+  - Stored Carriers with Pending/Unverified Authority: 237
+  - Transitions Detected (AUTHORITY_ACTIVATED):       2
+  - Proof of Insurance Filings (INSURANCE_ADDED):     0
+  - Administrative / Cancellation Notices:            0 (is_sensitive=True)
+  - Reinstatements Detected:                          0
+  - Net-New Leads from New Grants (Last 120 Days):    79
+  - Total Audit Events Created in change_logs:        2
+
+2. Audit Log Breakdown by Event Type:
+Event Type                | Count   
+------------------------------------
+AUTHORITY_ACTIVATED       | 2       
+
+3. Sample Transition Events (New Since Last Run):
+USDOT      | Docket     | Change Type            | From            | To                       
+----------------------------------------------------------------------------------------
+8804536    | MC86555122 | AUTHORITY_ACTIVATED    | PENDING         | ACTIVE                   
+6939591    | MC74653116 | AUTHORITY_ACTIVATED    | PENDING         | ACTIVE                   

@@ -8,7 +8,8 @@ from .entities import (
     LeadScore,
     LeadStatusHistory,
     ErrorLog,
-    CensusCandidate
+    CensusCandidate,
+    ChangeLog
 )
 
 __all__ = [
@@ -21,5 +22,6 @@ __all__ = [
     "LeadScore",
     "LeadStatusHistory",
     "ErrorLog",
-    "CensusCandidate"
+    "CensusCandidate",
+    "ChangeLog"
 ]

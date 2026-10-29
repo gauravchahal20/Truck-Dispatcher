@@ -592,4 +592,26 @@ class CensusCandidate(Base):
     updated_at = Column(DateTime, default=utc_now)
 
 
+class ChangeLog(Base):
+    """
+    Q3: Audit log of operating authority and insurance changes detected by the daily/weekly monitor.
+    Tracks NEW_AUTHORITY, AUTHORITY_ACTIVATED, INSURANCE_ADDED, INSURANCE_CANCEL, and REINSTATEMENT transitions.
+    """
+    __tablename__ = "change_logs"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    company_id = Column(String(36), ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
+    usdot = Column(String(50), nullable=False, index=True)
+    docket = Column(String(50), nullable=True)
+    change_type = Column(String(50), nullable=False, index=True)  # NEW_AUTHORITY, AUTHORITY_ACTIVATED, INSURANCE_ADDED, INSURANCE_CANCEL, REINSTATEMENT
+    from_value = Column(String(255), nullable=True)
+    to_value = Column(String(255), nullable=True)
+    signal_created = Column(String(50), nullable=True)
+    is_sensitive = Column(Boolean, default=False)
+    detected_at = Column(DateTime, default=utc_now)
+    raw_details = Column(JSON, default=dict)
+
+    company = relationship("Company")
+
+
 
