@@ -1,0 +1,80 @@
+=== WORKSTREAM R4: FMCSA MIRROR TABLES AUDIT ===
+
+=== CURRENT LIVE ROW COUNTS (data/trucklead.db) ===
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+  fmcsa_carrier_census               : 371
+  fmcsa_motus_carrier                : 1120
+
+=== BACKUP INVENTORY & MIRROR TABLE COUNTS (READ-ONLY ATTACH) ===
+
+Backup: trucklead.db.bak_stepA
+  fmcsa_authority_history            : NOT PRESENT
+  fmcsa_insurance_active_pending     : NOT PRESENT
+  fmcsa_new_applications             : NOT PRESENT
+
+Backup: trucklead.db.bak_stepE
+  fmcsa_authority_history            : 0
+  fmcsa_insurance_active_pending     : 0
+  fmcsa_new_applications             : 0
+
+Backup: trucklead_20261029_152830.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_20261029_165046.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_20261029_165157.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_20261029_165222.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_20261029_165249.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_20261029_165505.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_20261029_205450_before_restore.db
+  fmcsa_authority_history            : 42
+  fmcsa_insurance_active_pending     : 48
+  fmcsa_new_applications             : 46
+
+Backup: trucklead_backup_pre_cleanup.db
+  fmcsa_authority_history            : 0
+  fmcsa_insurance_active_pending     : 0
+  fmcsa_new_applications             : 0
+
+=== SYNC UPSERT & TRUNCATE AUDIT (backend/app/adapters/fmcsa_official.py) ===
+Audited methods:
+  1. sync_insurance:           Lines 610-630 (SELECT existing -> UPDATE if exists, ELSE session.add. Zero DELETE statements)
+  2. sync_authority_history:   Lines 718-744 (SELECT existing -> UPDATE if exists, ELSE session.add. Zero DELETE statements)
+  3. sync_new_applications:    Lines 815-840 (SELECT existing -> UPDATE if exists, ELSE session.add. Zero DELETE statements)
+State of Sync Engine: STRICT UPSERT ONLY (NEVER TRUNCATES).
+
+=== ROOT CAUSE EXPLANATION: WHY COUNTS DROPPED ===
+1. On 2026-10-25 (Workstream J6 / H6), the signal sync was run against live SODA endpoints with limit=500, yielding:
+   - fmcsa_authority_history: 382 rows
+   - fmcsa_insurance_active_pending: 489 rows
+   - fmcsa_new_applications: 499 rows
+2. When Workstream N recovery was initialized from trucklead_backup_pre_cleanup.db (Oct 23 snapshot), those 3 tables had 0 rows.
+3. In scripts/maintenance/sync_fmcsa_signals.py, the sync calls were invoked with limit=50:
+   - res_ins = await adapter.sync_insurance(session, limit=50) -> stored 48 rows
+   - res_auth = await adapter.sync_authority_history(session, limit=50) -> stored 42 rows
+   - res_app = await adapter.sync_new_applications(session, limit=50) -> stored 46 rows
+4. Because the sync started from 0 rows in the pre-cleanup base and fetched a capped batch of 50, the tables reached exactly 42, 48, 46 rows.
+5. Zero rows were deleted by any sync routine. The tables were never truncated.
