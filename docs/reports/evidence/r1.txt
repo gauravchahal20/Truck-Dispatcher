@@ -1,0 +1,29 @@
+=== PROCESS LIST CHECK ===
+ProcessId   : 27912
+CommandLine : c:\Users\MSII\GENLEAD\venv\Scripts\python.exe c:\Users\MSII\.antigravity-ide\extensions\ms-python.python-
+              2026.4.0-universal\python_files\run-jedi-language-server.py
+
+ProcessId   : 26628
+CommandLine : c:\Users\MSII\GENLEAD\venv\Scripts\python.exe c:\Users\MSII\.antigravity-ide\extensions\ms-python.python-
+              2026.4.0-universal\python_files\run-jedi-language-server.py
+
+ProcessId   : 17824
+CommandLine : c:\Users\MSII\GENLEAD\venv\Scripts\python.exe c:\Users\MSII\.antigravity-ide\extensions\ms-python.python-
+              2026.4.0-universal\python_files\lib\jedilsp\jedi\inference\compiled\subprocess\__main__.py 
+              c:\Users\MSII\.antigravity-ide\extensions\ms-python.python-2026.4.0-universal\python_files\lib\jedilsp 
+              3.13.11
+
+ProcessId   : 24948
+CommandLine : c:\Users\MSII\GENLEAD\venv\Scripts\python.exe c:\Users\MSII\.antigravity-ide\extensions\ms-python.python-
+              2026.4.0-universal\python_files\lib\jedilsp\jedi\inference\compiled\subprocess\__main__.py 
+              c:\Users\MSII\.antigravity-ide\extensions\ms-python.python-2026.4.0-universal\python_files\lib\jedilsp 
+              3.13.11
+
+ProcessId   : 26212
+CommandLine : "C:\Users\MSII\GENLEAD\venv\Scripts\python.exe" scripts/maintenance/generate_r1_evidence.py
+
+ProcessId   : 28128
+CommandLine : "C:\Users\MSII\GENLEAD\venv\Scripts\python.exe" scripts/maintenance/generate_r1_evidence.py
+
+=== DISK SEARCH FOR *restore_full_db* ===
+No files matching *restore_full_db* found across repo. (scratch/restore_full_db.py deleted)
