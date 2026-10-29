@@ -23,9 +23,8 @@ def test_fresh_db_build_from_migrations():
         env = os.environ.copy()
         env["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path}"
 
-        alembic_bin = str(Path(sys.executable).parent / "alembic")
         result = subprocess.run(
-            [alembic_bin, "upgrade", "head"],
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
             cwd=str(BACKEND_DIR),
             capture_output=True,
             text=True,

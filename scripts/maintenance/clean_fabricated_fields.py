@@ -176,7 +176,14 @@ def main():
             counts["total_leads_flagged"] += 1
 
         # Build provenance for genuine fields remaining
-        prov_method = "official" if "fmcsa" in source.lower() else "scraped"
+        url_lower = (r["source_url"] or "").lower()
+        src_lower = source.lower()
+        is_official = (
+            ("fmcsa_official" in src_lower or "data.transportation.gov" in url_lower or "fmcsa.dot.gov" in url_lower)
+            and "usdotlookup.com" not in url_lower
+            and src_lower not in ("fmcsa_safer", "fmcsa_li")
+        )
+        prov_method = "official" if is_official else "scraped"
         retrieved_time = r["created_at"] or datetime.now(timezone.utc).isoformat()
         if hasattr(retrieved_time, "isoformat"):
             retrieved_time = retrieved_time.isoformat()
@@ -210,10 +217,29 @@ def main():
                         "method": prov_method,
                     }
                     updated_prov = True
+                else:
+                    # Enforce Workstream K2 rule: usdotlookup.com and scraper sources are strictly 'scraped'
+                    entry = prov_dict[f_name]
+                    entry_url = (entry.get("url") or "").lower()
+                    entry_src = (entry.get("source") or "").lower()
+                    if "usdotlookup.com" in entry_url or entry_src in ("fmcsa_safer", "fmcsa_li"):
+                        if entry.get("method") != "scraped":
+                            entry["method"] = "scraped"
+                            updated_prov = True
             elif f_name in prov_dict and (f_val is None or f_val == "" or f_val == "[]"):
                 # Remove cleaned fields from provenance
                 del prov_dict[f_name]
                 updated_prov = True
+
+        # Enforce Workstream K2 rule: usdotlookup.com and scraper sources are strictly 'scraped' across all provenance keys
+        for k, entry in prov_dict.items():
+            if isinstance(entry, dict):
+                e_url = (entry.get("url") or "").lower()
+                e_src = (entry.get("source") or "").lower()
+                if "usdotlookup.com" in e_url or e_src in ("fmcsa_safer", "fmcsa_li"):
+                    if entry.get("method") != "scraped":
+                        entry["method"] = "scraped"
+                        updated_prov = True
 
         if updated_prov or not raw_prov:
             updates["field_provenance"] = json.dumps(prov_dict)

@@ -69,3 +69,4 @@ async def test_follow_up_outcome_logging_and_queue():
         assert lead["company_name"] == "QUEUE TEST CARRIER LLC"
         assert lead["follow_up_notes"] == "Call Friday afternoon regarding regional reefer freight."
         assert lead["is_overdue"] is False
+

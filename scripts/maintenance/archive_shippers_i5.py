@@ -68,6 +68,7 @@ async def main():
         for s in shippers:
             old_status = s.lead_status
             s.lead_status = "ARCHIVED_NO_CONTACT"
+            s.priority = "NONE"
             s.qualification_reason = "Archived: Google Places API key unconfigured; shipper contact enrichment paused (I5)"
             
             # Add audit history record

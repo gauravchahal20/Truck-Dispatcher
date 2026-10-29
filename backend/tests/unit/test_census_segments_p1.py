@@ -43,3 +43,4 @@ def test_composite_census_segment():
     assert seg["capacity_segment"] == "small_fleet"
     assert seg["operation_segment"] == "interstate"
     assert seg["composite_segment"] == "MW_small_fleet"
+

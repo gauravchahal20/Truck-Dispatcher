@@ -29,12 +29,12 @@ WORKSTREAM N9f: HYGIENE & COMPLIANCE PREREQUISITES AUDIT
     - readiness_status: 'blocked: address not set'
     - is_blocked: True
     - postal_address_configured: False
-    - total_email_eligible: 284
+    - total_email_eligible: 235
   When postal_address is CONFIGURED:
     - readiness_status: 'ready_for_outreach'
     - is_blocked: False
     - postal_address_configured: True
-    - total_email_eligible: 284
+    - total_email_eligible: 235
 
 ================================================================================
 END OF N9f EVIDENCE

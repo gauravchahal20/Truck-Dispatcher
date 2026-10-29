@@ -53,3 +53,4 @@ def test_resolve_authority_signal_precedence():
     sig3 = NewAuthorityAdapter.resolve_authority_signal(None, None)
     assert sig3["signal_type"] == "UNKNOWN"
     assert sig3["grant_date"] is None
+

@@ -53,3 +53,4 @@ def test_n9e_22_candidates_ingested_and_qualified():
     con.close()
 
     assert sig_cnt == 22, f"Expected 22 signals attached, found {sig_cnt}"
+

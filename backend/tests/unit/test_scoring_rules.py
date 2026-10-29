@@ -610,6 +610,8 @@ def test_j2_name_keyword_only_routes_to_needs_review_icp():
         operating_status="AUTHORIZED FOR HIRE",
         authority_status="ACTIVE",
         insurance_filing_status="ACTIVE",
+        bipd_insurance_on_file=750000,
+        phone="+12145550182",
         carrier_operation="Interstate",
         fleet_size=5,
         equipment=["dry_van"],
@@ -756,14 +758,14 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     SELECT 
         'TIER' AS metric_type,
         CASE 
-            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 'Tier NONE (< 5.0 or Non-Qualified)'
+            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'NEEDS_REVIEW', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 'Tier NONE (< 5.0 or Non-Qualified)'
             WHEN lead_score >= 8.0 THEN 'Tier A (>= 8.0)'
             WHEN lead_score >= 6.0 THEN 'Tier B (6.0 - 7.9)'
             WHEN lead_score >= 5.0 THEN 'Tier C (5.0 - 5.9)'
             ELSE 'Tier NONE (< 5.0 or Non-Qualified)'
         END AS bucket_label,
         CASE 
-            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 103
+            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'NEEDS_REVIEW', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 103
             WHEN lead_score >= 8.0 THEN 100
             WHEN lead_score >= 6.0 THEN 101
             WHEN lead_score >= 5.0 THEN 102
@@ -774,7 +776,7 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     WHERE lead_type = 'CARRIER'
     GROUP BY 
         CASE 
-            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 'Tier NONE (< 5.0 or Non-Qualified)'
+            WHEN lead_status IN ('REJECTED', 'NOT_ICP', 'NEEDS_REVIEW_ICP', 'NEEDS_REVIEW', 'ARCHIVED_NO_CONTACT') OR lead_status LIKE 'ARCHIVED%' THEN 'Tier NONE (< 5.0 or Non-Qualified)'
             WHEN lead_score >= 8.0 THEN 'Tier A (>= 8.0)'
             WHEN lead_score >= 6.0 THEN 'Tier B (6.0 - 7.9)'
             WHEN lead_score >= 5.0 THEN 'Tier C (5.0 - 5.9)'
@@ -795,7 +797,7 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     total_tier = sum(tier_dict.values())
     total_carriers = cur.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER'").fetchone()[0]
 
-    assert total_hist == total_tier == total_carriers == 119
+    assert total_hist == total_tier == total_carriers == 318  # 318 carriers post-N5 clean pool
 
     # 4. Assert SQL tier assignments agree with stored priority column
     stored_tiers = dict(cur.execute("SELECT priority, COUNT(*) FROM companies WHERE lead_type = 'CARRIER' GROUP BY priority").fetchall())

@@ -104,3 +104,4 @@ async def test_intake_suppression_screening():
         data = res.json()
         assert data["lead_status"] == "REJECTED"
         assert "Suppressed" in data["rejection_reason"]
+

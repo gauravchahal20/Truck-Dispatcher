@@ -81,6 +81,8 @@ class FMCSASaferAdapter(BaseSourceAdapter):
                     authority_status=item.get("authority_status") or "UNKNOWN",
                     authority_status_source=item.get("authority_status_source"),
                     insurance_filing_status=item.get("insurance_filing_status") or "UNKNOWN",
+                    bipd_insurance_on_file=item.get("bipd_insurance_on_file"),
+                    bipd_required_amount=item.get("bipd_required_amount"),
                     safety_rating=item.get("safety_rating"),
                     source_name=self.name,
                     source_url=profile_link or f"https://usdotlookup.com/carrier/{usdot}",

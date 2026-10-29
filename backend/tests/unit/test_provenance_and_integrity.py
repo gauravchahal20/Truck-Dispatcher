@@ -398,14 +398,14 @@ def test_k2_provenance_method_and_official_share():
         """).fetchone()[0]
         assert usdotlookup_official_cnt == 0, f"Found {usdotlookup_official_cnt} usdotlookup leads with method='official'"
 
-        # Assert true official share is 63 / 119
+        # Assert true official share is 67 / 318
         official_cnt = cur.execute("""
             SELECT COUNT(*) FROM companies
             WHERE lead_type = 'CARRIER'
               AND field_provenance LIKE '%"method": "official"%'
               AND field_provenance NOT LIKE '%usdotlookup.com%'
         """).fetchone()[0]
-        assert official_cnt == 63
+        assert official_cnt == 67  # 67 carriers with official method post-N9e
 
         # Assert carriers without census match are flagged needs_reverification = 1 (56 total)
         unmatched_flagged = cur.execute("""

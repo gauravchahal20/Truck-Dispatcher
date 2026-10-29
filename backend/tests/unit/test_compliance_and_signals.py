@@ -387,7 +387,8 @@ async def test_k4_signals_canonical_join_and_new_authority_discovery():
         assert lead.state == "TX"
         assert lead.usdot == "99887766"
         assert lead.mc_number == "554433"
-        assert "New USDOT census registration" in lead.notes
+        assert "NEW_USDOT_REGISTRATION" in lead.notes
+        assert "USDOT census registration recorded" in lead.notes
         assert lead.field_provenance["usdot"]["method"] == "official"
         assert "az4n-8mr2" in lead.field_provenance["usdot"]["url"]
 

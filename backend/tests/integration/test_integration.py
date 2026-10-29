@@ -24,7 +24,10 @@ MOCK_CARRIERS = [
         "safety_rating": "SATISFACTORY",
         "carrier_operation": "Interstate",
         "authority_status": "ACTIVE",
-        "authority_status_source": "li_dataset",
+        "authority_status_source": "inys-ebih",
+        "bipd_insurance_on_file": 750000,
+        "bipd_required_amount": 750000,
+        "contact_name": "Marcus Vance",
         "insurance_filing_status": "ACTIVE",
         "equipment": ["dry_van", "reefer"],
         "source_url": "https://safer.fmcsa.dot.gov/query.asp?query_param=USDOT&query_string=3849102",
@@ -45,7 +48,10 @@ MOCK_CARRIERS = [
         "safety_rating": "SATISFACTORY",
         "carrier_operation": "Interstate",
         "authority_status": "ACTIVE",
-        "authority_status_source": "li_dataset",
+        "authority_status_source": "inys-ebih",
+        "bipd_insurance_on_file": 750000,
+        "bipd_required_amount": 750000,
+        "contact_name": "Marcus Vance",
         "insurance_filing_status": "ACTIVE",
         "equipment": ["flatbed"],
         "source_url": "https://safer.fmcsa.dot.gov/query.asp?query_param=USDOT&query_string=2918471",
@@ -121,6 +127,7 @@ async def test_end_to_end_pipeline_offline():
 
     # 3. Execute pipeline with mocked network layer
     with patch("app.core.live_carrier_scraper.LiveCarrierScraper.fetch_carriers_for_state", new=AsyncMock(return_value=MOCK_CARRIERS)), \
+         patch("app.adapters.fmcsa_official.FMCSAOfficialAdapter.discover_candidates", new=AsyncMock(return_value=[])), \
          patch("app.core.live_search.LiveSearchClient.search_web", new=AsyncMock(return_value=[])), \
          patch("app.core.live_search.LiveSearchClient.search_nominatim", new=AsyncMock(return_value=[])), \
          patch("app.adapters.company_website.CompanyWebsiteAdapter.enrich_company", new=AsyncMock(return_value=MOCK_ENRICHMENT)), \

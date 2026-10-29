@@ -2,39 +2,39 @@
 WORKSTREAM P2: REAL OPERATING AUTHORITY GRANT DATES FROM MOTUS HISTORY AUDIT
 ================================================================================
 
-[1] MOTUS OPERATING AUTHORITY HISTORY RECORDS (Dataset: wb4f-neki, Total: 382)
+[1] MOTUS OPERATING AUTHORITY HISTORY RECORDS (Dataset: wb4f-neki, Total: 42)
 ----------------------------------------------------------------------
 A. Operating Authority Order Types:
-  - Operating Authority Involuntary Suspension Notice      :  339 records
-  - Notice Of Operating Authority Voluntary Suspension     :   43 records
+  - Operating Authority Involuntary Suspension Notice      :   35 records
+  - Notice Of Operating Authority Voluntary Suspension     :    7 records
 
 B. Operating Authority Serve Date Age Distribution:
-  <30_days_too_fresh              :   67 records ( 17.5%)
-  30_120_days_target_sweet_spot   :  214 records ( 56.0%)
-  120_365_days_mature             :  101 records ( 26.4%)
+  <30_days_too_fresh              :    3 records (  7.1%)
+  30_120_days_target_sweet_spot   :   22 records ( 52.4%)
+  120_365_days_mature             :   17 records ( 40.5%)
   >365_days_aged                  :    0 records (  0.0%)
 
 C. Recent 5 Motus Authority History Dispositions (with real serve_date):
-  USDOT: 2983300    Docket: 15339      Serve Date: 20261024 | Operating Authority Involuntary Suspension Notice
-  USDOT: 1982530    Docket: 811852     Serve Date: 20261022 | Operating Authority Involuntary Suspension Notice
-  USDOT: 2555084    Docket: 890671     Serve Date: 20261022 | Operating Authority Involuntary Suspension Notice
-  USDOT: 2895623    Docket: 973035     Serve Date: 20261022 | Operating Authority Involuntary Suspension Notice
-  USDOT: 2585088    Docket: 905787     Serve Date: 20261021 | Operating Authority Involuntary Suspension Notice
+  USDOT: 1093153    Docket: 450647     Serve Date: 20261028 | Operating Authority Involuntary Suspension Notice
+  USDOT: 1383224    Docket: 51916761   Serve Date: 20261026 | Operating Authority Involuntary Suspension Notice
+  USDOT: 1475035    Docket: 933463     Serve Date: 20260930 | Operating Authority Involuntary Suspension Notice
+  USDOT: 1900137    Docket: 682808     Serve Date: 20260926 | Operating Authority Involuntary Suspension Notice
+  USDOT: 1175109    Docket: 471136     Serve Date: 20260921 | Operating Authority Involuntary Suspension Notice
 
-[2] MCMIS MOTOR CARRIER CENSUS REGISTRATIONS (Dataset: az4n-8mr2, Total: 365)
+[2] MCMIS MOTOR CARRIER CENSUS REGISTRATIONS (Dataset: az4n-8mr2, Total: 371)
 ----------------------------------------------------------------------
 A. MCMIS Registration Add Date Age Distribution:
-  <30_days_too_fresh              :  215 records ( 58.9%)
-  30_120_days_target_sweet_spot   :  149 records ( 40.8%)
-  120_365_days_mature             :    1 records (  0.3%)
+  <30_days_too_fresh              :  226 records ( 60.9%)
+  30_120_days_target_sweet_spot   :  145 records ( 39.1%)
+  120_365_days_mature             :    0 records (  0.0%)
   >365_days_aged                  :    0 records (  0.0%)
 
 B. Recent 5 MCMIS Census Registrations (with add_date):
-  USDOT: 8726457    Docket: None       Add Date: 20261022 | State: GA Fleet: 2
-  USDOT: 6476986    Docket: None       Add Date: 20261021 | State: IL Fleet: 5
-  USDOT: 5354682    Docket: None       Add Date: 20261020 | State: CA Fleet: 1
-  USDOT: 6035255    Docket: None       Add Date: 20261020 | State: AZ Fleet: 1
-  USDOT: 8150477    Docket: None       Add Date: 20261020 | State: TX Fleet: 2
+  USDOT: 6918455    Docket: None       Add Date: 20261026 | State: IL Fleet: 2
+  USDOT: 6539054    Docket: None       Add Date: 20261026 | State: PA Fleet: 2
+  USDOT: 8973062    Docket: None       Add Date: 20261024 | State: TX Fleet: 2
+  USDOT: 9672519    Docket: None       Add Date: 20261024 | State: IL Fleet: 2
+  USDOT: 9999616    Docket: None       Add Date: 20261023 | State: TX Fleet: 2
 
 [3] SIGNAL DIFFERENTIATION BENCHMARK (NewAuthorityAdapter.resolve_authority_signal):
 ----------------------------------------------------------------------

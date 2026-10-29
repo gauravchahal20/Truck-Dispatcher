@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -7,8 +8,8 @@ from .config import settings, config, PROJECT_ROOT
 # SQLAlchemy Declarative Base
 Base = declarative_base()
 
-# Determine DB URL
-db_url = settings.database_url or config.raw_yaml.get("system", {}).get("database_url", "sqlite+aiosqlite:///./data/trucklead.db")
+# Determine DB URL (environment variable takes precedence for test isolation)
+db_url = os.environ.get("DATABASE_URL") or settings.database_url or config.raw_yaml.get("system", {}).get("database_url", "sqlite+aiosqlite:///./data/trucklead.db")
 
 # Normalize relative SQLite paths to PROJECT_ROOT
 if "sqlite" in db_url:

@@ -49,3 +49,4 @@ def test_n9d_candidate_phone_region_mismatch_eval():
     assert phone_st_kb == "GA"
     assert bus_st_kb == "GA"
     assert phone_st_kb == bus_st_kb
+

@@ -1,5 +1,5 @@
 === N9d: Phone Region & NANP Area Code Audit Evidence ===
-Timestamp: 2026-10-28T13:09:39.711626+00:00
+Timestamp: 2026-10-29T00:13:45.522795+00:00
 
 1. All 23 Candidate Watchlist Records (Area Code, Mapped State vs Business State):
 #   | USDOT     | Legal Name                       | Phone        | AreaCode | Phone State | Bus State | Mismatch?
@@ -40,7 +40,7 @@ Total Candidates: 23 | Total Mismatches: 6 | Matches: 17
    - Correct Mapping: Area Code 202 is strictly mapped to 'DC' via canonical NANP_AREA_CODES table.
    - Region Mismatch: Mismatch is 'DC vs GA' (NOT 'WA vs GA').
 
-3. All Phone Region Mismatches Among Stored Carriers (Total Mismatches: 61 / 315 carriers):
+3. All Phone Region Mismatches Among Stored Carriers (Total Mismatches: 63 / 318 carriers):
 #   | USDOT     | Company Name                       | Phone           | AreaCode | Phone State | Bus State
 --------------------------------------------------------------------------------------------------
 1   | 9781428   | 7RISELOGISTICSLLC                  | +13476621164    | 347      | NY          | PA
@@ -53,57 +53,59 @@ Total Candidates: 23 | Total Mismatches: 6 | Matches: 17
 8   | 9026608   | CROSS USA SERVICES                 | +13365598320    | 336      | NC          | AR
 9   | 3387752   | D&D MOBILE                         | +18302009746    | 830      | TX          | LA
 10  | 4203898   | DH CONSTRUCTION SERVICES           | +17207243347    | 720      | CO          | MO
-11  | 5285574   | DHD EXPRESS LLC                    | +12792973545    | 279      | CA          | IN
-12  | 7692161   | DOUMBIA TRANSPORTATION SERVICE LLC | +19176279610    | 917      | NY          | PA
-13  | 9753821   | DROP TIME LOGISTICS LLC            | +19414450984    | 941      | FL          | IN
-14  | 5259440   | EVERYDAY EXPRESS LLC               | +18052700243    | 805      | CA          | OH
-15  | 7459657   | FOCUS FREIGHT MOVERS LLC           | +12623087531    | 262      | WI          | GA
-16  | 8731821   | G & R TRANSPORT LOGISTICS LLC      | +17865104441    | 786      | FL          | TX
-17  | 8013828   | GRIFFIN DROP INC                   | +19297810977    | 929      | NY          | PA
+11  | 7692161   | DOUMBIA TRANSPORTATION SERVICE LLC | +19176279610    | 917      | NY          | PA
+12  | 9753821   | DROP TIME LOGISTICS LLC            | +19414450984    | 941      | FL          | IN
+13  | 5259440   | EVERYDAY EXPRESS LLC               | +18052700243    | 805      | CA          | OH
+14  | 7459657   | FOCUS FREIGHT MOVERS LLC           | +12623087531    | 262      | WI          | GA
+15  | 8731821   | G & R TRANSPORT LOGISTICS LLC      | +17865104441    | 786      | FL          | TX
+16  | 8013828   | GRIFFIN DROP INC                   | +19297810977    | 929      | NY          | PA
+17  | 8973062   | HOOKED ON TOWING TX LLC            | +19094700566    | 909      | CA          | TX
 18  | 6222306   | I3VONATION LLC                     | +17328249767    | 732      | NJ          | PA
 19  | 5712917   | ISAAC JOHNSON JR                   | +14102519739    | 410      | MD          | NC
-20  | 4626451   | J & A FREIGHT SOLUTIONS LLC        | +19037905283    | 903      | TX          | GA
-21  | 5399886   | J&Y DISTRIBUTION INC               | +19093196862    | 909      | CA          | TX
-22  | 9127100   | JJBS GRACE LLC                     | +16158102855    | 615      | TN          | OH
-23  | 7240161   | KMJ EXPRESS LLC                    | +15164177052    | 516      | NY          | IN
-24  | 9789924   | KOBA KOBIDZE CORP                  | +13303304717    | 330      | OH          | PA
-25  | 5418270   | L&M TRUSS MANUFACTURING, LLC       | +14699848483    | 469      | TX          | GA
-26  | 5715231   | LA STAR ELITE FREIGHT LLC          | +17866249648    | 786      | FL          | TX
-27  | 8142184   | LANDCARE LLC                       | +15163607916    | 516      | NY          | GA
-28  | 7311877   | LIN VENTURES LLC                   | +13468521176    | 346      | TX          | GA
-29  | 3416810   | M H PIERRRE CONCULTING LLC         | +14704967119    | 470      | GA          | FL
-30  | 6588757   | MOTOR CITY AUTO HAULERS L.L.C.     | +13123152354    | 312      | IL          | MI
+20  | 7076429   | ITALIAN V-TWIN FANATICS LLC        | +19495262817    | 949      | CA          | OH
+21  | 4626451   | J & A FREIGHT SOLUTIONS LLC        | +19037905283    | 903      | TX          | GA
+22  | 5399886   | J&Y DISTRIBUTION INC               | +19093196862    | 909      | CA          | TX
+23  | 9127100   | JJBS GRACE LLC                     | +16158102855    | 615      | TN          | OH
+24  | 7240161   | KMJ EXPRESS LLC                    | +15164177052    | 516      | NY          | IN
+25  | 9789924   | KOBA KOBIDZE CORP                  | +13303304717    | 330      | OH          | PA
+26  | 5418270   | L&M TRUSS MANUFACTURING, LLC       | +14699848483    | 469      | TX          | GA
+27  | 5715231   | LA STAR ELITE FREIGHT LLC          | +17866249648    | 786      | FL          | TX
+28  | 8142184   | LANDCARE LLC                       | +15163607916    | 516      | NY          | GA
+29  | 7311877   | LIN VENTURES LLC                   | +13468521176    | 346      | TX          | GA
+30  | 3416810   | M H PIERRRE CONCULTING LLC         | +14704967119    | 470      | GA          | FL
 31  | 5800824   | NORTHAMPTON LOGISTICS LLC          | +12028482757    | 202      | DC          | GA
 32  | 9607661   | OMA GOLD INC.                      | +14257615040    | 425      | WA          | IL
 33  | 9505024   | ON THE GEAUX LOGISTICS, LLC        | +16235237389    | 623      | AZ          | IN
-34  | 6776685   | PARKS CIVIL CONTRACTORS, LLC       | +16292573071    | 629      | TN          | OH
-35  | 7254076   | PRIME GLOBAL ENTERPRISES LLC       | +17865214502    | 786      | FL          | OH
-36  | 9510721   | RA MOVING LLC                      | +13478463345    | 347      | NY          | PA
-37  | 5452513   | RALLY EXPRESS LLC                  | +19088580000    | 908      | NJ          | OH
-38  | 6758368   | RICARDI ENGINEERING & EXCAVATION L | +14065819805    | 406      | MT          | WA
-39  | 9317505   | ROC EXPRESS INC                    | +17474881146    | 747      | CA          | PA
-40  | 9340484   | ROUTEX LOGISTICS LLC               | +19492664017    | 949      | CA          | IL
-41  | 5364172   | SAFE LINE LLC                      | +19544196467    | 954      | FL          | NC
-42  | 4985079   | SKYPOINT TRANSPORTATION LLC        | +12152725347    | 215      | PA          | IL
-43  | 2252252   | SOPHY'S FRUITS COMPANY             | +19739200641    | 973      | NJ          | FL
-44  | 7719197   | T DIVINE TRANSPORT LLC             | +18503541684    | 850      | FL          | GA
-45  | 6355184   | T.A.R.M LOGISTICS INC              | +16893656461    | 689      | FL          | NC
-46  | 8726457   | TALON J LOGISTICS LLC              | +19144198252    | 914      | NY          | GA
-47  | 9540138   | TITAN GATE LOGISTICS LLC           | +19293773372    | 929      | NY          | MI
-48  | 9326023   | TJ GENERAL TRUCKING LLC            | +12093454879    | 209      | CA          | NC
-49  | 9348731   | TL WAY EXPRESS LLC                 | +19739389856    | 973      | NJ          | IL
-50  | 8758832   | TOP CARGO TRANSPORTATION LLC       | +16265564865    | 626      | CA          | OH
-51  | 5286740   | TRALEI MINI MART LLC               | +19733804311    | 973      | NJ          | PA
-52  | 6230559   | TROPICAL SERVICES LLC              | +13056808334    | 305      | FL          | OH
-53  | 7949321   | TRUCKERS PARADISE RANCH LLC        | +14322260272    | 432      | TX          | OH
-54  | 5483688   | TRUE FIX BUILDERS                  | +12532419138    | 253      | WA          | OH
-55  | 5228598   | TWIN LEGACY TRUCKING LLC           | +12025158943    | 202      | DC          | CA
-56  | 6626200   | UNLIMITED FREIGHT SOLUTIONS LLC    | +13464644047    | 346      | TX          | GA
-57  | 8256586   | V & G CARGO SOLUTIONS LLC          | +17869670537    | 786      | FL          | IN
-58  | 6642605   | VICTORY ROAD LOGISTICS LLC         | +17818665408    | 781      | MA          | IN
-59  | 9299817   | WILD WEST HEAVY HAUL INC           | +17015215363    | 701      | ND          | KS
-60  | 6354190   | Z & M BROTHERS LLC                 | +12013623895    | 201      | NJ          | OH
-61  | 7338073   | ZHA TRUCKING LLC                   | +16145001417    | 614      | OH          | IN
+34  | 9999616   | OWEN MATHEW YARI TRANSPORT CO      | +17029801071    | 702      | NV          | TX
+35  | 6776685   | PARKS CIVIL CONTRACTORS, LLC       | +16292573071    | 629      | TN          | OH
+36  | 6534565   | POTOF CO LLC                       | +17324391273    | 732      | NJ          | IN
+37  | 7254076   | PRIME GLOBAL ENTERPRISES LLC       | +17865214502    | 786      | FL          | OH
+38  | 9510721   | RA MOVING LLC                      | +13478463345    | 347      | NY          | PA
+39  | 5452513   | RALLY EXPRESS LLC                  | +19088580000    | 908      | NJ          | OH
+40  | 6758368   | RICARDI ENGINEERING & EXCAVATION L | +14065819805    | 406      | MT          | WA
+41  | 9317505   | ROC EXPRESS INC                    | +17474881146    | 747      | CA          | PA
+42  | 9340484   | ROUTEX LOGISTICS LLC               | +19492664017    | 949      | CA          | IL
+43  | 5364172   | SAFE LINE LLC                      | +19544196467    | 954      | FL          | NC
+44  | 4985079   | SKYPOINT TRANSPORTATION LLC        | +12152725347    | 215      | PA          | IL
+45  | 2252252   | SOPHY'S FRUITS COMPANY             | +19739200641    | 973      | NJ          | FL
+46  | 7719197   | T DIVINE TRANSPORT LLC             | +18503541684    | 850      | FL          | GA
+47  | 6355184   | T.A.R.M LOGISTICS INC              | +16893656461    | 689      | FL          | NC
+48  | 8726457   | TALON J LOGISTICS LLC              | +19144198252    | 914      | NY          | GA
+49  | 9540138   | TITAN GATE LOGISTICS LLC           | +19293773372    | 929      | NY          | MI
+50  | 9326023   | TJ GENERAL TRUCKING LLC            | +12093454879    | 209      | CA          | NC
+51  | 9348731   | TL WAY EXPRESS LLC                 | +19739389856    | 973      | NJ          | IL
+52  | 8758832   | TOP CARGO TRANSPORTATION LLC       | +16265564865    | 626      | CA          | OH
+53  | 5286740   | TRALEI MINI MART LLC               | +19733804311    | 973      | NJ          | PA
+54  | 6230559   | TROPICAL SERVICES LLC              | +13056808334    | 305      | FL          | OH
+55  | 7949321   | TRUCKERS PARADISE RANCH LLC        | +14322260272    | 432      | TX          | OH
+56  | 5483688   | TRUE FIX BUILDERS                  | +12532419138    | 253      | WA          | OH
+57  | 5228598   | TWIN LEGACY TRUCKING LLC           | +12025158943    | 202      | DC          | CA
+58  | 6626200   | UNLIMITED FREIGHT SOLUTIONS LLC    | +13464644047    | 346      | TX          | GA
+59  | 8256586   | V & G CARGO SOLUTIONS LLC          | +17869670537    | 786      | FL          | IN
+60  | 6642605   | VICTORY ROAD LOGISTICS LLC         | +17818665408    | 781      | MA          | IN
+61  | 9299817   | WILD WEST HEAVY HAUL INC           | +17015215363    | 701      | ND          | KS
+62  | 6354190   | Z & M BROTHERS LLC                 | +12013623895    | 201      | NJ          | OH
+63  | 7338073   | ZHA TRUCKING LLC                   | +16145001417    | 614      | OH          | IN
 --------------------------------------------------------------------------------------------------
 
-Summary of Stored Carriers: 315 total carriers, 61 with phone region mismatches (19.4%).
+Summary of Stored Carriers: 318 total carriers, 63 with phone region mismatches (19.8%).

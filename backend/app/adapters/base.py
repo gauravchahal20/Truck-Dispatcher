@@ -37,6 +37,8 @@ class RawLeadRecord(BaseModel):
     authority_status: Optional[str] = "UNKNOWN"
     authority_status_source: Optional[str] = None
     insurance_filing_status: Optional[str] = "UNKNOWN"
+    bipd_insurance_on_file: Optional[float] = None
+    bipd_required_amount: Optional[float] = None
 
     source_name: str
     source_url: Optional[str] = None

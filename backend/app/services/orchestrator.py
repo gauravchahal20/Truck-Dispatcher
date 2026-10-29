@@ -382,6 +382,7 @@ class LeadOrchestrator:
                         authority_status="UNKNOWN" if is_shipper else (raw.authority_status or "UNKNOWN"),
                         authority_status_source=raw.authority_status_source,
                         insurance_filing_status="UNKNOWN" if is_shipper else (raw.insurance_filing_status or "UNKNOWN"),
+                        bipd_insurance_on_file=None if is_shipper else getattr(raw, "bipd_insurance_on_file", None),
                         safety_rating=None if is_shipper else raw.safety_rating,
                         mcs_150_date=raw.mcs_150_date,
                         lead_status="RAW",
