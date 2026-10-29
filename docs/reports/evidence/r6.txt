@@ -1,0 +1,231 @@
+=== WORKSTREAM R6: COMPILATION OF HISTORICAL EVIDENCE (Q0, Q1, Q2 & SOURCE YIELD) ===
+
+--- [1] Q0 CONTACTABILITY AUDIT (BEFORE / AFTER) ---
+=== WORKSTREAM Q0: HYGIENE, CONTACT CHECKS & TEST AUDIT EVIDENCE ===
+Timestamp: 2026-10-29T00:21:47.348809+00:00
+
+1. Status Counts by lead_type (BEFORE):
+Lead Type    | Lead Status               | Count 
+-----------------------------------------------
+CARRIER      | NEEDS_ENRICHMENT          | 198   
+CARRIER      | NEEDS_REVIEW              | 1     
+CARRIER      | NEEDS_REVIEW_ICP          | 1     
+CARRIER      | QUALIFIED                 | 72    
+CARRIER      | REJECTED                  | 46    
+SHIPPER      | ARCHIVED_NO_CONTACT       | 90    
+
+2. Carrier Contact Audit across all 318 stored carriers:
+Phone Verification Metrics (Total Carriers: 318):
+  - Phone Present:            303 (95.3%)
+  - Valid E.164 Formatted:    303 (95.3%)
+  - Valid NANP Structure:     303 (95.3%)
+  - Area Code State Matched:  228 (71.7%)
+  - Region Mismatch Flagged:  63 (19.8%)
+  - Unknown Area Code:        12
+
+Email Verification Metrics (Total Carriers: 318):
+  - Email Present:            235 (73.9%)
+  - RFC 5322 Syntax Valid:    235 (73.9%)
+  - RFC Syntax Invalid:       0
+  - Disposable Domains:       0
+  - MX Resolvable:            233 (73.3%)
+  - MX Lookup Failed:         2
+  Email Role Tier Breakdown:
+    - named:                  28
+    - personal_webmail:       178
+    - generic:                21
+    - departmental:           8
+
+3. Status Counts by lead_type (AFTER):
+Lead Type    | Lead Status               | Count 
+-----------------------------------------------
+CARRIER      | NEEDS_ENRICHMENT          | 198   
+CARRIER      | NEEDS_REVIEW              | 1     
+CARRIER      | NEEDS_REVIEW_ICP          | 1     
+CARRIER      | QUALIFIED                 | 72    
+CARRIER      | REJECTED                  | 46    
+SHIPPER      | ARCHIVED_NO_CONTACT       | 90    
+
+4. Offline Pytest Suite Results & Durations:
+........................................................................ [ 40%]
+........................................................................ [ 81%]
+................................                                         [100%]
+============================ slowest 15 durations =============================
+4.11s call     backend/tests/unit/test_migrations.py::test_fresh_db_build_from_migrations
+1.86s call     backend/tests/unit/test_autopilot.py::test_k5_orchestrator_candidate_ingestion_cap
+0.97s call     backend/tests/unit/test_compliance_and_signals.py::test_h6_signal_sync_methods_offline
+0.88s call     backend/tests/unit/test_validators.py::test_fetch_ssrf_safe_caps_redirect_count
+0.84s call     backend/tests/integration/test_integration.py::test_end_to_end_pipeline_offline
+0.68s setup    backend/tests/unit/test_callable_mailable.py::test_timezone_and_kolkata_call_window
+0.68s setup    backend/tests/unit/test_deduplication_edge_cases.py::test_dedup_by_usdot
+0.67s setup    backend/tests/unit/test_deduplication_edge_cases.py::test_aggregator_domains_excluded_from_dedup
+0.67s setup    backend/tests/unit/test_compliance_and_signals.py::test_d5_signal_tables_checksum_persistence
+0.64s setup    backend/tests/unit/test_call_queue.py::test_m6_verify_and_call_queue_endpoint
+0.61s setup    backend/tests/unit/test_callable_mailable.py::test_final_requires_verified_contact_channel_for_named_person
+0.59s setup    backend/tests/unit/test_callable_mailable.py::test_l2i_data_sanity_flags_evaluation
+0.58s setup    backend/tests/unit/test_compliance_and_signals.py::test_j4_signal_coverage_and_config_caps
+0.57s setup    backend/tests/unit/test_hygiene_n9f.py::test_email_readiness_blocked_when_postal_address_not_set
+0.57s setup    backend/tests/unit/test_callable_mailable.py::test_pause_shipper_discovery_safeguard
+176 passed, 12 deselected in 44.67s
+
+
+--- [2] Q1 LICENSING-FIRST DISCOVERY FUNNEL ---
+=== WORKSTREAM Q1: LICENSING-FIRST DISCOVERY FUNNEL EVIDENCE ===
+Timestamp: 2026-10-29T00:34:06.390461+00:00
+
+1. Discovery Funnel Metrics:
+  - Licensing Rows Scanned (inys-ebih):         1000
+  - Active Property Authority with BIPD >= 750k: 1000
+  - Joined to MCMIS Census (az4n-8mr2):          983
+  - Passed Fleet & Recency Filters (2-10, 24mo): 216
+  - Passed ICP Prefilter (Two-Signal Rule):      187
+  - Not Already Stored in Companies Pool:        187
+  - Net-New Candidates Added to Reservoir:       185
+  - Total Candidates in Reservoir Table:         185
+  - Companies Table Stored Carriers (Untouched): 318
+
+2. Geographic Distribution (Top Candidate States):
+State    | Candidates
+----------------------
+CA       | 20        
+TX       | 18        
+IL       | 12        
+WI       | 8         
+OH       | 7         
+NC       | 7         
+KY       | 7         
+WA       | 7         
+IA       | 7         
+FL       | 5         
+TN       | 5         
+PA       | 5         
+ON       | 5         
+MO       | 4         
+MD       | 4         
+MN       | 4         
+NY       | 4         
+GA       | 4         
+UT       | 4         
+MI       | 4         
+OR       | 4         
+NJ       | 4         
+BC       | 3         
+AL       | 3         
+MS       | 3         
+OK       | 3         
+AZ       | 3         
+SD       | 2         
+CT       | 2         
+NE       | 2         
+VA       | 2         
+AR       | 2         
+NM       | 2         
+WY       | 1         
+ID       | 1         
+ND       | 1         
+ME       | 1         
+SC       | 1         
+NV       | 1         
+LA       | 1         
+KS       | 1         
+IN       | 1         
+
+3. Equipment / Cargo Class Distribution:
+Equipment Class      | Candidates
+----------------------------------
+flatbed              | 95        
+dry_van              | 78        
+general_freight      | 12        
+
+4. Fleet Size Band Distribution:
+Fleet Band      | Candidates
+----------------------------
+2-5             | 129       
+6-10            | 56
+
+
+--- [3] Q2 RESERVOIR INGESTION TABLES ---
+=== WORKSTREAM Q2: RESERVOIR RANKING & ON-DEMAND INGESTION EVIDENCE ===
+Timestamp: 2026-10-29T13:55:42.684229+00:00
+
+1. ICP Widening Analysis (Official Census Volume az4n-8mr2):
+  - Core Configured ICP Fleet (2-10 power units, interstate, active): 110,936 carriers
+  - ICP Edge Segment 1 (Fleet 1 Owner-Operators):                    186,561 carriers (+168.2% expansion)
+  - ICP Edge Segment 2 (Fleet 11-15 Small Mid-Market):                 7,531 carriers (  +6.8% expansion)
+  - Configuration Status: icp_widening.enabled = false (default off)
+  - Priority Weight Adjustment: fleet 1 (0.6x), fleet 11-15 (0.7x)
+
+2. Reservoir Candidate Pool Preview (Available: 185 candidates):
+  Contactability Brackets:
+    - <0.5    : 0    
+    - 0.5-0.9 : 5    
+    - >=1.0   : 180  
+  Top Equipment Classes:
+    - flatbed         : 95   
+    - dry_van         : 78   
+    - general_freight : 12   
+  Top States:
+    - CA  : 20   
+    - TX  : 18   
+    - IL  : 12   
+    - WI  : 8    
+    - NC  : 7    
+    - IA  : 7    
+    - KY  : 7    
+    - OH  : 7    
+    - WA  : 7    
+    - ON  : 5    
+
+3. Ingestion Execution Summary:
+  - Target Ingestion Limit:                    150
+  - Successfully Ingested into Companies:     150
+  - Duplicates Skipped / Merged:               0
+  - Remaining Available Candidates in Reservoir: 35
+  - Total Candidates Ingested to Date:         150
+  - Total Stored Carriers in Companies Pool:   468 (was 318)
+
+4. Full Carrier Pool Lead Status Distribution (BEFORE vs AFTER):
+Lead Status               | Before     | After      | Net Change
+--------------------------------------------------------------
+NEEDS_ENRICHMENT          | 198        | 198        | 0         
+NEEDS_REVIEW              | 1          | 1          | 0         
+NEEDS_REVIEW_ICP          | 1          | 2          | +1        
+QUALIFIED                 | 72         | 221        | +149      
+REJECTED                  | 46         | 46         | 0         
+--------------------------------------------------------------
+TOTAL CARRIERS            | 318        | 468        | +150       
+
+5. Full Carrier Pool Priority Tier Distribution (BEFORE vs AFTER):
+Priority Tier             | Before     | After      | Net Change
+--------------------------------------------------------------
+A                         | 0          | 0          | 0         
+B                         | 102        | 102        | 0         
+C                         | 128        | 277        | +149      
+NONE                      | 88         | 89         | +1        
+--------------------------------------------------------------
+TOTAL CARRIERS            | 318        | 468        | +150       
+
+6. Status & Tier Breakdown of the Ingested Reservoir Cohort:
+  Status:
+    - QUALIFIED             : 149  
+    - NEEDS_REVIEW_ICP      : 1    
+  Priority Tier:
+    - Tier A                : 0    
+    - Tier B                : 0    
+    - Tier C                : 149  
+    - Tier NONE             : 1
+
+
+--- [4] NET-NEW UNIQUE LEADS PER SOURCE AFTER DEDUP ---
+
+Discovery Source Channel | Stored Leads | Net-New After Dedup | Phone Coverage (%) | Email Coverage (%) | Proven Authority (%)
+-------------------------+--------------+---------------------+--------------------+--------------------+---------------------
+licensing (inys-ebih)    | 217          | 217                 | 100.0%             | 94.0%              | 69.1%
+census (az4n-8mr2)       | 191          | 191                 | 100.0%             | 92.1%              | 36.6%
+direct_intake            | 56           | 56                  |  73.2%             |  1.8%              |  1.8%
+pending_applications     | 25           | 25                  | 100.0%             | 100.0%             |  0.0%
+manual_csv               | 3            | 3                   | 100.0%             | 100.0%             | 100.0%
+referral                 | 2            | 2                   | 100.0%             | 100.0%             | 100.0%
+-------------------------+--------------+---------------------+--------------------+--------------------+---------------------
+TOTAL CARRIERS           | 498          | 498                 |  97.0%             |  79.3%             |  53.2%
+
