@@ -1,0 +1,46 @@
+=== WORKSTREAM Q5: FULL-STATE CENSUS PAGING EVIDENCE ===
+Timestamp: 2026-10-29T14:36:47.941306+00:00
+Total Execution Duration: 12.68s
+
+1. Paging Performance & Funnel by State:
+State   | Duration (s)   | Rows Scanned   | Candidates Staged  | Status
+---------------------------------------------------------------------------
+TX      | 1.90           | 100            | 100                | COMPLETED
+CA      | 2.24           | 100            | 100                | COMPLETED
+GA      | 1.17           | 100            | 100                | COMPLETED
+OH      | 1.03           | 100            | 99                 | COMPLETED
+IL      | 1.29           | 100            | 99                 | COMPLETED
+FL      | 0.85           | 100            | 100                | COMPLETED
+PA      | 0.81           | 100            | 100                | COMPLETED
+NC      | 0.78           | 100            | 99                 | COMPLETED
+IN      | 0.80           | 100            | 100                | COMPLETED
+MI      | 1.29           | 100            | 100                | COMPLETED
+
+2. Reservoir Totals Post-Q5:
+  - Total Candidates in Reservoir (census_candidates): 1182 (was 185, +997 net-new)
+  - Total Stored Companies Carrier Pool:              493 (STRICTLY UNCHANGED, isolated from reservoir)
+  - Cumulative States Processed:                      10
+
+3. Reservoir Distribution by State (Top 10):
+State   | Reservoir Candidates
+------------------------------
+CA      | 120
+TX      | 118
+IL      | 111
+NC      | 106
+OH      | 106
+FL      | 105
+PA      | 105
+GA      | 104
+MI      | 104
+IN      | 101
+
+4. Resumability & Rate Limiting Verification:
+  - Checkpoint Saved: data/census_paging_state.json (resumable state)
+  - Cooperative Rate Limiting: <= 5 req/sec enforced
+  - HTTP 429 Exponential Backoff: Active (2s, 4s, 8s backoff with 3 retries)
+
+5. Spend & External Requests:
+  - Total Spend: $0.00 (FREE-ONLY federal SODA API)
+  - Hosts Contacted: data.transportation.gov
+
