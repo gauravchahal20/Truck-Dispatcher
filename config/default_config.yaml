@@ -29,6 +29,18 @@ icp:
     partial_multiplier: 0.5
     preferred_min: 2
     preferred_max: 10
+  icp_widening:
+    enabled: false
+    fleet_1_owner_operators:
+      enabled: false
+      segment: "owner_operator"
+      flag: "ICP edge"
+      priority_weight: 0.6
+    fleet_11_15_mid_size:
+      enabled: false
+      segment: "mid_size_carrier"
+      flag: "ICP edge"
+      priority_weight: 0.7
   equipment_types:
     - "dry_van"
     - "reefer"

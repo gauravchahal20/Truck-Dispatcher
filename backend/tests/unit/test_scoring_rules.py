@@ -797,7 +797,7 @@ def test_l2g_unified_sql_histogram_and_tier_agreement():
     total_tier = sum(tier_dict.values())
     total_carriers = cur.execute("SELECT COUNT(*) FROM companies WHERE lead_type = 'CARRIER'").fetchone()[0]
 
-    assert total_hist == total_tier == total_carriers == 318  # 318 carriers post-N5 clean pool
+    assert total_hist == total_tier == total_carriers == 468  # 468 carriers post-Q2 reservoir ingestion
 
     # 4. Assert SQL tier assignments agree with stored priority column
     stored_tiers = dict(cur.execute("SELECT priority, COUNT(*) FROM companies WHERE lead_type = 'CARRIER' GROUP BY priority").fetchall())

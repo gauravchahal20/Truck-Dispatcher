@@ -45,8 +45,8 @@ def test_m5_candidate_watchlist_isolation_and_schema():
 
     assert ingested_in_companies == 23, f"Expected 23 watchlist candidates in companies (22 QUALIFIED, 1 NEEDS_REVIEW per N9e), found {ingested_in_companies}"
 
-    # 4. Verify total stored counts in companies reflect pool (318 carriers post-N5/N9e)
+    # 4. Verify total stored counts in companies reflect pool (468 carriers post-Q2 ingestion)
     carrier_count = cur.execute("SELECT count(*) FROM companies WHERE lead_type='CARRIER'").fetchone()[0]
-    assert carrier_count == 318, f"Expected 318 carriers, found {carrier_count}"
+    assert carrier_count == 468, f"Expected 468 carriers post-Q2, found {carrier_count}"
 
     con.close()

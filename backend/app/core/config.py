@@ -33,10 +33,28 @@ class CarrierPrefilterConfig(BaseModel):
     ]
 
 
+class ICPWideningOption(BaseModel):
+    enabled: bool = False
+    segment: str = "icp_edge"
+    flag: str = "ICP edge"
+    priority_weight: float = 0.6
+
+
+class ICPWideningConfig(BaseModel):
+    enabled: bool = False
+    fleet_1_owner_operators: ICPWideningOption = Field(
+        default_factory=lambda: ICPWideningOption(segment="owner_operator", flag="ICP edge", priority_weight=0.6)
+    )
+    fleet_11_15_mid_size: ICPWideningOption = Field(
+        default_factory=lambda: ICPWideningOption(segment="mid_size_carrier", flag="ICP edge", priority_weight=0.7)
+    )
+
+
 class ICPConfig(BaseModel):
     target_country: str = "US"
     target_states: List[str] = ["TX", "CA", "GA", "IL", "OH", "PA", "FL", "NC", "IN", "MI"]
     fleet_size: FleetSizeConfig = Field(default_factory=FleetSizeConfig)
+    icp_widening: ICPWideningConfig = Field(default_factory=ICPWideningConfig)
     equipment_types: List[str] = ["dry_van", "reefer", "flatbed", "drayage", "stepdeck", "power_only"]
     carrier_operations: List[str] = ["Interstate", "Intrastate Hazmat", "Intrastate Non-Hazmat"]
     authorized_only: bool = True

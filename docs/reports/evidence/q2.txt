@@ -1,0 +1,69 @@
+=== WORKSTREAM Q2: RESERVOIR RANKING & ON-DEMAND INGESTION EVIDENCE ===
+Timestamp: 2026-10-29T13:55:42.684229+00:00
+
+1. ICP Widening Analysis (Official Census Volume az4n-8mr2):
+  - Core Configured ICP Fleet (2-10 power units, interstate, active): 110,936 carriers
+  - ICP Edge Segment 1 (Fleet 1 Owner-Operators):                    186,561 carriers (+168.2% expansion)
+  - ICP Edge Segment 2 (Fleet 11-15 Small Mid-Market):                 7,531 carriers (  +6.8% expansion)
+  - Configuration Status: icp_widening.enabled = false (default off)
+  - Priority Weight Adjustment: fleet 1 (0.6x), fleet 11-15 (0.7x)
+
+2. Reservoir Candidate Pool Preview (Available: 185 candidates):
+  Contactability Brackets:
+    - <0.5    : 0    
+    - 0.5-0.9 : 5    
+    - >=1.0   : 180  
+  Top Equipment Classes:
+    - flatbed         : 95   
+    - dry_van         : 78   
+    - general_freight : 12   
+  Top States:
+    - CA  : 20   
+    - TX  : 18   
+    - IL  : 12   
+    - WI  : 8    
+    - NC  : 7    
+    - IA  : 7    
+    - KY  : 7    
+    - OH  : 7    
+    - WA  : 7    
+    - ON  : 5    
+
+3. Ingestion Execution Summary:
+  - Target Ingestion Limit:                    150
+  - Successfully Ingested into Companies:     150
+  - Duplicates Skipped / Merged:               0
+  - Remaining Available Candidates in Reservoir: 35
+  - Total Candidates Ingested to Date:         150
+  - Total Stored Carriers in Companies Pool:   468 (was 318)
+
+4. Full Carrier Pool Lead Status Distribution (BEFORE vs AFTER):
+Lead Status               | Before     | After      | Net Change
+--------------------------------------------------------------
+NEEDS_ENRICHMENT          | 198        | 198        | 0         
+NEEDS_REVIEW              | 1          | 1          | 0         
+NEEDS_REVIEW_ICP          | 1          | 2          | +1        
+QUALIFIED                 | 72         | 221        | +149      
+REJECTED                  | 46         | 46         | 0         
+--------------------------------------------------------------
+TOTAL CARRIERS            | 318        | 468        | +150       
+
+5. Full Carrier Pool Priority Tier Distribution (BEFORE vs AFTER):
+Priority Tier             | Before     | After      | Net Change
+--------------------------------------------------------------
+A                         | 0          | 0          | 0         
+B                         | 102        | 102        | 0         
+C                         | 128        | 277        | +149      
+NONE                      | 88         | 89         | +1        
+--------------------------------------------------------------
+TOTAL CARRIERS            | 318        | 468        | +150       
+
+6. Status & Tier Breakdown of the Ingested Reservoir Cohort:
+  Status:
+    - QUALIFIED             : 149  
+    - NEEDS_REVIEW_ICP      : 1    
+  Priority Tier:
+    - Tier A                : 0    
+    - Tier B                : 0    
+    - Tier C                : 149  
+    - Tier NONE             : 1    
