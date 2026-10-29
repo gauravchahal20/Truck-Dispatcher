@@ -1,0 +1,35 @@
+1
+00:00:00,000 --> 00:00:05,523
+1. Dashboard Overview — 498 Verified Carriers, Multistage Funnel & Lead Source Mix
+
+2
+00:00:07,049 --> 00:00:12,557
+2. Leads Database — ICP Filters, Status Badges (QUALIFIED/NEEDS_ENRICHMENT) & Score Bands
+
+3
+00:00:12,623 --> 00:00:18,644
+3. Lead Detail View — 10-Point Grounded Checklist, Official SODA Provenance & Contacts
+
+4
+00:00:21,621 --> 00:00:27,128
+4. Ready to Contact — Format-Valid Calling Queue with Timezone-Aware Calling Windows
+
+5
+00:00:27,194 --> 00:00:32,699
+5. SAFER Verification & Manual Outcome Form — Strictly Human Manual Click-to-Call Workflow
+
+6
+00:00:34,069 --> 00:00:39,075
+6. Prioritized Queue (Max 30) — High-Yield Capacity Planner with Follow-Ups First
+
+7
+00:00:41,354 --> 00:00:46,360
+7. Reservoir & Source Yield — 1,182 Staged Candidates Across Benchmark Freight States
+
+8
+00:00:47,804 --> 00:00:53,312
+8. Compliance & Settings — TCPA Safe Hours, CAN-SPAM Sender Identity & DNC Suppression
+
+9
+00:00:54,761 --> 00:01:00,766
+9. Pipeline Runs & Autonomous Autopilot — Continuous FMCSA Change Monitoring & Emergency Kill Switch

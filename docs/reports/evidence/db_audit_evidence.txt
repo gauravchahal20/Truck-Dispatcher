@@ -1,0 +1,46 @@
+FILE: data/trucklead.db
+SIZE: 7151616 bytes
+MTIME_UTC: 2026-10-29T15:08:01.342680+00:00
+TABLE COUNTS:
+  alembic_version: 1
+  autopilot_run_logs: 0
+  candidate_watchlist: 31
+  census_candidates: 1182
+  census_fleet_snapshots: 1510
+  change_logs: 2
+  companies: 588
+  contacts: 488
+  errors: 0
+  fmcsa_authority_history: 42
+  fmcsa_carrier_census: 371
+  fmcsa_inspections: 275
+  fmcsa_insurance_active_pending: 48
+  fmcsa_motus_carrier: 1120
+  fmcsa_new_applications: 46
+  intent_signals: 206
+  lead_outcomes: 0
+  lead_scores: 213
+  lead_status_history: 1079
+  phone_verification_cache: 0
+  runs: 22
+  source_health_metrics: 2
+  sources: 416
+  suppression_list: 0
+  verification_records: 3220
+
+BREAKDOWN companies.lead_type:
+  CARRIER: 498
+  SHIPPER: 90
+
+BREAKDOWN companies.lead_status:
+  QUALIFIED: 228
+  NEEDS_ENRICHMENT: 220
+  ARCHIVED_NO_CONTACT: 90
+  REJECTED: 46
+  NEEDS_REVIEW_ICP: 3
+  NEEDS_REVIEW: 1
+
+BREAKDOWN companies.priority:
+  C: 300
+  NONE: 185
+  B: 103

@@ -1,0 +1,56 @@
+BACKUP INVENTORY AND TABLE COUNTS:
+
+BACKUP: trucklead.db.bak_stepA (2,875,392 bytes)
+  companies: 44
+  contacts: 0
+  lead_outcomes: NOT PRESENT
+  suppression_list: NOT PRESENT
+  candidate_watchlist: NOT PRESENT
+  fmcsa_carrier_census: NOT PRESENT
+  census_candidates: NOT PRESENT
+  census_fleet_snapshots: NOT PRESENT
+  fmcsa_inspections: NOT PRESENT
+
+BACKUP: trucklead.db.bak_stepE (3,481,600 bytes)
+  companies: 296
+  contacts: 154
+  lead_outcomes: 0
+  suppression_list: 0
+  candidate_watchlist: NOT PRESENT
+  fmcsa_carrier_census: 117
+  census_candidates: NOT PRESENT
+  census_fleet_snapshots: NOT PRESENT
+  fmcsa_inspections: NOT PRESENT
+
+BACKUP: trucklead_20261029_152830.db (7,151,616 bytes)
+  companies: 588
+  contacts: 488
+  lead_outcomes: 0
+  suppression_list: 0
+  candidate_watchlist: 31
+  fmcsa_carrier_census: 371
+  census_candidates: 1182
+  census_fleet_snapshots: 1510
+  fmcsa_inspections: 275
+
+BACKUP: trucklead_20261029_205450_before_restore.db (7,151,616 bytes)
+  companies: 588
+  contacts: 488
+  lead_outcomes: 0
+  suppression_list: 0
+  candidate_watchlist: 31
+  fmcsa_carrier_census: 371
+  census_candidates: 1182
+  census_fleet_snapshots: 1510
+  fmcsa_inspections: 275
+
+BACKUP: trucklead_backup_pre_cleanup.db (3,559,424 bytes)
+  companies: 296
+  contacts: 154
+  lead_outcomes: 0
+  suppression_list: 0
+  candidate_watchlist: NOT PRESENT
+  fmcsa_carrier_census: 117
+  census_candidates: NOT PRESENT
+  census_fleet_snapshots: NOT PRESENT
+  fmcsa_inspections: NOT PRESENT
